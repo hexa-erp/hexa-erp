@@ -1,0 +1,69 @@
+<%@ page pageEncoding="UTF-8"%>
+<tr data-line-row>
+	<td class="text-center"><input type="checkbox" class="line-select"
+		aria-label="품목행 선택"></td>
+	<td><span data-line-number>${rowIndex+1}</span> <input
+		type="hidden" data-field="${lineIdField}"
+		name="lines[${rowIndex}].${lineIdField}"
+		value="<c:out value='${row[lineIdField]}'/>"> <c:if
+			test="${not empty sourceIdField}">
+			<input type="hidden" data-field="${sourceIdField}"
+				name="lines[${rowIndex}].${sourceIdField}"
+				value="<c:out value='${row[sourceIdField]}'/>">
+		</c:if> <input type="hidden" data-field="itemId"
+		name="lines[${rowIndex}].itemId"
+		value="<c:out value='${row.itemId}'/>"><input type="hidden"
+		data-field="unit" name="lines[${rowIndex}].unit"
+		value="<c:out value='${row.unit}'/>"></td>
+	<td><div class="input-group">
+			<input type="text" data-field="itemCode"
+				name="lines[${rowIndex}].itemCode"
+				value="<c:out value='${row.itemCode}'/>" readonly aria-label="품목코드">
+			<button type="button" class="btn btn-sm" data-line-pick
+				aria-label="품목 선택">선택</button>
+		</div></td>
+	<td class="item-name"><input type="text" data-field="itemName"
+		name="lines[${rowIndex}].itemName"
+		value="<c:out value='${row.itemName}'/>" maxlength="100"
+		aria-label="품목명"></td>
+	<td><input type="text" data-field="specification"
+		name="lines[${rowIndex}].specification"
+		value="<c:out value='${row.specification}'/>" maxlength="100"
+		aria-label="규격"></td>
+	<td class="number"><input type="number" data-field="quantity"
+		name="lines[${rowIndex}].quantity"
+		value="<c:out value='${row.quantity}'/>" step="0.001" aria-label="수량"></td>
+	<c:if test="${priced}">
+		<td class="number"><input type="number" data-field="unitPrice"
+			name="lines[${rowIndex}].unitPrice"
+			value="<c:out value='${row.unitPrice}'/>" step="0.01" aria-label="단가"></td>
+		<td class="text-right"><input type="hidden"
+			data-field="supplyAmount" name="lines[${rowIndex}].supplyAmount"
+			value="<c:out value='${row.supplyAmount}'/>"> <output
+				data-amount="supplyAmount">
+				<fmt:formatNumber
+					value="${empty row.supplyAmount ? 0 : row.supplyAmount}"
+					pattern="#,##0" />
+			</output></td>
+		<td class="text-right"><input type="hidden"
+			data-field="vatAmount" name="lines[${rowIndex}].vatAmount"
+			value="<c:out value='${row.vatAmount}'/>"> <output
+				data-amount="vatAmount">
+				<fmt:formatNumber value="${empty row.vatAmount ? 0 : row.vatAmount}"
+					pattern="#,##0" />
+			</output></td>
+	</c:if>
+	<td class="line-note"><input type="text" data-field="note"
+		name="lines[${rowIndex}].note" value="<c:out value='${row.note}'/>"
+		maxlength="500" aria-label="행 비고"></td>
+	<c:if test="${priced}">
+		<td class="text-right"><input type="hidden"
+			data-field="totalAmount" name="lines[${rowIndex}].totalAmount"
+			value="<c:out value='${row.totalAmount}'/>"> <output
+				data-amount="totalAmount">
+				<fmt:formatNumber
+					value="${empty row.totalAmount ? 0 : row.totalAmount}"
+					pattern="#,##0" />
+			</output></td>
+	</c:if>
+</tr>

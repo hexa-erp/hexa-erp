@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hexa.erp.testinfra.ConnectionProbeMapper">
+	<!-- 업무 조회가 아닌 DUAL 기반 연결·매핑 점검용 SQL이다. -->
+	<select id="selectProbe"
+		resultType="hexa.erp.testinfra.ConnectionProbeRow">
+		SELECT CAST(#{probeValue} AS VARCHAR2(30)) AS PROBE_VALUE,
+		CAST(#{optionalNote} AS VARCHAR2(30)) AS OPTIONAL_NOTE
+		FROM DUAL
+	</select>
+</mapper>

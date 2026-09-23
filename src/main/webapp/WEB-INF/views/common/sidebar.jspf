@@ -1,0 +1,35 @@
+<%@ page pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<aside class="sidebar" aria-label="업무 탐색">
+	<div class="sidebar-heading">업무 메뉴</div>
+	<nav class="sidebar-scroll" aria-label="전체 업무 메뉴">
+		<ul class="sidebar-groups">
+			<c:forEach var="group" items="${navigation}">
+				<c:set var="sidebarActive" value="${activeMenu eq group.key}" />
+				<li class="sidebar-group ${sidebarActive ? 'is-active' : ''}"
+					data-sidebar-group>
+					<button class="sidebar-trigger" type="button" data-sidebar-toggle
+						aria-expanded="${sidebarActive ? 'true' : 'false'}"
+						aria-controls="sidebar-${group.key}">
+						<span class="sidebar-chevron" aria-hidden="true"></span>
+						<c:out value="${group.label}" />
+					</button>
+					<ul class="sidebar-links" id="sidebar-${group.key}"
+						${sidebarActive ? '' : 'hidden'}>
+
+						<c:forEach var="entry" items="${group.entries}">
+							<c:set var="sidebarCurrent"
+								value="${currentPath eq entry.path or (sidebarActive and fn:endsWith(currentPath, '/statement') and fn:endsWith(entry.path, '/list'))}" />
+
+							<li><a class="sidebar-link" href="${ctx}${entry.path}"
+								${sidebarCurrent ? 'aria-current="page"' : ''}> <c:out
+										value="${entry.label}" />
+							</a></li>
+						</c:forEach>
+					</ul>
+				</li>
+			</c:forEach>
+		</ul>
+	</nav>
+</aside>

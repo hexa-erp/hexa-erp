@@ -1,0 +1,34 @@
+<%@ page pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+
+<dialog id="multi-filter-modal" class="modal multi-filter-modal"
+	aria-labelledby="multi-filter-title">
+<div class="modal-header">
+	<h2 id="multi-filter-title">검색조건 선택</h2>
+	<button type="button" class="icon-button" data-modal-close
+		aria-label="닫기">×</button>
+</div>
+<div class="modal-body">
+	<form id="multi-filter-search" class="toolbar">
+		<label class="sr-only" for="multi-filter-keyword">코드 또는 이름 검색</label>
+		<input id="multi-filter-keyword" name="keyword" type="text"
+			autocomplete="off" maxlength="100" placeholder="코드·이름 입력 후 [Enter]" />
+		<button class="btn btn-primary" type="submit">검색</button>
+		<span class="muted">체크한 항목을 적용하세요.</span>
+	</form>
+	<%-- 적용된 태그는 검색조건 칸에만 표시한다. 모달에는 선택 요약을 중복 표시하지 않는다. --%>
+	<p id="multi-filter-error" class="multi-error" role="status" hidden></p>
+	<div class="table-wrap">
+		<table class="data-table">
+			<thead id="multi-filter-head"></thead>
+			<tbody id="multi-filter-body"></tbody>
+		</table>
+	</div>
+	<div id="multi-filter-pages" class="pagination"></div>
+</div>
+<div class="modal-footer">
+	<button type="button" id="multi-filter-apply" class="btn btn-primary">적용</button>
+	<button type="button" class="btn" data-modal-close>취소</button>
+	<span class="muted">검색·페이지 이동 후에도 체크한 항목은 유지됩니다.</span>
+</div>
+</dialog>

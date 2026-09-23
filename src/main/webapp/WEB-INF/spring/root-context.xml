@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+          http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+          http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd">
+	<!-- 부모 컨텍스트는 DB·Mapper·Service·트랜잭션을, 자식 컨텍스트는 Controller를 등록한다. -->
+	<context:property-placeholder
+		location="classpath:db.properties" />
+
+	<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
+		<property name="driverClassName" value="${db.driver}" />
+		<property name="jdbcUrl" value="${db.url}" />
+		<property name="username" value="${db.username}" />
+		<property name="password" value="${db.password}" />
+		<property name="maximumPoolSize" value="5" />
+		<property name="minimumIdle" value="1" />
+		<property name="poolName" value="hexa-erp-db" />
+	</bean>
+
+	<bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource"
+		destroy-method="close">
+		<constructor-arg ref="hikariConfig" />
+	</bean>
+
+	<!-- DataSource → SqlSessionFactory → Mapper: 같은 연결 풀로 Mapper SQL을 실행한다. -->
+	<bean id="sqlSessionFactory"
+		class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="configLocation"
+			value="classpath:mybatis-config.xml" />
+		<!-- 업무별 mapper XML만 찾으며 testinfra의 연결 점검 XML은 제외한다. -->
+		<property name="mapperLocations"
+			value="classpath*:hexa/erp/*/mapper/*Mapper.xml" />
+	</bean>
+
+	<!-- 업무 Mapper 패키지만 스캔해 Service·테스트 인터페이스의 오등록을 막는다. -->
+	<mybatis-spring:scan
+		base-package="hexa.erp.assignee.mapper,
+			hexa.erp.partner.mapper,
+			hexa.erp.warehouse.mapper,
+			hexa.erp.item.mapper,
+			hexa.erp.quotation.mapper,
+			hexa.erp.salesorder.mapper,
+			hexa.erp.sale.mapper,
+			hexa.erp.shipinstruction.mapper,
+			hexa.erp.shipment.mapper,
+			hexa.erp.stock.mapper,
+			hexa.erp.common.mapper"
+		factory-ref="sqlSessionFactory" />
+
+	<context:component-scan
+		base-package="hexa.erp.assignee.service,
+			hexa.erp.partner.service,
+			hexa.erp.warehouse.service,
+			hexa.erp.item.service,
+			hexa.erp.quotation.service,
+			hexa.erp.salesorder.service,
+			hexa.erp.sale.service,
+			hexa.erp.shipinstruction.service,
+			hexa.erp.shipment.service,
+			hexa.erp.stock.service,
+			hexa.erp.common.service" />
+
+	<!-- MyBatis와 같은 DataSource를 사용해야 commit·rollback이 함께 적용된다. -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- 부모 컨텍스트에 등록된 빈의 @Transactional 처리를 활성화한다. -->
+	<tx:annotation-driven
+		transaction-manager="transactionManager" />
+</beans>

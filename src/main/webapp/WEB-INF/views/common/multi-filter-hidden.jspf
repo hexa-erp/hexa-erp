@@ -1,0 +1,9 @@
+<%@ page pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%-- 결과 내 검색에서도 같은 이름의 ID를 각각 전송한다. --%>
+<c:forEach var="multiParam" items="${filterIds}">
+	<c:forEach var="filterId" items="${multiParam.value}">
+		<input type="hidden" name="<c:out value='${multiParam.key}'/>"
+			value="<c:out value='${filterId}'/>" />
+	</c:forEach>
+</c:forEach>

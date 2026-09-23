@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	<!-- 업무 스캔 밖의 연결 점검 Mapper를 테스트에서만 등록한다. -->
+	<!-- 인터페이스와 같은 클래스패스의 ConnectionProbeMapper.xml을 자동으로 읽는다. -->
+	<bean id="connectionProbeMapper"
+		class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface"
+			value="hexa.erp.testinfra.ConnectionProbeMapper" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+</beans>

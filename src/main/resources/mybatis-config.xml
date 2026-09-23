@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<settings>
+		<!-- WAREHOUSE_ID 같은 컬럼을 warehouseId 속성에 연결한다. -->
+		<setting name="mapUnderscoreToCamelCase" value="true" />
+		<!-- JDBC 타입 미지정 null 입력에 적용한다. 조회 결과의 null을 바꾸는 옵션은 아니다. -->
+		<setting name="jdbcTypeForNull" value="NULL" />
+	</settings>
+</configuration>

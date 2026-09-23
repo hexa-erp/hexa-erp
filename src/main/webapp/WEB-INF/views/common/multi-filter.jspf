@@ -1,0 +1,45 @@
+<%@ page pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%-- 선택한 ID만 반복 전송한다. 텍스트 입력은 선택창 검색용이며 확정 검색조건이 아니다. --%>
+<div class="field multi-filter-field" role="group"
+	aria-labelledby="filter-label-${multiKind}">
+	<span id="filter-label-${multiKind}"><c:out
+			value="${multiLabel}" /></span>
+	<div class="multi-selector" data-multi-filter="${multiKind}"
+		data-multi-name="${multiKind}Ids">
+		<button type="button" class="multi-open" data-multi-open
+			aria-label="${multiLabel} 여러 항목 선택" aria-haspopup="dialog"
+			aria-controls="multi-filter-modal">
+			<svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"
+				focusable="false">
+				<circle cx="8" cy="8" r="5.5" />
+				<path d="M12 12l5 5" /></svg>
+		</button>
+		<div class="multi-values">
+			<input class="multi-query" data-multi-query type="text"
+				autocomplete="off" maxlength="100" placeholder="코드·이름 검색"
+				aria-label="${multiLabel} 코드 또는 이름 검색" />
+			<div class="multi-chips" data-multi-chips role="list"
+				aria-label="선택한 ${multiLabel}">
+				<c:forEach var="selection" items="${filterSelections[multiKind]}">
+					<span class="multi-chip" role="listitem"
+						data-multi-id="<c:out value='${selection.id}'/>"
+						data-multi-code="<c:out value='${selection.code}'/>"
+						data-multi-label="<c:out value='${selection.name}'/>"
+						title="<c:out value='${selection.code}'/> · <c:out value='${selection.name}'/>">
+						<span class="multi-chip-label"><c:out
+								value="${selection.name}" /></span>
+						<button type="button" data-multi-remove
+							aria-label="<c:out value='${selection.name}'/> 선택 해제">×</button>
+						<input type="hidden" name="${multiKind}Ids"
+						value="<c:out value='${selection.id}'/>" />
+					</span>
+				</c:forEach>
+			</div>
+		</div>
+		<button type="button" class="multi-clear" data-multi-clear
+			aria-label="${multiLabel} 선택 전체 해제" title="선택 전체 해제"
+			${empty filterSelections[multiKind] ? 'hidden' : ''}>×</button>
+		<span class="sr-only" data-multi-live aria-live="polite"></span>
+	</div>
+</div>

@@ -1,0 +1,256 @@
+/* workspacePage인 화면의 .erp-workspace에만 적용해 입력·모달 스타일과 분리한다. */
+.erp-workspace {
+  min-width: 0;
+  width: 100%;
+  --grid-line: #dbe1e9;
+  --grid-head: #edf1f6;
+  --grid-text: #34465e;
+}
+.erp-workspace h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -.35px;
+  line-height: 24px;
+  white-space: nowrap;
+}
+.erp-workspace h1::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 13px;
+  margin: 0 8px 0 1px;
+  background: var(--blue);
+  vertical-align: -1px;
+}
+.erp-workspace .workspace-hint { margin: 0; color: #748196; font-size: 13px; line-height: 18px; }
+.erp-workspace .list-search,
+.erp-workspace .workspace-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  min-height: 38px;
+  margin: 0;
+  padding: 2px 0 7px;
+  border: 0;
+  border-bottom: 1px solid #c9d3e2;
+  background: transparent;
+  border-radius: 0;
+}
+.erp-workspace .workspace-heading > div { min-width: 0; }
+.erp-workspace .workspace-heading p { margin: 2px 0 0; font-size: 13px; }
+.erp-workspace .workspace-heading > p { margin-left: auto; }
+.erp-workspace .list-title-status { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; min-width: 0; }
+.erp-workspace .tabs { gap: 3px; }
+.erp-workspace .tabs .btn { min-height: 25px; padding: 2px 9px; border-radius: 2px; font-size: 13px; }
+.erp-workspace .list-keyword { margin: 0 0 0 auto; flex: 0 1 292px; min-width: 230px; gap: 4px; }
+.erp-workspace .list-keyword input[type="search"] { width: 218px; min-width: 140px; }
+.erp-workspace .btn { min-height: 26px; padding: 3px 9px; font-size: 13px; line-height: 18px; border-radius: 2px; }
+.erp-workspace input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+.erp-workspace select { min-height: 28px; padding: 3px 6px; border-radius: 2px; font-size: 13px; line-height: 20px; }
+.erp-workspace .workspace-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  min-height: 34px;
+  padding: 4px 0;
+}
+.erp-workspace .workspace-meta > .workspace-hint { margin-left: auto; text-align: right; }
+.erp-workspace .pagination { gap: 10px; margin: 0; min-height: 24px; flex: 0 1 auto; }
+.erp-workspace .pagination > .muted { margin: 0; font-size: 13px; }
+.erp-workspace .pagination-pages { display: flex; align-items: center; flex-wrap: wrap; gap: 3px; }
+.erp-workspace .page-button { min-width: 24px; height: 24px; padding: 0 5px; font-size: 13px; border-radius: 2px; }
+.erp-workspace .workspace-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 40px;
+  margin: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-top: 0;
+  background: #fafbfc;
+}
+.erp-workspace .workspace-actions .muted { font-size: 13px; margin-left: 4px; }
+.erp-workspace .workspace-actions .status-options { top: auto; bottom: calc(100% + 5px); }
+.erp-workspace .status-option { font-size: 13px; padding: 6px 10px; }
+
+/* 넓은 표는 내부에서 스크롤하고 열 제목을 고정해 값을 잘리지 않게 표시한다. */
+.erp-workspace .table-wrap { border-radius: 2px 2px 0 0; scrollbar-width: thin; scrollbar-color: #c6ceda #f4f6f9; }
+.erp-workspace .workspace-table { font-size: 13px; line-height: 18px; }
+.erp-workspace .workspace-table th,
+.erp-workspace .workspace-table td { padding: 4px 8px; border-right: 1px solid var(--grid-line); }
+.erp-workspace .workspace-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: 30px;
+  background: var(--grid-head);
+  color: var(--grid-text);
+  box-shadow: inset 0 -1px #c7d1e0;
+  font-weight: 600;
+  vertical-align: middle;
+}
+.erp-workspace .workspace-table tbody td { height: 28px; border-bottom-color: var(--grid-line); vertical-align: middle; }
+.erp-workspace .workspace-table th:last-child,
+.erp-workspace .workspace-table td:last-child { border-right: 0; }
+.erp-workspace .workspace-table tbody tr:hover td { background: #f3f7fd; }
+.erp-workspace .workspace-table tbody tr:has(input[type="checkbox"]:checked) td { background: #eaf2ff; }
+.erp-workspace .workspace-table tfoot th,
+.erp-workspace .workspace-table tfoot td { height: 30px; background: #e9eef6; border-top: 1px solid #bfccdf; font-weight: 700; }
+.erp-workspace .workspace-table .text-right { text-align: right; font-variant-numeric: tabular-nums; }
+.erp-workspace .workspace-table .text-center { text-align: center; }
+.erp-workspace .workspace-table input[type="checkbox"] { margin: 0; }
+.erp-workspace .workspace-table .col-select { width: 32px; min-width: 32px; padding: 3px 7px; text-align: center; }
+.erp-workspace .workspace-table .col-code { min-width: 88px; white-space: nowrap; }
+.erp-workspace .workspace-table .col-date { min-width: 122px; white-space: nowrap; }
+.erp-workspace .workspace-table .col-person { min-width: 76px; white-space: nowrap; }
+.erp-workspace .workspace-table .col-number { min-width: 95px; white-space: nowrap; }
+.erp-workspace .workspace-table .col-status { width: 78px; min-width: 78px; }
+.erp-workspace .workspace-table .col-active { width: 54px; min-width: 54px; }
+.erp-workspace .workspace-table .col-unit { width: 52px; min-width: 52px; }
+.erp-workspace .workspace-table .col-link { width: 90px; min-width: 90px; }
+.erp-workspace .workspace-table .col-item { min-width: 185px; max-width: 360px; white-space: normal; overflow-wrap: anywhere; }
+.erp-workspace .document-table .col-item { width: 32%; }
+.erp-workspace .workspace-table .col-spec { min-width: 140px; max-width: 240px; white-space: normal; overflow-wrap: anywhere; }
+.erp-workspace .workspace-table .note-cell { min-width: 170px; max-width: 260px; white-space: normal; overflow-wrap: anywhere; line-height: 18px; }
+.erp-workspace .workspace-table .col-timestamp { min-width: 158px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.erp-workspace .badge { padding: 0; border: 0; border-radius: 0; background: transparent; font-size: 13px; line-height: 18px; }
+.erp-workspace .badge.completed,
+.erp-workspace .badge.confirmed,
+.erp-workspace .badge.inactive { background: transparent; }
+.erp-workspace .workspace-table .empty-state { height: 78px; padding: 18px 12px !important; font-size: 13px; }
+.document-workspace #document-list-actions > .table-wrap,
+.master-workspace > form > .table-wrap,
+.bulk-workspace #bulk-price-form > .table-wrap { max-height: calc(100vh - 238px); }
+.erp-workspace .partner-table { min-width: 1080px; }
+.erp-workspace .item-table { min-width: 1170px; }
+.erp-workspace .warehouse-table .col-code { width: 18%; }
+.erp-workspace .warehouse-table th:nth-child(4) { width: 18%; }
+.erp-workspace #item-selection .item-image-cell { min-width: 60px; width: 60px; text-align: center; }
+.erp-workspace #item-selection [data-item-image] { min-width: 27px; min-height: 25px; padding: 1px 3px; }
+.erp-workspace #item-selection [data-item-image] img { width: 23px; height: 23px; object-fit: contain; }
+.erp-workspace #item-selection .item-image-empty { border: 0; border-radius: 0; padding: 0; min-width: 0; background: transparent; font-size: 13px; }
+
+.erp-workspace .report-search { margin: 10px 0 0; padding: 0; border: 1px solid var(--line); background: #fff; border-radius: 2px; }
+.erp-workspace .report-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; }
+.erp-workspace .report-fields > .field {
+  margin: 0;
+  min-height: 38px;
+  padding: 5px 10px;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px solid #e7ebf1;
+}
+.erp-workspace .report-fields > .field > span:first-child { flex: 0 0 100px; color: #596b85; font-size: 13px; }
+.erp-workspace .report-fields > .field > .input-group { min-width: 0; }
+.erp-workspace .report-fields input[type="date"] { width: 0; min-width: 132px; }
+.erp-workspace .report-fields .input-group input[type="number"] { width: 0; min-width: 65px; }
+.erp-workspace .report-fields > fieldset.field {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  border: 0;
+  border-bottom: 1px solid #e7ebf1;
+  border-radius: 0;
+  padding: 4px 10px 8px;
+  gap: 6px 16px;
+}
+.erp-workspace .report-fields > fieldset.field > legend { font-size: 13px; padding: 0; margin-bottom: 2px; color: #596b85; }
+.erp-workspace .report-fields > fieldset.field .tabs { gap: 8px 18px; }
+.erp-workspace .search-actions { border: 0; padding: 6px 10px; }
+.erp-workspace .result-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 34px; padding: 5px 0; }
+.erp-workspace .result-tools { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.erp-workspace .result-controls .pagination { margin-right: auto; }
+.report-workspace > .table-wrap { max-height: calc(100vh - 238px); }
+.erp-workspace .report-table { min-width: 860px; }
+/* 월계·총합계 행은 선택 가능한 상세행과 시각적으로 구분한다. */
+.report-workspace .report-table tbody tr.report-subtotal > th,
+.report-workspace .report-table tbody tr.report-subtotal > td {
+  height: 30px;
+  background: #f2f4f7;
+  color: #293b54;
+  font-weight: 700;
+  border-top: 1px solid #c7d0de;
+  border-bottom: 1px solid #c7d0de;
+}
+.report-workspace .report-table tfoot tr.report-grand-total > th,
+.report-workspace .report-table tfoot tr.report-grand-total > td {
+  height: 32px;
+  background: #e8eef7;
+  color: #233857;
+  border-top: 1px solid #b7c6dc;
+  font-weight: 700;
+}
+.report-workspace .report-table .report-subtotal > th,
+.report-workspace .report-table .report-grand-total > th {
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 금액을 자르지 않도록 표 너비를 확보하고 열이 많으면 표 내부에서 스크롤한다. */
+.erp-workspace .bulk-table { width: 1813px; min-width: 1813px; table-layout: auto; }
+.erp-workspace .bulk-table col.bulk-select { width: 32px; }
+.erp-workspace .bulk-table col.bulk-date { width: 124px; }
+.erp-workspace .bulk-table col.bulk-partner { width: 100px; }
+.erp-workspace .bulk-table col.bulk-person { width: 68px; }
+.erp-workspace .bulk-table col.bulk-warehouse { width: 90px; }
+.erp-workspace .bulk-table col.bulk-code { width: 76px; }
+.erp-workspace .bulk-table col.bulk-item { width: 126px; }
+.erp-workspace .bulk-table col.bulk-spec { width: 136px; }
+.erp-workspace .bulk-table col.bulk-quantity { width: 66px; }
+.erp-workspace .bulk-table col.bulk-unit { width: 44px; }
+.erp-workspace .bulk-table col.bulk-price { width: 104px; }
+.erp-workspace .bulk-table col.bulk-supply { width: 105px; }
+.erp-workspace .bulk-table col.bulk-vat { width: 90px; }
+.erp-workspace .bulk-table col.bulk-note { width: 200px; }
+.erp-workspace .bulk-table col.bulk-time { width: 164px; }
+.erp-workspace .bulk-table .col-code { min-width: 76px; }
+.erp-workspace .bulk-table .col-person { min-width: 68px; }
+.erp-workspace .bulk-table .col-item { min-width: 126px; max-width: 126px; }
+.erp-workspace .bulk-table .col-spec { min-width: 136px; max-width: 136px; }
+.erp-workspace .bulk-table .col-number { min-width: 66px; }
+.erp-workspace .bulk-table .col-unit { width: 44px; min-width: 44px; }
+.erp-workspace .bulk-table .note-cell { min-width: 200px; max-width: 200px; }
+.erp-workspace .bulk-table .col-timestamp { min-width: 164px; }
+.erp-workspace .bulk-table th { padding-left: 5px; padding-right: 5px; }
+.erp-workspace .bulk-table td:has([data-bulk-unit-price]) { padding: 2px 5px; }
+.erp-workspace .bulk-table input.price-input[type="number"] { width: 94px; min-width: 94px; min-height: 24px; height: 24px; line-height: 18px; padding: 1px 5px; text-align: right; border-color: #b7c9e8; }
+.erp-workspace .statement-meta { gap: 0; margin: 10px 0; padding: 0; background: #fff; border: 1px solid var(--line); border-radius: 2px; }
+.erp-workspace .statement-meta > .field { gap: 10px; min-height: 34px; margin: 0; padding: 6px 10px; border-bottom: 1px solid #e7ebf1; overflow-wrap: anywhere; }
+.erp-workspace .statement-meta > .field > span:first-child { flex: 0 0 100px; font-size: 13px; }
+.erp-workspace .statement-table { min-width: 1000px; }
+
+@media (min-width: 1700px) {
+  .erp-workspace .report-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 1160px) {
+  .erp-workspace .list-search { gap: 7px; }
+  .erp-workspace .list-keyword { flex-basis: 250px; }
+  .erp-workspace .workspace-meta > .workspace-hint { text-align: left; margin-left: 0; }
+  .erp-workspace .report-fields { grid-template-columns: minmax(0, 1fr); }
+}
+@media print {
+  /* 총합계가 인쇄 페이지마다 반복되지 않도록 tfoot을 일반 행 그룹으로 처리한다. */
+  .report-workspace .report-table tfoot { display: table-row-group; }
+  .report-workspace .report-table .report-subtotal,
+  .report-workspace .report-table .report-grand-total { break-inside: avoid; }
+
+  .erp-workspace .list-search,
+  .erp-workspace .workspace-meta,
+  .erp-workspace .workspace-actions,
+  .erp-workspace .result-controls,
+  .erp-workspace .result-heading form { display: none !important; }
+  .erp-workspace .workspace-heading .btn { display: none !important; }
+  .erp-workspace .table-wrap { overflow: visible !important; max-height: none !important; border-radius: 0; }
+  .erp-workspace .workspace-table { min-width: 0; width: 100%; white-space: normal; font-size: 10px; }
+  .erp-workspace .workspace-table th,
+  .erp-workspace .workspace-table td { position: static; min-width: 0 !important; padding: 3px; box-shadow: none; }
+  .erp-workspace .workspace-table tr { break-inside: avoid; }
+  .erp-workspace .workspace-table thead { display: table-header-group; }
+}
