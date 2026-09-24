@@ -104,9 +104,8 @@
 <script src="${ctx}/resources/js/decimal.js?v=1"></script>
 <script src="${ctx}/resources/js/common.js?v=1"></script>
 <script src="${ctx}/resources/js/layout.js?v=1"></script>
-<script
-	src="${ctx}/resources/js/reference-selector.js?v=1"></script>
-<script src="${ctx}/resources/js/document.js?v=1"></script>
+<script src="${ctx}/resources/js/reference-selector.js?v=2"></script>
+<script src="${ctx}/resources/js/document.js?v=2"></script>
 <c:if test="${not empty pageScript}">
 	<script src="${ctx}/resources/js/${pageScript}?v=1"></script>
 </c:if>

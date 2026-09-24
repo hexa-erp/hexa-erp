@@ -11,6 +11,9 @@
     sourceField = $section.attr('data-source-id-field'),
     priced = $section.attr('data-priced') === 'true';
   var originalRows = $body.html();
+  // quotationLineId → quotationId처럼 상세 PK에 대응하는 최초 헤더 ID로 신규 여부를 판단한다.
+  var headerIdField = idField.replace(/LineId$/, 'Id');
+  var isNew = !$form.find('input[name="' + headerIdField + '"]').val();
   // hidden 입력은 native reset만으로 복원되지 않아 최초 ID·코드·이름을 별도로 보관한다.
   var originalSelectors = $form.find(
     '[data-selector-field] input[name], [data-selector-field] [data-reference-code]'
@@ -87,6 +90,13 @@
     return $row[0];
   }
 
+  function addInitialRows() {
+    if (isNew && !$body.children('tr').length) {
+      for (var i = 0; i < 3; i++)
+        addRow();
+    }
+  }
+
   function removeRow(row) {
     var id = field(row, idField).val();
     // 현재 전표의 기존 상세 ID만 기록한다. 원전표 ID나 신규 행의 빈 ID는 기록하지 않는다.
@@ -147,8 +157,7 @@
       // 최초 서버 렌더링 HTML만 복원한다. 사용자 입력이나 API 문자열을 HTML로 합치지 않는다.
       $body.html(originalRows);
       $removed.empty();
-      if (!$body.children('tr').length)
-        addRow();
+      addInitialRows();
       reindex();
       recalc();
     }, 0);
@@ -304,8 +313,7 @@
     reindex();
     recalc();
   });
-  if (!$body.children('tr').length)
-    addRow();
+  addInitialRows();
   reindex();
   recalc();
 }(jQuery));

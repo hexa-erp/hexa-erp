@@ -64,6 +64,16 @@
 								return;
 							}
 							apply(box, row);
+							// 원전표·검색조건에는 전파하지 않고 입력 Form의 직접 선택에만 적용한다.
+							if (fields.type === 'partner') {
+								var $assignee = $(box).closest('form[data-document-form]')
+										.find('[data-code-selector="assignee"]');
+								var hasAssignee = text(row.assigneeId) && text(row.assigneeCode)
+										&& text(row.assigneeName);
+								$assignee.each(function() {
+									apply(this, hasAssignee ? row : {});
+								});
+							}
 						}, keyword);
 	}
 
