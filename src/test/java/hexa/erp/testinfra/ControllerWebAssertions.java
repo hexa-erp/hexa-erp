@@ -150,11 +150,11 @@ public final class ControllerWebAssertions {
 		}
 	}
 
-	public static void lookupContracts(MockMvc mvc) throws Exception {
+	public static void sourceLookupContracts(MockMvc mvc) throws Exception {
 		ObjectMapper json = new ObjectMapper();
 		for (String[] route : LOOKUPS) {
 			String url = route[0];
-			if ("/lookup/options/assignee".equals(url)) {
+			if (url.startsWith("/lookup/options/")) {
 				continue; 
 			}
 			MvcResult result = mvc.perform(get(url).param("keyword", "001")

@@ -39,6 +39,15 @@ import org.w3c.dom.NodeList;
 import hexa.erp.assignee.mapper.AssigneeMapper;
 import hexa.erp.assignee.service.AssigneeService;
 import hexa.erp.assignee.service.AssigneeServiceImpl;
+import hexa.erp.partner.mapper.PartnerMapper;
+import hexa.erp.partner.service.PartnerService;
+import hexa.erp.partner.service.PartnerServiceImpl;
+import hexa.erp.warehouse.mapper.WarehouseMapper;
+import hexa.erp.warehouse.service.WarehouseService;
+import hexa.erp.warehouse.service.WarehouseServiceImpl;
+import hexa.erp.item.mapper.ItemMapper;
+import hexa.erp.item.service.ItemService;
+import hexa.erp.item.service.ItemServiceImpl;
 
 /** Oracle 없이 업무별 스캔·XML 로딩·빈 주입을 검사한다. 테스트 DataSource는 연결을 금지한다. */
 public class RootContextConfigurationTest {
@@ -68,7 +77,7 @@ public class RootContextConfigurationTest {
 	}
 
 	@Test
-	public void wildcardFindsAssigneeXmlButExcludesVisibleConnectionProbeXml() throws Exception {
+	public void wildcardFindsBasicLookupXmlsButExcludesVisibleConnectionProbeXml() throws Exception {
 		try (GenericApplicationContext root = new GenericApplicationContext()) {
 			loadRootDefinitions(root);
 			Object configured = root.getBeanDefinition("sqlSessionFactory")
@@ -86,6 +95,14 @@ public class RootContextConfigurationTest {
 			assertTrue(locations.contains(new ClassPathResource(
 					"hexa/erp/assignee/mapper/AssigneeMapper.xml").getURL().toExternalForm()));
 
+			assertEquals(4, locations.size());
+			assertTrue(locations.contains(new ClassPathResource(
+					"hexa/erp/partner/mapper/PartnerMapper.xml").getURL().toExternalForm()));
+			assertTrue(locations.contains(new ClassPathResource(
+					"hexa/erp/warehouse/mapper/WarehouseMapper.xml").getURL().toExternalForm()));
+			assertTrue(locations.contains(new ClassPathResource(
+					"hexa/erp/item/mapper/ItemMapper.xml").getURL().toExternalForm()));
+
 			// 테스트 XML이 있어도 업무 Mapper 검색에는 포함되면 안 된다.
 			Resource probe = new ClassPathResource("hexa/erp/testinfra/ConnectionProbeMapper.xml");
 			assertTrue(probe.exists());
@@ -96,7 +113,7 @@ public class RootContextConfigurationTest {
 	}
 
 	@Test
-	public void actualRootRegistersAssigneeGraphWithoutOpeningAnyConnection() {
+	public void actualRootRegistersBasicLookupGraphsWithoutOpeningAnyConnection() {
 		NoConnectionDataSource source = new NoConnectionDataSource();
 		try (GenericApplicationContext root = new GenericApplicationContext()) {
 			root.setAllowBeanDefinitionOverriding(false);
@@ -126,6 +143,10 @@ public class RootContextConfigurationTest {
 			assertTrue(configuration.hasStatement(AssigneeMapper.class.getName() + ".getList"));
 			assertTrue(configuration.hasStatement(AssigneeMapper.class.getName() + ".getTotal"));
 			assertFalse(configuration.hasMapper(AssigneeService.class));
+			assertLookupGraph(root, configuration, PartnerMapper.class, PartnerService.class, PartnerServiceImpl.class);
+			assertLookupGraph(root, configuration, WarehouseMapper.class, WarehouseService.class, WarehouseServiceImpl.class);
+			assertLookupGraph(root, configuration, ItemMapper.class, ItemService.class, ItemServiceImpl.class);
+			assertEquals(4, configuration.getMapperRegistry().getMappers().size());
 			assertFalse(configuration.hasMapper(ConnectionProbeMapper.class));
 			assertFalse(configuration.hasStatement(ConnectionProbeMapper.class.getName() + ".selectProbe"));
 			assertFalse(configuration.isResourceLoaded("hexa/erp/testinfra/ConnectionProbeMapper.xml"));
@@ -157,6 +178,21 @@ public class RootContextConfigurationTest {
 		} finally {
 			assertEquals("DB 연결을 한 번도 열면 안 된다.", 0, source.connectionAttempts);
 		}
+	}
+
+	private void assertLookupGraph(GenericApplicationContext root, Configuration configuration,
+			Class<?> mapperType, Class<?> serviceType, Class<?> implementationType) {
+		assertEquals(1, root.getBeansOfType(mapperType).size());
+		assertEquals(1, root.getBeansOfType(serviceType).size());
+		Object service = root.getBean(serviceType);
+		assertTrue(implementationType.isInstance(service));
+		assertTrue(implementationType.isAnnotationPresent(Service.class));
+		assertFalse(serviceType.isAnnotationPresent(Service.class));
+		assertSame(root.getBean(mapperType), ReflectionTestUtils.getField(service, "mapper"));
+		assertTrue(configuration.hasMapper(mapperType));
+		assertTrue(configuration.hasStatement(mapperType.getName() + ".getList"));
+		assertTrue(configuration.hasStatement(mapperType.getName() + ".getTotal"));
+		assertFalse(configuration.hasMapper(serviceType));
 	}
 
 	private Set<String> expectedPackages(String layer) {
