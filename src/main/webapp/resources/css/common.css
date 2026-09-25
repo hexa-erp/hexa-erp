@@ -77,7 +77,14 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   font-weight: 800;
   white-space: nowrap;
 }
-.brand span { color: var(--blue); font-weight: 500; }
+.brand img {
+  display: block;
+  width: auto;
+  height: 30px;
+  max-width: 100%;
+  object-fit: contain;
+  transform: translateX(-6px);
+}
 .quick-nav { min-width: 0; padding: 0 16px; overflow-x: auto; }
 .quick-links {
   display: flex;

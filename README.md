@@ -1,4 +1,9 @@
-# HEXA-ERP
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/logo-dark.png">
+    <img src="docs/images/logo.png" alt="HEXA-ERP" width="600">
+  </picture>
+</p>
 
 <br>
 
@@ -7,16 +12,38 @@
 Spring MVC 기반의 판매·재고 관리 ERP 팀 프로젝트입니다.
 기초등록, 견적, 주문, 판매, 출하지시, 출하, 재고 업무를 다룹니다.
 
+### 업무 흐름
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/flow-dark.png">
+    <img src="docs/images/flow.png" alt="업무 흐름: 거래처·창고·품목을 기초등록해 두고 전표 작성 시 선택하며, 전표는 견적서, 주문서, 판매(재고 차감), 출하지시서, 출하 순서로 진행" width="820">
+  </picture>
+</p>
+
 <br>
 
 ## 기술 스택
 
 | 구분 | 기술 |
 | --- | --- |
-| 백엔드 | Java 8, Spring MVC 5.0.7, MyBatis |
+| 백엔드 | <img src="docs/images/stack/java.png" alt="Java 8" height="96"> <img src="docs/images/stack/spring.png" alt="Spring MVC" height="96"> <img src="docs/images/stack/mybatis.png" alt="MyBatis" height="96"> <img src="docs/images/stack/hikari.png" alt="HikariCP" height="96"> |
+| 화면 | <img src="docs/images/stack/jsp.png" alt="JSP" height="96"> <img src="docs/images/stack/jstl.png" alt="JSTL" height="96"> <img src="docs/images/stack/javascript.png" alt="JavaScript" height="96"> <img src="docs/images/stack/jquery.png" alt="jQuery" height="96"> <img src="docs/images/stack/html5.png" alt="HTML5" height="96"> <img src="docs/images/stack/css3.png" alt="CSS3" height="96"> |
+| DB | <img src="docs/images/stack/oracle.png" alt="Oracle 11g XE" height="96"> |
+| 개발·배포 | <img src="docs/images/stack/maven.png" alt="Maven" height="96"> <img src="docs/images/stack/tomcat.png" alt="Tomcat 9" height="96"> <img src="docs/images/stack/sts.png" alt="STS" height="96"> <img src="docs/images/stack/git.png" alt="Git" height="96"> <img src="docs/images/stack/github.png" alt="GitHub" height="96"> |
+
+<details>
+<summary>버전 정보</summary>
+<br>
+
+| 구분 | 기술 |
+| --- | --- |
+| 백엔드 | Java 8, Spring MVC 5.0.7, MyBatis 3.4.6, HikariCP 2.7.4 |
 | 화면 | JSP / JSTL, jQuery 3.7.1 |
-| DB | Oracle 11g XE, HikariCP |
+| DB | Oracle 11g XE |
 | 개발·배포 | Maven WAR, Tomcat 9, Eclipse / STS, Git / GitHub |
+
+</details>
 
 <br>
 

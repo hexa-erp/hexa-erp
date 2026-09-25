@@ -38,9 +38,8 @@
 					data-code-selector="partner" role="group"
 					aria-labelledby="partner-label">
 					<input type="hidden" name="partnerId"
-						value="<c:out value="${form.partnerId}"/>" />
-					
-					<input type="text" id="partner-code" class="reference-code"
+						value="<c:out value="${form.partnerId}"/>" /> <input type="text"
+						id="partner-code" class="reference-code"
 						data-reference-code="partnerCode"
 						value="<c:out value="${form.partnerCode}"/>" maxlength="30"
 						placeholder="거래처 코드" aria-label="거래처 코드" autocomplete="off"
@@ -64,9 +63,8 @@
 					data-code-selector="assignee" role="group"
 					aria-labelledby="assignee-label">
 					<input type="hidden" name="assigneeId"
-						value="<c:out value="${form.assigneeId}"/>" />
-					
-					<input type="text" id="assignee-code" class="reference-code"
+						value="<c:out value="${form.assigneeId}"/>" /> <input type="text"
+						id="assignee-code" class="reference-code"
 						data-reference-code="assigneeCode"
 						value="<c:out value="${form.assigneeCode}"/>" maxlength="30"
 						placeholder="담당자 코드" aria-label="담당자 코드" autocomplete="off"
@@ -90,9 +88,8 @@
 					data-code-selector="warehouse" role="group"
 					aria-labelledby="warehouse-label">
 					<input type="hidden" name="warehouseId"
-						value="<c:out value="${form.warehouseId}"/>" />
-					
-					<input type="text" id="warehouse-code" class="reference-code"
+						value="<c:out value="${form.warehouseId}"/>" /> <input
+						type="text" id="warehouse-code" class="reference-code"
 						data-reference-code="warehouseCode"
 						value="<c:out value="${form.warehouseCode}"/>" maxlength="30"
 						placeholder="창고 코드" aria-label="창고 코드" autocomplete="off"

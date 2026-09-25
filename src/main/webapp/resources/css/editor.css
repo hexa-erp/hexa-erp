@@ -15,7 +15,26 @@
   gap: 14px;
   flex-wrap: wrap;
 }
-.erp-editor .editor-heading h1 { margin: 0; font-size: 15px; font-weight: 700; }
+.erp-editor .editor-heading h1 {
+  position: relative;
+  margin: 0;
+  padding-left: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -.35px;
+  line-height: 24px;
+  white-space: nowrap;
+}
+.erp-editor .editor-heading h1::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: 50%;
+  width: 3px;
+  height: 13px;
+  background: var(--blue);
+  transform: translateY(-50%);
+}
 .erp-editor .editor-heading p { font-size: 13px; margin: 0; }
 .erp-editor .editor-heading > .btn { flex-shrink: 0; }
 .erp-editor .form-panel { padding: 0; margin: 0 0 9px; border-radius: 2px; overflow: hidden; }
