@@ -9,33 +9,29 @@
 <head>
 <meta charset="UTF-8">
 <link rel="icon" type="image/png"
-	href="<c:url value='/resources/images/favicon.png' />">
+	href="<c:url value='/resources/images/hexa-erp-favicon.png' />">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title><c:out value="${pageTitle}" /></title>
-<link rel="stylesheet"
-	href="${ctx}/resources/css/common.css?v=1">
-<link rel="stylesheet"
-	href="${ctx}/resources/css/editor.css?v=1">
+<link rel="stylesheet" href="${ctx}/resources/css/common.css?v=1">
+<link rel="stylesheet" href="${ctx}/resources/css/editor.css?v=1">
 <c:if test="${not empty pageStyle}">
-	<link rel="stylesheet"
-		href="${ctx}/resources/css/${pageStyle}?v=1">
+	<link rel="stylesheet" href="${ctx}/resources/css/${pageStyle}?v=1">
 </c:if>
 <c:if test="${workspacePage}">
-	<link rel="stylesheet"
-		href="${ctx}/resources/css/workspace.css?v=1">
+	<link rel="stylesheet" href="${ctx}/resources/css/workspace.css?v=1">
 </c:if>
 <c:if test="${multiFilterPage}">
-	<link rel="stylesheet"
-		href="${ctx}/resources/css/multi-filter.css?v=1">
+	<link rel="stylesheet" href="${ctx}/resources/css/multi-filter.css?v=1">
 </c:if>
 </head>
 <body data-context-path="${ctx}">
 	<a class="skip-link" href="#main">본문으로 이동</a>
 	<header class="site-header">
-		<div class="brand" aria-label="hexa-erp">
-			hexa<span>-erp</span>
+		<div class="brand" aria-label="HEXA-ERP">
+			<img src="<c:url value='/resources/images/hexa-erp-logo.png' />"
+				alt="HEXA-ERP">
 		</div>
-		
+
 		<nav class="quick-nav" aria-label="전표 입력 바로가기">
 			<ul class="quick-links">
 				<c:forEach var="group" items="${navigation}">
@@ -61,7 +57,7 @@
 		<%-- 안내 표시 여부와 Form의 저장 구현 여부는 별개다. --%>
 		<c:if test="${developmentMode}">
 			<div class="development-banner">
-				<span class="development-dot" aria-hidden="true"></span>
-				<strong>개발 중</strong><span>일부 백엔드 기능은 아직 구현되지 않았습니다.</span>
+				<span class="development-dot" aria-hidden="true"></span> <strong>개발
+					중</strong><span>일부 백엔드 기능은 아직 구현되지 않았습니다.</span>
 			</div>
 		</c:if>
