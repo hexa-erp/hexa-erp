@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** 미구현 선택 목록용 응답이며 DB 오류의 대체 응답으로 사용하지 않는다. */
+/** 빈 선택 목록 응답을 만든다. */
 public final class LookupResponses {
 	private LookupResponses() {
 	}

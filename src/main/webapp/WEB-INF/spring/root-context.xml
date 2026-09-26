@@ -8,7 +8,7 @@
           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
           http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd">
-	<!-- 부모 컨텍스트는 DB·Mapper·Service·트랜잭션을, 자식 컨텍스트는 Controller를 등록한다. -->
+	<!-- DB·Mapper·Service·트랜잭션은 root-context.xml, Controller는 servlet-context.xml에서 설정한다. -->
 	<context:property-placeholder
 		location="classpath:db.properties" />
 
@@ -33,12 +33,12 @@
 		<property name="dataSource" ref="dataSource" />
 		<property name="configLocation"
 			value="classpath:mybatis-config.xml" />
-		<!-- 업무별 mapper XML만 찾으며 testinfra의 연결 점검 XML은 제외한다. -->
+		<!-- src/main/resources/hexa/erp/업무/mapper/의 *Mapper.xml을 읽는다. -->
 		<property name="mapperLocations"
 			value="classpath*:hexa/erp/*/mapper/*Mapper.xml" />
 	</bean>
 
-	<!-- 업무 Mapper 패키지만 스캔해 Service·테스트 인터페이스의 오등록을 막는다. -->
+	<!-- 아래 mapper 패키지의 인터페이스를 자동 등록한다. -->
 	<mybatis-spring:scan
 		base-package="hexa.erp.assignee.mapper,
 			hexa.erp.partner.mapper,
@@ -71,7 +71,7 @@
 		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
-	<!-- 부모 컨텍스트에 등록된 빈의 @Transactional 처리를 활성화한다. -->
+	<!-- Service의 @Transactional 처리를 활성화한다. -->
 	<tx:annotation-driven
 		transaction-manager="transactionManager" />
 </beans>

@@ -1,9 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%-- 견적서의 창고 선택은 필수가 아니다. 수정 시 헤더·상세 ID를 보존하며 CODE를 내부 ID로 대신하지 않는다. --%>
+<%-- 창고 선택은 선택사항이다. 수정 시 전표·상세행 ID를 함께 보낸다. 코드는 표시·검색에 사용한다. --%>
 <c:set var="pageTitle" value="견적서 입력" />
 <c:set var="activeMenu" value="quotation" />
 <%@ include file="../common/header.jsp"%>
+<c:url var="documentListUrl" value="/quotation/list">
+	<%@ include file="../common/list-return-params.jspf"%>
+</c:url>
 <div class="erp-editor">
 	<div class="page-heading editor-heading">
 		<div>
@@ -16,10 +19,11 @@
 			</h1>
 			<p class="muted">거래처와 품목을 선택하여 견적 내용을 입력합니다.</p>
 		</div>
-		<a class="btn" href="${ctx}/quotation/list">목록</a>
+		<a class="btn" href="<c:out value='${documentListUrl}'/>">목록</a>
 	</div>
 	<form id="document-form" data-document-form data-unimplemented-submit
 		method="post" action="${ctx}/quotation/save">
+		<%@ include file="../common/return-search.jspf"%>
 		<input type="hidden" name="quotationId"
 			value="<c:out value="${form.quotationId}"/>" /> <input type="hidden"
 			name="quotationNo" value="<c:out value="${form.quotationNo}"/>" /> <input
@@ -37,9 +41,8 @@
 					data-code-selector="partner" role="group"
 					aria-labelledby="partner-label">
 					<input type="hidden" name="partnerId"
-						value="<c:out value="${form.partnerId}"/>" />
-					
-					<input type="text" id="partner-code" class="reference-code"
+						value="<c:out value="${form.partnerId}"/>" /> <input type="text"
+						id="partner-code" class="reference-code"
 						data-reference-code="partnerCode"
 						value="<c:out value="${form.partnerCode}"/>" maxlength="30"
 						placeholder="거래처 코드" aria-label="거래처 코드" autocomplete="off"
@@ -63,9 +66,8 @@
 					data-code-selector="assignee" role="group"
 					aria-labelledby="assignee-label">
 					<input type="hidden" name="assigneeId"
-						value="<c:out value="${form.assigneeId}"/>" />
-					
-					<input type="text" id="assignee-code" class="reference-code"
+						value="<c:out value="${form.assigneeId}"/>" /> <input type="text"
+						id="assignee-code" class="reference-code"
 						data-reference-code="assigneeCode"
 						value="<c:out value="${form.assigneeCode}"/>" maxlength="30"
 						placeholder="담당자 코드" aria-label="담당자 코드" autocomplete="off"
@@ -89,9 +91,8 @@
 					data-code-selector="warehouse" role="group"
 					aria-labelledby="warehouse-label">
 					<input type="hidden" name="warehouseId"
-						value="<c:out value="${form.warehouseId}"/>" />
-					
-					<input type="text" id="warehouse-code" class="reference-code"
+						value="<c:out value="${form.warehouseId}"/>" /> <input
+						type="text" id="warehouse-code" class="reference-code"
 						data-reference-code="warehouseCode"
 						value="<c:out value="${form.warehouseCode}"/>" maxlength="30"
 						placeholder="창고 코드" aria-label="창고 코드" autocomplete="off"
@@ -121,7 +122,7 @@
 		<div class="toolbar editor-actions">
 			<button class="btn btn-primary" type="submit">저장</button>
 			<button class="btn" type="reset">다시 작성</button>
-			<a class="btn" href="${ctx}/quotation/list">목록</a>
+			<a class="btn" href="<c:out value='${documentListUrl}'/>">목록</a>
 			<c:if test="${not empty form.quotationId}">
 				<a class="btn"
 					href="${ctx}/quotation/statement?id=<c:out value="${form.quotationId}"/>">견적서

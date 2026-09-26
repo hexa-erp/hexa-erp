@@ -3,5 +3,18 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 	<!-- 웹 테스트는 실제 DB 대신 Stub Service를 부모 빈으로 사용한다. -->
-	<bean id="assigneeService" class="hexa.erp.testinfra.StubAssigneeService" />
+	<bean id="assigneeLookupService" class="hexa.erp.testinfra.StubAssigneeLookupService" />
+	<bean id="partnerLookupService" class="hexa.erp.testinfra.StubPartnerLookupService" />
+	<bean id="warehouseLookupService" class="hexa.erp.testinfra.StubWarehouseLookupService" />
+	<bean id="itemLookupService" class="hexa.erp.testinfra.StubItemLookupService" />
+	<bean id="quotationLookupService" class="hexa.erp.testinfra.StubQuotationLookupService" />
+	<bean id="salesOrderLookupService" class="hexa.erp.testinfra.StubSalesOrderLookupService" />
+	<bean id="saleLookupService" class="hexa.erp.testinfra.StubSaleLookupService" />
+	<bean id="shipInstructionLookupService" class="hexa.erp.testinfra.StubShipInstructionLookupService" />
+	<bean id="filterSelectionService" class="hexa.erp.common.service.FilterSelectionServiceImpl">
+		<property name="assigneeLookupService" ref="assigneeLookupService" />
+		<property name="partnerLookupService" ref="partnerLookupService" />
+		<property name="warehouseLookupService" ref="warehouseLookupService" />
+		<property name="itemLookupService" ref="itemLookupService" />
+	</bean>
 </beans>

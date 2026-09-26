@@ -6,7 +6,6 @@
 <c:set var="workspacePage" value="true" />
 <%@ include file="../common/header.jsp"%>
 <section class="erp-workspace document-workspace">
-	<%-- 검색·Enter 제출에도 진행상태가 유지되도록 hidden 하나로 전송한다. --%>
 	<form method="get" action="${ctx}/shipment/list" class="list-search"
 		data-status-search>
 		<input type="hidden" name="progressStatus"
@@ -42,6 +41,7 @@
 	</div>
 	<form id="document-list-actions" method="post"
 		action="${ctx}/shipment/change-status" data-unimplemented-submit>
+		<%@ include file="../common/return-search.jspf"%>
 		<div class="table-wrap">
 			<table class="data-table workspace-table document-table">
 				<thead>
@@ -62,8 +62,11 @@
 							<td class="col-select"><input type="checkbox"
 								name="selectedIds" value="<c:out value="${row.shipmentId}"/>"
 								aria-label="전표 선택" /></td>
-							<td class="col-date"><a
-								href="${ctx}/shipment/form?id=<c:out value="${row.shipmentId}"/>"><c:out
+							<td class="col-date"><c:url var="documentEditUrl"
+									value="/shipment/form">
+									<c:param name="id" value="${row.shipmentId}" />
+									<%@ include file="../common/return-search-params.jspf"%>
+								</c:url> <a href="<c:out value='${documentEditUrl}'/>"><c:out
 										value="${fn:replace(row.businessDate, '-', '/')}" />-<c:out
 										value="${row.shipmentNo}" /></a></td>
 							<td><c:out value="${row.warehouseName}" /></td>
@@ -107,7 +110,8 @@
 			<button type="submit" name="operation" value="status"
 				data-status-submit hidden>상태 적용</button>
 			<button class="btn btn-danger" type="submit" name="operation"
-				value="delete" formaction="${ctx}/shipment/delete">선택 삭제</button>
+				value="delete" data-confirm-delete
+				formaction="${ctx}/shipment/delete">선택 삭제</button>
 		</div>
 	</form>
 </section>

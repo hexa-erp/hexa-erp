@@ -50,8 +50,10 @@ public class ConnectionProbeConfigurationTest {
 			parameters.put("probeValue", "configuration-only");
 			parameters.put("optionalNote", null);
 			BoundSql sql = statement.getBoundSql(parameters);
-			assertEquals("SELECT CAST(? AS VARCHAR2(30)) AS PROBE_VALUE, "
-					+ "CAST(? AS VARCHAR2(30)) AS OPTIONAL_NOTE FROM DUAL", sql.getSql().replaceAll("\\s+", " ").trim());
+			assertEquals(
+					"SELECT CAST(? AS VARCHAR2(30)) AS PROBE_VALUE, "
+							+ "CAST(? AS VARCHAR2(30)) AS OPTIONAL_NOTE FROM DUAL",
+					sql.getSql().replaceAll("\\s+", " ").trim());
 			assertEquals(2, sql.getParameterMappings().size());
 			assertEquals("probeValue", sql.getParameterMappings().get(0).getProperty());
 			assertEquals("optionalNote", sql.getParameterMappings().get(1).getProperty());

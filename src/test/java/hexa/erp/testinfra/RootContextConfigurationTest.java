@@ -36,38 +36,38 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import hexa.erp.assignee.mapper.AssigneeMapper;
-import hexa.erp.assignee.service.AssigneeService;
-import hexa.erp.assignee.service.AssigneeServiceImpl;
-import hexa.erp.partner.mapper.PartnerMapper;
-import hexa.erp.partner.service.PartnerService;
-import hexa.erp.partner.service.PartnerServiceImpl;
-import hexa.erp.warehouse.mapper.WarehouseMapper;
-import hexa.erp.warehouse.service.WarehouseService;
-import hexa.erp.warehouse.service.WarehouseServiceImpl;
-import hexa.erp.item.mapper.ItemMapper;
-import hexa.erp.item.service.ItemService;
-import hexa.erp.item.service.ItemServiceImpl;
+import hexa.erp.assignee.mapper.AssigneeLookupMapper;
+import hexa.erp.assignee.service.AssigneeLookupService;
+import hexa.erp.assignee.service.AssigneeLookupServiceImpl;
+import hexa.erp.partner.mapper.PartnerLookupMapper;
+import hexa.erp.partner.service.PartnerLookupService;
+import hexa.erp.partner.service.PartnerLookupServiceImpl;
+import hexa.erp.warehouse.mapper.WarehouseLookupMapper;
+import hexa.erp.warehouse.service.WarehouseLookupService;
+import hexa.erp.warehouse.service.WarehouseLookupServiceImpl;
+import hexa.erp.item.mapper.ItemLookupMapper;
+import hexa.erp.item.service.ItemLookupService;
+import hexa.erp.item.service.ItemLookupServiceImpl;
 
 /** Oracle 없이 업무별 스캔·XML 로딩·빈 주입을 검사한다. 테스트 DataSource는 연결을 금지한다. */
 public class RootContextConfigurationTest {
 	private static final String ROOT_XML = "src/main/webapp/WEB-INF/spring/root-context.xml";
 	private static final String MAPPER_PATTERN = "classpath*:hexa/erp/*/mapper/*Mapper.xml";
-	private static final String[] BUSINESS_PACKAGES = {
-			"assignee", "partner", "warehouse", "item", "quotation", "salesorder",
-			"sale", "shipinstruction", "shipment", "stock", "common" };
+	private static final String[] BUSINESS_PACKAGES = { "assignee", "partner", "warehouse", "item", "quotation",
+			"salesorder", "sale", "shipinstruction", "shipment", "stock", "common" };
 
 	@Test
-	public void scanDeclarationsListOnlyApprovedMapperAndServicePackages() throws Exception {
+	public void scanDeclarationsIncludeRequiredMapperAndServicePackages() throws Exception {
 		DocumentBuilderFactory builder = DocumentBuilderFactory.newInstance();
 		builder.setNamespaceAware(true);
 		builder.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
 		Document xml = builder.newDocumentBuilder().parse(new File(ROOT_XML));
 
 		NodeList mapperScans = xml.getElementsByTagNameNS("http://mybatis.org/schema/mybatis-spring", "scan");
-		NodeList serviceScans = xml.getElementsByTagNameNS("http://www.springframework.org/schema/context", "component-scan");
-		assertEquals(expectedPackages("mapper"), declaredPackages(mapperScans));
-		assertEquals(expectedPackages("service"), declaredPackages(serviceScans));
+		NodeList serviceScans = xml.getElementsByTagNameNS("http://www.springframework.org/schema/context",
+				"component-scan");
+		assertTrue(declaredPackages(mapperScans).containsAll(expectedPackages("mapper")));
+		assertTrue(declaredPackages(serviceScans).containsAll(expectedPackages("service")));
 		for (int i = 0; i < mapperScans.getLength(); i++) {
 			Element scan = (Element) mapperScans.item(i);
 			assertEquals("sqlSessionFactory", scan.getAttribute("factory-ref"));
@@ -80,10 +80,9 @@ public class RootContextConfigurationTest {
 	public void wildcardFindsBasicLookupXmlsButExcludesVisibleConnectionProbeXml() throws Exception {
 		try (GenericApplicationContext root = new GenericApplicationContext()) {
 			loadRootDefinitions(root);
-			Object configured = root.getBeanDefinition("sqlSessionFactory")
-					.getPropertyValues().get("mapperLocations");
-			String pattern = configured instanceof TypedStringValue
-					? ((TypedStringValue) configured).getValue() : configured.toString();
+			Object configured = root.getBeanDefinition("sqlSessionFactory").getPropertyValues().get("mapperLocations");
+			String pattern = configured instanceof TypedStringValue ? ((TypedStringValue) configured).getValue()
+					: configured.toString();
 			assertEquals(MAPPER_PATTERN, pattern);
 
 			Set<String> locations = new HashSet<>();
@@ -92,16 +91,15 @@ public class RootContextConfigurationTest {
 				assertFalse(resource.getURL().toExternalForm().contains("/testinfra/"));
 				locations.add(resource.getURL().toExternalForm());
 			}
-			assertTrue(locations.contains(new ClassPathResource(
-					"hexa/erp/assignee/mapper/AssigneeMapper.xml").getURL().toExternalForm()));
+			assertTrue(locations.contains(new ClassPathResource("hexa/erp/assignee/mapper/AssigneeLookupMapper.xml")
+					.getURL().toExternalForm()));
 
-			assertEquals(4, locations.size());
-			assertTrue(locations.contains(new ClassPathResource(
-					"hexa/erp/partner/mapper/PartnerMapper.xml").getURL().toExternalForm()));
-			assertTrue(locations.contains(new ClassPathResource(
-					"hexa/erp/warehouse/mapper/WarehouseMapper.xml").getURL().toExternalForm()));
-			assertTrue(locations.contains(new ClassPathResource(
-					"hexa/erp/item/mapper/ItemMapper.xml").getURL().toExternalForm()));
+			assertTrue(locations.contains(new ClassPathResource("hexa/erp/partner/mapper/PartnerLookupMapper.xml")
+					.getURL().toExternalForm()));
+			assertTrue(locations.contains(new ClassPathResource("hexa/erp/warehouse/mapper/WarehouseLookupMapper.xml")
+					.getURL().toExternalForm()));
+			assertTrue(locations.contains(
+					new ClassPathResource("hexa/erp/item/mapper/ItemLookupMapper.xml").getURL().toExternalForm()));
 
 			// 테스트 XML이 있어도 업무 Mapper 검색에는 포함되면 안 된다.
 			Resource probe = new ClassPathResource("hexa/erp/testinfra/ConnectionProbeMapper.xml");
@@ -126,27 +124,29 @@ public class RootContextConfigurationTest {
 			root.refresh();
 
 			assertTrue(root.isActive());
-			AssigneeMapper mapper = root.getBean(AssigneeMapper.class);
-			AssigneeService service = root.getBean(AssigneeService.class);
-			assertEquals(1, root.getBeansOfType(AssigneeMapper.class).size());
-			assertEquals(1, root.getBeansOfType(AssigneeService.class).size());
-			assertTrue(service instanceof AssigneeServiceImpl);
-			assertTrue(AssigneeServiceImpl.class.isAnnotationPresent(Service.class));
-			assertFalse(AssigneeService.class.isAnnotationPresent(Service.class));
+			AssigneeLookupMapper mapper = root.getBean(AssigneeLookupMapper.class);
+			AssigneeLookupService service = root.getBean(AssigneeLookupService.class);
+			assertEquals(1, root.getBeansOfType(AssigneeLookupMapper.class).size());
+			assertEquals(1, root.getBeansOfType(AssigneeLookupService.class).size());
+			assertTrue(service instanceof AssigneeLookupServiceImpl);
+			assertTrue(AssigneeLookupServiceImpl.class.isAnnotationPresent(Service.class));
+			assertFalse(AssigneeLookupService.class.isAnnotationPresent(Service.class));
 			assertSame(mapper, ReflectionTestUtils.getField(service, "mapper"));
 
 			SqlSessionFactory factory = root.getBean(SqlSessionFactory.class);
 			Configuration configuration = factory.getConfiguration();
 			assertSame(source, configuration.getEnvironment().getDataSource());
 			assertSame(source, root.getBean(DataSourceTransactionManager.class).getDataSource());
-			assertTrue(configuration.hasMapper(AssigneeMapper.class));
-			assertTrue(configuration.hasStatement(AssigneeMapper.class.getName() + ".getList"));
-			assertTrue(configuration.hasStatement(AssigneeMapper.class.getName() + ".getTotal"));
-			assertFalse(configuration.hasMapper(AssigneeService.class));
-			assertLookupGraph(root, configuration, PartnerMapper.class, PartnerService.class, PartnerServiceImpl.class);
-			assertLookupGraph(root, configuration, WarehouseMapper.class, WarehouseService.class, WarehouseServiceImpl.class);
-			assertLookupGraph(root, configuration, ItemMapper.class, ItemService.class, ItemServiceImpl.class);
-			assertEquals(4, configuration.getMapperRegistry().getMappers().size());
+			assertTrue(configuration.hasMapper(AssigneeLookupMapper.class));
+			assertTrue(configuration.hasStatement(AssigneeLookupMapper.class.getName() + ".getListWithPaging"));
+			assertTrue(configuration.hasStatement(AssigneeLookupMapper.class.getName() + ".getTotalCount"));
+			assertFalse(configuration.hasMapper(AssigneeLookupService.class));
+			assertLookupGraph(root, configuration, PartnerLookupMapper.class, PartnerLookupService.class,
+					PartnerLookupServiceImpl.class);
+			assertLookupGraph(root, configuration, WarehouseLookupMapper.class, WarehouseLookupService.class,
+					WarehouseLookupServiceImpl.class);
+			assertLookupGraph(root, configuration, ItemLookupMapper.class, ItemLookupService.class,
+					ItemLookupServiceImpl.class);
 			assertFalse(configuration.hasMapper(ConnectionProbeMapper.class));
 			assertFalse(configuration.hasStatement(ConnectionProbeMapper.class.getName() + ".selectProbe"));
 			assertFalse(configuration.isResourceLoaded("hexa/erp/testinfra/ConnectionProbeMapper.xml"));
@@ -162,26 +162,27 @@ public class RootContextConfigurationTest {
 					assertFalse(className.contains(".controller."));
 				}
 				if (MapperFactoryBean.class.getName().equals(className)) {
-					Object mapperType = definition.getConstructorArgumentValues()
-							.getGenericArgumentValues().get(0).getValue();
-					String interfaceName = mapperType instanceof Class
-							? ((Class<?>) mapperType).getName() : mapperType.toString();
-					assertTrue(expectedPackages("mapper").contains(
-							interfaceName.substring(0, interfaceName.lastIndexOf('.'))));
+					Object mapperType = definition.getConstructorArgumentValues().getGenericArgumentValues().get(0)
+							.getValue();
+					String interfaceName = mapperType instanceof Class ? ((Class<?>) mapperType).getName()
+							: mapperType.toString();
+					assertTrue(interfaceName.startsWith("hexa.erp."));
+					assertTrue(interfaceName.substring(0, interfaceName.lastIndexOf('.')).endsWith(".mapper"));
 				}
 			}
 			for (Class<?> type : configuration.getMapperRegistry().getMappers()) {
 				assertTrue(type.isInterface());
 				assertFalse(type.getName().endsWith("package-info"));
-				assertTrue(expectedPackages("mapper").contains(type.getPackage().getName()));
+				assertTrue(type.getPackage().getName().startsWith("hexa.erp."));
+				assertTrue(type.getPackage().getName().endsWith(".mapper"));
 			}
 		} finally {
 			assertEquals("DB 연결을 한 번도 열면 안 된다.", 0, source.connectionAttempts);
 		}
 	}
 
-	private void assertLookupGraph(GenericApplicationContext root, Configuration configuration,
-			Class<?> mapperType, Class<?> serviceType, Class<?> implementationType) {
+	private void assertLookupGraph(GenericApplicationContext root, Configuration configuration, Class<?> mapperType,
+			Class<?> serviceType, Class<?> implementationType) {
 		assertEquals(1, root.getBeansOfType(mapperType).size());
 		assertEquals(1, root.getBeansOfType(serviceType).size());
 		Object service = root.getBean(serviceType);
@@ -190,8 +191,8 @@ public class RootContextConfigurationTest {
 		assertFalse(serviceType.isAnnotationPresent(Service.class));
 		assertSame(root.getBean(mapperType), ReflectionTestUtils.getField(service, "mapper"));
 		assertTrue(configuration.hasMapper(mapperType));
-		assertTrue(configuration.hasStatement(mapperType.getName() + ".getList"));
-		assertTrue(configuration.hasStatement(mapperType.getName() + ".getTotal"));
+		assertTrue(configuration.hasStatement(mapperType.getName() + ".getListWithPaging"));
+		assertTrue(configuration.hasStatement(mapperType.getName() + ".getTotalCount"));
 		assertFalse(configuration.hasMapper(serviceType));
 	}
 

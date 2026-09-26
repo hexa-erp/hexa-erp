@@ -1,26 +1,27 @@
 package hexa.erp.item.controller;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import hexa.erp.common.controller.ViewModels;
+import lombok.extern.log4j.Log4j;
 
+@Log4j
 @Controller
 @RequestMapping("/master/item")
 public class ItemController {
 	@GetMapping
 	public String list(@RequestParam Map<String, String> params, Model model) {
+		log.info("품목 목록 조회 요청");
 		model.addAttribute("itemList", Collections.emptyList());
 		model.addAttribute("newItemCode", "");
 		model.addAttribute("search", ViewModels.search(params));
@@ -34,12 +35,22 @@ public class ItemController {
 		return "master/item";
 	}
 
-	@PostMapping({ "/save", "/active", "/stock" })
-	@ResponseBody
-	public ResponseEntity<Map<String, Object>> notImplemented() {
-		Map<String, Object> body = new LinkedHashMap<>();
-		body.put("saved", false);
-		body.put("message", "아직 구현되지 않은 기능입니다. 실제 데이터는 저장되지 않았습니다.");
-		return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(body);
+	@PostMapping("/save")
+	public String save(HttpServletResponse response, Model model) {
+		log.info("품목 저장 요청");
+		return ViewModels.notImplemented(response, model);
 	}
+
+	@PostMapping("/active")
+	public String changeActive(HttpServletResponse response, Model model) {
+		log.info("품목 사용 여부 변경 요청");
+		return ViewModels.notImplemented(response, model);
+	}
+
+	@PostMapping("/stock")
+	public String saveStock(HttpServletResponse response, Model model) {
+		log.info("품목 재고 저장 요청");
+		return ViewModels.notImplemented(response, model);
+	}
+
 }

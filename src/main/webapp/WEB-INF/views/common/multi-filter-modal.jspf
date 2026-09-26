@@ -16,7 +16,6 @@
 		<button class="btn btn-primary" type="submit">검색</button>
 		<span class="muted">체크한 항목을 적용하세요.</span>
 	</form>
-	<%-- 적용된 태그는 검색조건 칸에만 표시한다. 모달에는 선택 요약을 중복 표시하지 않는다. --%>
 	<p id="multi-filter-error" class="multi-error" role="status" hidden></p>
 	<div class="table-wrap">
 		<table class="data-table">

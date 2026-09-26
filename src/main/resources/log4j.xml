@@ -27,7 +27,7 @@
 		<level value="info" />
 	</logger>
 
-	<!-- 실행 SQL과 소요 시간만 표시하고 JDBC 메서드/결과 행 로그는 줄인다. -->
+	<!-- JDBC 로그에 실행 SQL과 소요 시간을 표시한다. -->
 	<logger name="jdbc.sqltiming">
 		<level value="info" />
 	</logger>

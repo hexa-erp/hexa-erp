@@ -1,9 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%-- 수정 시 헤더·상세·원전표 ID를 보존한다. CODE는 표시·검색용 문자열이며 내부 ID로 대신하지 않는다. --%>
+<%-- 수정 시 전표·상세행·원전표 상세행 ID를 함께 보낸다. 코드는 표시·검색에 사용한다. --%>
 <c:set var="pageTitle" value="주문서 입력" />
 <c:set var="activeMenu" value="order" />
 <%@ include file="../common/header.jsp"%>
+<c:url var="documentListUrl" value="/order/list">
+	<%@ include file="../common/list-return-params.jspf"%>
+</c:url>
 <div class="erp-editor">
 	<div class="page-heading editor-heading">
 		<div>
@@ -16,10 +19,11 @@
 			</h1>
 			<p class="muted">직접 입력하거나 견적서의 상세 품목을 불러올 수 있습니다.</p>
 		</div>
-		<a class="btn" href="${ctx}/order/list">목록</a>
+		<a class="btn" href="<c:out value='${documentListUrl}'/>">목록</a>
 	</div>
 	<form id="document-form" data-document-form data-unimplemented-submit
 		method="post" action="${ctx}/order/save">
+		<%@ include file="../common/return-search.jspf"%>
 		<input type="hidden" name="salesOrderId"
 			value="<c:out value="${form.salesOrderId}"/>" /> <input
 			type="hidden" name="salesOrderNo"
@@ -126,7 +130,7 @@
 		<div class="toolbar editor-actions">
 			<button class="btn btn-primary" type="submit">저장</button>
 			<button class="btn" type="reset">다시 작성</button>
-			<a class="btn" href="${ctx}/order/list">목록</a>
+			<a class="btn" href="<c:out value='${documentListUrl}'/>">목록</a>
 			<c:if test="${not empty form.salesOrderId}">
 				<a class="btn"
 					href="${ctx}/order/statement?id=<c:out value="${form.salesOrderId}"/>">주문서

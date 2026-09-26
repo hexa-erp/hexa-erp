@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-/** 선택 목록의 공통 검색·페이지 조건. 업무별 ID나 상태 조건은 넣지 않는다. */
+/** 선택창에서 사용하는 검색·페이지 조건. */
 @Getter
 @Setter
 @ToString

@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 public class CommonViewAdvice {
 	@ModelAttribute
 	public void common(Model model, HttpServletRequest request) {
-		// 배너 표시와 저장 허용은 별개다. 저장 차단은 Form의 data-unimplemented-submit으로 정한다.
+		// 상단의 개발 안내를 표시한다.
 		model.addAttribute("developmentMode", true);
 		model.addAttribute("currentPath", request.getServletPath());
+		model.addAttribute("returnSearch", PostRedirects.returnSearch(request));
 		model.addAttribute("navigation", navigation());
 		model.addAttribute("connectedAt", new Date(request.getSession().getCreationTime()));
 	}

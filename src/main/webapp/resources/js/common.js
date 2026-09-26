@@ -1,11 +1,9 @@
 (function($) {
   'use strict';
-  // .data()의 자동 변환·캐시 없이 현재 속성의 문자열을 읽는다.
   var ctx = $('body').attr('data-context-path') || '';
 
   function openModal(id) {
     var el = typeof id === 'string' ? document.getElementById(id) : id;
-    // native dialog가 Esc, 포커스 복원, 모달의 top layer를 담당한다.
     if (el && !$(el).prop('open'))
       el.showModal();
   }
@@ -17,7 +15,7 @@
   }
 
   function notice(message) {
-    $('#notice-message').text(String(message || '아직 저장 기능이 구현되지 않았습니다. 실제 데이터는 저장되지 않습니다.'));
+    $('#notice-message').text(String(message || '아직 구현되지 않은 기능입니다. 실제 데이터는 변경되지 않습니다.'));
     openModal('notice-modal');
   }
 
@@ -27,17 +25,15 @@
       $el.text(String(value));
     if (cls)
       $el.attr('class', cls);
-    // 호출부 호환성을 위해 jQuery 객체가 아닌 DOM 요소를 반환한다.
     return $el[0];
   }
 
   function json(url) {
-    // 호출부의 then/catch가 JSON 값 또는 Error를 받도록 native Promise를 반환한다.
     return new Promise(function(resolve, reject) {
       $.ajax({
         url: ctx + url,
         type: 'GET',
-        // 빈 응답(204 포함)도 JSON 오류로 처리하기 위해 직접 파싱한다.
+        // 응답을 JSON으로 읽고, 비어 있으면 오류로 처리한다.
         dataType: 'text',
         headers: { Accept: 'application/json' },
         success: function(response, textStatus, xhr) {
@@ -66,7 +62,7 @@
       $button.prop('type', 'button').attr('data-page', i);
       $el.append($button);
     }
-    // 재조회 때 핸들러가 중복되지 않도록 이 컨테이너의 페이지 이벤트만 교체한다.
+    // 페이지 이동 이벤트가 중복 등록되지 않도록 갱신한다.
     $el.off('click.hexaPages', 'button[data-page]');
     $el.on('click.hexaPages', 'button[data-page]', function() {
       callback(Number($(this).attr('data-page')));
@@ -205,7 +201,7 @@
         return;
       }
       $(statusForm.elements.nextProgressStatus).val($(statusOption).attr('data-status-value'));
-      // submitter의 name/value·formaction·formnovalidate는 브라우저가 처리한다.
+      // 진행상태 변경 버튼의 전송 주소를 사용한다.
       statusForm.requestSubmit($(statusForm).find('[data-status-submit]')[0]);
       return;
     }
@@ -224,14 +220,13 @@
     var $trigger = $target.closest('[data-pick]');
     if ($trigger.length) {
       var $box = $trigger.closest('[data-selector-field]');
-      // 코드 입력 선택기는 reference-selector.js만 처리한다(중복 선택 방지).
+      // 코드 입력으로 선택하는 항목은 reference-selector.js에서 처리한다.
       if (!$box.length || $box.is('[data-code-selector]'))
         return;
       pick($trigger.attr('data-pick'), function(row) {
         $box.find('input[name]').each(function() {
           var name = this.name.replace(/^.*\./, '');
           $(this).val(row[name] == null ? '' : row[name]);
-          // native와 jQuery 리스너에 change를 한 번만 전달한다.
           this.dispatchEvent(new Event('change', { bubbles: true }));
         });
       });
@@ -281,7 +276,7 @@
       setDates(this);
   });
 
-  // GET 검색 이름을 직접 고치면 ID 검색을 해제한다. POST의 스냅샷 ID는 유지한다.
+  // 검색 화면(GET)에서 이름을 바꾸면 선택했던 ID를 비운다.
   $(document).on('input.hexaCommon', 'input[name$="Name"]', function() {
     var input = this;
     if (!input.form || input.form.method.toLowerCase() !== 'get')
@@ -296,11 +291,21 @@
   });
 
   $(document).on('submit.hexaCommon', 'form', function(e) {
-    // 실제 submitter를 사용해 버튼별 제출 속성을 보존한다.
     var event = e.originalEvent || e;
     var form = event.target;
     var $form = $(form);
-    // readonly는 native required 검증에서 제외되므로 필수 선택값을 따로 검사한다.
+    if ($(event.submitter).is('[data-confirm-delete]')) {
+      if (!$form.find('input[name="selectedIds"]:checked').length) {
+        e.preventDefault();
+        notice('삭제할 전표를 먼저 선택해 주세요.');
+        return;
+      }
+      if (!window.confirm('선택한 전표를 삭제 하겠습니까?')) {
+        e.preventDefault();
+        return;
+      }
+    }
+    // 읽기 전용 입력칸은 required로 검사되지 않아 직접 확인한다.
     if ($form.is('[data-document-form]') && form.method.toLowerCase() === 'post') {
       var $missing = $form.find('[data-selector-field] input[readonly][required][name$="Name"]').filter(function() {
         var $input = $(this);
@@ -317,7 +322,6 @@
         return;
       }
     }
-    // 미구현 Form만 차단하며 일반 Form 제출은 막지 않는다.
     if ($form.is('[data-unimplemented-submit]')) {
       e.preventDefault();
       notice();
@@ -372,4 +376,14 @@
       return Number(v || 0).toLocaleString('ko-KR', { maximumFractionDigits: 3 });
     }
   };
+
+  $(document).on('click.hexaCommon', '[data-history-back]', function() {
+    window.history.back();
+  });
+
+  $(function() {
+    var errorMessage = $('#server-error-message').text().trim();
+    if (errorMessage)
+      notice(errorMessage);
+  });
 }(jQuery));

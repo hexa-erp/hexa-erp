@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hexa.erp.item.mapper.ItemLookupMapper">
+	<!-- 목록과 건수의 검색조건이 달라지지 않도록 공유한다. -->
+	<sql id="searchCondition">
+		WHERE i.ACTIVE_FLAG = 'Y'
+		<if test="criteria.keyword != null and criteria.keyword != ''">
+			AND (
+			UPPER(i.ITEM_CODE) LIKE '%' ||
+			UPPER(#{criteria.keyword}) || '%'
+			OR UPPER(i.ITEM_NAME) LIKE '%' ||
+			UPPER(#{criteria.keyword}) || '%'
+			)
+		</if>
+	</sql>
+
+	<!-- Oracle 11g는 정렬 후 ROWNUM 상·하한으로 페이지를 나눈다. -->
+	<select id="getListWithPaging"
+		resultType="hexa.erp.item.domain.ItemLookupVO">
+		SELECT ITEM_ID, ITEM_CODE, ITEM_NAME, SPECIFICATION, UNIT,
+		OUTBOUND_PRICE, STOCK_QUANTITY, ACTIVE_FLAG
+		FROM (
+		SELECT ROWNUM rn,
+		ordered_item.*
+		FROM (
+		SELECT i.ITEM_ID, i.ITEM_CODE, i.ITEM_NAME,
+		i.SPECIFICATION, i.UNIT, i.OUTBOUND_PRICE, i.ACTIVE_FLAG,
+		<choose>
+			<when test="warehouseId != null">NVL(s.QUANTITY, 0)</when>
+			<otherwise>CAST(NULL AS NUMBER)</otherwise>
+		</choose>
+		AS STOCK_QUANTITY
+		FROM ITEM i
+		<!-- 재고 행이 없는 품목도 남긴다. 창고 미선택은 전체 창고 합산이 아니라 null이다. -->
+		<if test="warehouseId != null">
+			LEFT JOIN STOCK s ON s.ITEM_ID = i.ITEM_ID AND
+			s.WAREHOUSE_ID = #{warehouseId}
+		</if>
+		<include refid="searchCondition" />
+		ORDER BY i.ITEM_CODE ASC
+		) ordered_item
+		WHERE ROWNUM &lt;=
+		#{criteria.pageNum} * #{criteria.amount}
+		)
+		WHERE rn &gt;
+		(#{criteria.pageNum} - 1) *
+		#{criteria.amount}
+		ORDER BY ITEM_CODE ASC
+	</select>
+
+	<select id="getTotalCount" resultType="int">
+		SELECT COUNT(*)
+		FROM ITEM i
+		<include refid="searchCondition" />
+	</select>
+
+	<select id="read" parameterType="long"
+		resultType="hexa.erp.item.domain.ItemLookupVO">
+		SELECT ITEM_ID, ITEM_CODE, ITEM_NAME, SPECIFICATION, UNIT,
+		OUTBOUND_PRICE, CAST(NULL AS NUMBER) AS STOCK_QUANTITY, ACTIVE_FLAG
+		FROM ITEM
+		WHERE ITEM_ID = #{itemId}
+	</select>
+</mapper>
