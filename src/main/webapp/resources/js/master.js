@@ -1,4 +1,4 @@
-/* 창고별 재고는 서버가 렌더링한 #stock-data를 사용하며 UI에서 재고를 계산하지 않는다. */
+/* 창고별 재고는 서버에서 전달한 #stock-data 값을 표시한다. */
 (function($) {
 	'use strict';
 	var photoObjectUrl = null;
@@ -49,14 +49,12 @@
 		$(form.elements).each(
 				function() {
 					var $input = $(this);
-					if (!this.name || this.type === 'submit'
+					if (!this.name || this.name.indexOf('return.') === 0 || this.type === 'submit'
 							|| this.type === 'reset' || this.type === 'button')
 						return;
 					var initial = Object.prototype.hasOwnProperty.call(record,
 							this.name) ? record[this.name]
 							: (defaults[this.name] || '');
-					// checked/readOnly는 현재 상태를 사용한다. readOnly를 disabled로 바꾸면
-					// 제출값이 빠진다.
 					if (this.type === 'radio' || this.type === 'checkbox')
 						$input.prop('checked', $input.val() === initial);
 					else if (this.type === 'file')
@@ -90,7 +88,6 @@
 			initial[codeName] = codeInput ? $(codeInput).prop('defaultValue')
 					: '';
 		}
-		// hidden 값은 native reset만으로 복원되지 않아 모달을 열 때 별도로 보관한다.
 		form._masterInitial = initial;
 		applyRecord(kind, form._masterInitial);
 		window.Hexa.openModal(kind + '-form-modal');
@@ -105,7 +102,6 @@
 		var $matches = $('#stock-data [data-stock-item-id]')
 				.filter(
 						function() {
-							// .data() 캐시/숫자 변환 없이 현재 속성의 ID 문자열끼리 비교한다.
 							return $(this).attr('data-stock-item-id') === id
 									&& $(this).attr('data-stock-warehouse-id') === warehouse;
 						});
@@ -152,7 +148,6 @@
 							openForm($target.attr('data-master-new'), {});
 						} else if ($target.is('[data-master-edit]')) {
 							var $record = $target.closest('[data-record-type]');
-							// dataset은 현재 문자열을 읽는다. .data()의 캐시·자동 변환을 피한다.
 							openForm($target.attr('data-master-edit'), Object
 									.assign({}, $record.prop('dataset')));
 						} else if ($target.is('[data-master-active]')) {
@@ -234,7 +229,7 @@
 			stockCurrent);
 
 	$(document).on('change.hexaMaster', '[data-item-file]', function() {
-		// 파일 교체·초기화·페이지 이탈 시 Object URL을 해제한다.
+		// 사용이 끝난 사진 미리보기 주소를 해제한다.
 		var file = this.files && this.files[0];
 		releasePhoto();
 		if (!file) {
@@ -254,14 +249,13 @@
 	[ 'partner', 'warehouse', 'item' ].forEach(function(kind) {
 		$('#' + kind + '-form').on('reset.hexaMaster', function() {
 			var form = this;
-			// 브라우저의 reset 기본 동작이 끝난 뒤 해당 모달의 최초값(ID 포함)을 다시 반영한다.
+			// '다시 작성'을 누르면 팝업을 열었을 때의 값으로 되돌린다.
 			window.setTimeout(function() {
 				applyRecord(kind, form._masterInitial || {});
 			}, 0);
 		});
 	});
 
-	// 공통 document submit 처리보다 먼저 검사하도록 Form에 직접 등록한다.
 	$('#stock-form').on('submit.hexaMaster', function(event) {
 		if (!value(this, 'itemId')) {
 			event.preventDefault();

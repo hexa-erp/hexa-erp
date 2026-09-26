@@ -1,4 +1,4 @@
-/* 적용 전 선택은 draft에 보관하고, 적용할 때 ID마다 같은 name의 hidden input을 만든다. */
+/* 선택값은 '적용'을 누를 때 검색조건에 반영한다. */
 (function($) {
 	'use strict';
 	var $dialog = $('#multi-filter-modal');
@@ -66,7 +66,6 @@
 		var list = [];
 		$(box).find('[data-multi-id]').each(function() {
 			var $chip = $(this);
-			// .data() 캐시·자동 변환 없이 현재 문자열 속성을 읽는다.
 			var id = $chip.attr('data-multi-id');
 			if (id && indexOf(list, id) < 0) {
 				list.push({
@@ -91,7 +90,7 @@
 			'data-multi-remove' : '',
 			'aria-label' : value.name + ' 선택 해제'
 		}));
-		// name에 []를 붙이거나 ID들을 쉼표 문자열로 합치지 않는다.
+		// 각 ID를 같은 이름의 파라미터로 전송한다.
 		$chip.append($(Hexa.node('input')).prop('type', 'hidden').attr('name',
 				fieldName).val(value.id));
 		return $chip;
@@ -150,7 +149,7 @@
 		$body.empty().append($(Hexa.node('tr')).append($cell));
 	}
 	function cancelRequest() {
-		// abort 콜백보다 먼저 이전 요청 번호를 무효화한다.
+		// 이전 검색을 취소하고 가장 최근 응답만 사용한다.
 		requestNumber += 1;
 		var previous = pendingRequest;
 		pendingRequest = null;
@@ -180,7 +179,6 @@
 		$pages.empty();
 		tableMessage('조회 중…');
 		syncDraft();
-		// 닫기·재검색 때 이 모달의 요청만 취소할 수 있도록 jqXHR를 보관한다.
 		var request = $.ajax({
 			url : Hexa.ctx + '/lookup/options/' + state.kind + '?keyword='
 					+ encodeURIComponent(state.keyword) + '&page=' + page,
@@ -252,7 +250,6 @@
 								Hexa.pages($pages[0], data, load);
 								syncDraft();
 							} catch (error) {
-								// 응답 구조 오류도 draft와 이미 적용한 태그를 지우지 않는다.
 								showLoadError();
 							}
 						}).fail(function(xhr, textStatus) {
@@ -373,7 +370,7 @@
 				var form = this;
 				var original = event.originalEvent;
 				setTimeout(function() {
-					// native reset이 끝난 뒤 최초 태그를 복원한다. 나중 리스너가 취소한 reset도 존중한다.
+					// '다시 작성'을 누르면 처음 검색조건으로 되돌린다.
 					if (event.isDefaultPrevented()
 							|| (original && original.defaultPrevented))
 						return;
@@ -385,7 +382,7 @@
 					});
 				}, 0);
 			});
-	// 확정하지 않은 입력어를 검색조건으로 사용하거나, 기존 선택을 지우지 않는다.
+	// 입력 중인 검색어가 있으면 선택창을 먼저 연다.
 	$('form.report-search').on('submit.hexaMultiFilter', function(event) {
 		var $pending = $(this).find('[data-multi-query]').filter(function() {
 			return $(this).val().trim();
@@ -411,7 +408,7 @@
 		Hexa.closeModal($dialog[0]);
 	});
 	$dialog.on('close.hexaMultiFilter', function() {
-		// native close 이벤트가 늦게 전달돼도 이미 다시 연 모달 상태는 지우지 않는다.
+		// 선택창이 다시 열렸다면 이전 닫기 이벤트는 무시한다.
 		if ($dialog.prop('open'))
 			return;
 		var opener = active && active.opener;

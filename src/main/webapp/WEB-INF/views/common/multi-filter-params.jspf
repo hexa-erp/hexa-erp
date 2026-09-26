@@ -1,6 +1,6 @@
 <%@ page pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%-- c:url 안에서 포함한다. List를 하나의 문자열 파라미터로 합치지 않는다. --%>
+<%-- c:url 안에서 포함하며, ID마다 같은 이름의 파라미터를 추가한다. --%>
 <c:forEach var="multiParam" items="${filterIds}">
 	<c:forEach var="filterId" items="${multiParam.value}">
 		<c:param name="${multiParam.key}" value="${filterId}" />

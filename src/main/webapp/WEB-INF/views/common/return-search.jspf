@@ -1,0 +1,7 @@
+<%@ page pageEncoding="UTF-8"%>
+<c:forEach var="returnEntry" items="${returnSearch}">
+	<c:forEach var="returnValue" items="${returnEntry.value}">
+		<input type="hidden" name="return.<c:out value='${returnEntry.key}'/>"
+			value="<c:out value='${returnValue}'/>" />
+	</c:forEach>
+</c:forEach>

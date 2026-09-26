@@ -1,4 +1,4 @@
-/* ID·CODE·이름은 서로 다른 값이므로 선택과 초기화 시 함께 다룬다. */
+/* 선택한 항목의 ID·코드·이름을 함께 반영한다. */
 (function($) {
 	'use strict';
 	var $boxes = $('[data-code-selector]');
@@ -35,12 +35,10 @@
 
 	function apply(box, row) {
 		var fields = controls(box);
-		// 모든 값을 먼저 반영한다. ID와 CODE를 서로 대신 쓰거나 숫자로 변환하지 않는다.
 		fields.$id.val(text(row[fields.type + 'Id']));
 		fields.$code.val(text(row[fields.type + 'Code']));
 		fields.$name.val(text(row[fields.type + 'Name']));
 		refresh(box);
-		// native·jQuery 리스너 모두에게 필드별 change를 한 번만 전달한다.
 		[ fields.$id[0], fields.$code[0], fields.$name[0] ].forEach(function(
 				input) {
 			input.dispatchEvent(new Event('change', {
@@ -64,7 +62,7 @@
 								return;
 							}
 							apply(box, row);
-							// 원전표·검색조건에는 전파하지 않고 입력 Form의 직접 선택에만 적용한다.
+							// 거래처를 직접 선택하면 연결된 담당자도 반영한다.
 							if (fields.type === 'partner') {
 								var $assignee = $(box).closest('form[data-document-form]')
 										.find('[data-code-selector="assignee"]');
@@ -84,7 +82,7 @@
 	$boxes.on('input.hexaReference', '[data-reference-code]', function() {
 		var box = $(this).closest('[data-code-selector]')[0];
 		var fields = controls(box);
-		// 입력 코드와 이전 ID·이름이 섞이지 않도록 선택을 해제한다.
+		// 코드를 다시 입력하면 이전 선택을 해제한다.
 		fields.$id.val('');
 		fields.$name.val('');
 		refresh(box);
@@ -97,7 +95,7 @@
 
 	$boxes.on('keydown.hexaReference', '[data-reference-code]', function(e) {
 		var event = e.originalEvent || e;
-		// 한글 조합 확정 Enter는 검색/제출로 처리하지 않는다.
+		// 한글 입력을 확정하는 Enter는 검색에서 제외한다.
 		if (e.key !== 'Enter' || event.isComposing || event.keyCode === 229)
 			return;
 		e.preventDefault();
@@ -118,7 +116,7 @@
 			$(form).find('[data-code-selector]').each(
 					function() {
 						var fields = controls(this);
-						// 확정된 선택이나 아직 검색 중인 코드가 있으면 그 세트 전체를 보존한다.
+						// 이미 입력하거나 선택한 항목은 그대로 둔다.
 						if (fields.$id.val() || fields.$code.val()
 								|| fields.$name.val())
 							return;

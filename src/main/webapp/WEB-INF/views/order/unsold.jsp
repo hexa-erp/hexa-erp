@@ -3,7 +3,9 @@
 
 
 <%-- businessDate 연월별 전체 결과의 월계·총합계를 표시하며 페이지 분할하지 않는다.
-     단가 합계는 만들지 않고 서버의 잔량·잔여 공급가액·부가세를 사용한다. --%>
+     단가 합계는 만들지 않고 서버의 잔량·잔여 공급가액·부가세를 사용한다.
+     monthGroups에는 조회된 행이 있는 월만 담고, 결과가 없으면 빈 목록을 전달한다.
+     각 묶음은 monthLabel, rows, totals를 가진다. --%>
 <c:set var="pageTitle" value="미판매 현황" />
 <c:set var="activeMenu" value="order" />
 <c:set var="workspacePage" value="true" />
@@ -152,7 +154,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<c:forEach var="monthGroup" items="${reportMonths}">
+						<c:forEach var="monthGroup" items="${monthGroups}">
 							<c:forEach var="row" items="${monthGroup.rows}">
 								<tr>
 									<td class="col-date"><c:out
@@ -193,13 +195,13 @@
 								<td></td>
 							</tr>
 						</c:forEach>
-						<c:if test="${empty unsoldList}">
+						<c:if test="${empty monthGroups}">
 							<tr>
 								<td colspan="9" class="empty-state">조회된 미판매 현황 내역이 없습니다.</td>
 							</tr>
 						</c:if>
 					</tbody>
-					<c:if test="${not empty unsoldList}">
+					<c:if test="${not empty monthGroups}">
 						<tfoot>
 							<tr class="report-grand-total">
 								<th scope="row" colspan="2">총합계</th>

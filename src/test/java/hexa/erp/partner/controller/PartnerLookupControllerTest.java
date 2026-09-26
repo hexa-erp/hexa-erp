@@ -23,22 +23,22 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import hexa.erp.partner.domain.PartnerVO;
-import hexa.erp.partner.service.PartnerService;
+import hexa.erp.partner.domain.PartnerLookupVO;
+import hexa.erp.partner.service.PartnerLookupService;
 import hexa.erp.common.domain.LookupCriteria;
 
 /** 테스트 Service를 사용하며 실제 Oracle에는 연결하지 않는다. */
 public class PartnerLookupControllerTest {
 	private PartnerLookupController controller;
-	private StubPartnerService service;
+	private StubPartnerLookupService service;
 	private MockMvc mvc;
 	private final ObjectMapper json = new ObjectMapper();
 
 	@Before
 	public void setUp() {
 		controller = new PartnerLookupController();
-		service = new StubPartnerService();
-		controller.setPartnerService(service);
+		service = new StubPartnerLookupService();
+		controller.setPartnerLookupService(service);
 		mvc = MockMvcBuilders.standaloneSetup(controller).build();
 	}
 
@@ -46,12 +46,13 @@ public class PartnerLookupControllerTest {
 	public void missingRequiredServicePreventsContextStartup() {
 		try (GenericApplicationContext context = new GenericApplicationContext()) {
 			AnnotationConfigUtils.registerAnnotationConfigProcessors(context);
-			context.registerBeanDefinition("partnerLookupController", new RootBeanDefinition(PartnerLookupController.class));
+			context.registerBeanDefinition("partnerLookupController",
+					new RootBeanDefinition(PartnerLookupController.class));
 			try {
 				context.refresh();
-				fail("PartnerService 없이 Controller가 등록되면 안 된다.");
+				fail("PartnerLookupService 없이 Controller가 등록되면 안 된다.");
 			} catch (UnsatisfiedDependencyException expected) {
-				assertTrue(expected.getMessage().contains("PartnerService"));
+				assertTrue(expected.getMessage().contains("PartnerLookupService"));
 			}
 		}
 	}
@@ -60,8 +61,7 @@ public class PartnerLookupControllerTest {
 	public void trimsKeywordBindsPageAndIgnoresRequestedAmount() throws Exception {
 		service.total = 26;
 		service.rows = Collections.singletonList(row());
-		JsonNode body = body(mvc.perform(get("/lookup/options/partner")
-				.param("keyword", "  김 거래처  ").param("page", "2")
+		JsonNode body = body(mvc.perform(get("/lookup/options/partner").param("keyword", "  김 거래처  ").param("page", "2")
 				.param("amount", "1000").param("pageSize", "1000")).andReturn());
 		assertEnvelope(body, 2, 2, 26);
 		assertEquals(1, body.get("rows").size());
@@ -88,7 +88,7 @@ public class PartnerLookupControllerTest {
 
 	@Test
 	public void partnerWithoutAssigneeRemainsInRowsWithNullAssigneeFields() throws Exception {
-		PartnerVO unassigned = row();
+		PartnerLookupVO unassigned = row();
 		unassigned.setAssigneeId(null);
 		unassigned.setAssigneeCode(null);
 		unassigned.setAssigneeName(null);
@@ -111,8 +111,8 @@ public class PartnerLookupControllerTest {
 		assertEquals("", service.calls.get(0).getKeyword());
 		for (String page : new String[] { "", "0", "-7", "-2147483648" }) {
 			service.calls.clear();
-			assertEnvelope(body(mvc.perform(get("/lookup/options/partner")
-					.param("page", page).param("keyword", "   ")).andReturn()), 1, 4, 80);
+			assertEnvelope(body(mvc.perform(get("/lookup/options/partner").param("page", page).param("keyword", "   "))
+					.andReturn()), 1, 4, 80);
 			assertEquals(1, service.calls.get(0).getPageNum());
 			assertEquals(1, service.calls.get(1).getPageNum());
 		}
@@ -121,8 +121,7 @@ public class PartnerLookupControllerTest {
 	@Test
 	public void outOfRangePageIsClampedBeforeListQueryAndInJson() throws Exception {
 		service.total = 26;
-		assertEnvelope(body(mvc.perform(get("/lookup/options/partner")
-				.param("page", "99")).andReturn()), 2, 2, 26);
+		assertEnvelope(body(mvc.perform(get("/lookup/options/partner").param("page", "99")).andReturn()), 2, 2, 26);
 		assertEquals(99, service.calls.get(0).getPageNum()); // count는 페이지를 사용하지 않는다.
 		assertEquals(2, service.calls.get(1).getPageNum());
 	}
@@ -134,8 +133,7 @@ public class PartnerLookupControllerTest {
 		for (int[] test : cases) {
 			service.total = test[0];
 			service.calls.clear();
-			JsonNode body = body(mvc.perform(get("/lookup/options/partner")
-					.param("page", "2147483647")).andReturn());
+			JsonNode body = body(mvc.perform(get("/lookup/options/partner").param("page", "2147483647")).andReturn());
 			assertEnvelope(body, test[1], test[1], test[0]);
 			assertEquals(test[1], service.calls.get(1).getPageNum());
 			assertEquals(25, service.calls.get(1).getAmount());
@@ -145,8 +143,8 @@ public class PartnerLookupControllerTest {
 	@Test
 	public void invalidIntegerPagesAreRequestErrorsNotDatabaseQueries() throws Exception {
 		for (String page : new String[] { "abc", "2147483648", "1.5" }) {
-			assertEquals(400, mvc.perform(get("/lookup/options/partner")
-					.param("page", page)).andReturn().getResponse().getStatus());
+			assertEquals(400, mvc.perform(get("/lookup/options/partner").param("page", page)).andReturn().getResponse()
+					.getStatus());
 		}
 		assertTrue(service.calls.isEmpty());
 	}
@@ -185,8 +183,8 @@ public class PartnerLookupControllerTest {
 		assertEquals(25, body.get("pageSize").asInt());
 	}
 
-	private PartnerVO row() {
-		PartnerVO row = new PartnerVO();
+	private PartnerLookupVO row() {
+		PartnerLookupVO row = new PartnerLookupVO();
 		row.setPartnerId(42L);
 		row.setPartnerCode("00001");
 		row.setPartnerName("김 거래처");
@@ -197,9 +195,18 @@ public class PartnerLookupControllerTest {
 		return row;
 	}
 
-	private static class StubPartnerService implements PartnerService {
+	private static class StubPartnerLookupService implements PartnerLookupService {
+		@Override
+		public PartnerLookupVO get(Long id) {
+			for (PartnerLookupVO row : rows) {
+				if (id.equals(row.getPartnerId()))
+					return row;
+			}
+			return null;
+		}
+
 		private int total;
-		private List<PartnerVO> rows = Collections.emptyList();
+		private List<PartnerLookupVO> rows = Collections.emptyList();
 		private final List<LookupCriteria> calls = new ArrayList<>();
 		private RuntimeException countFailure;
 		private RuntimeException listFailure;
@@ -207,14 +214,16 @@ public class PartnerLookupControllerTest {
 		@Override
 		public int getTotal(LookupCriteria criteria) {
 			record(criteria);
-			if (countFailure != null) throw countFailure;
+			if (countFailure != null)
+				throw countFailure;
 			return total;
 		}
 
 		@Override
-		public List<PartnerVO> getList(LookupCriteria criteria) {
+		public List<PartnerLookupVO> getList(LookupCriteria criteria) {
 			record(criteria);
-			if (listFailure != null) throw listFailure;
+			if (listFailure != null)
+				throw listFailure;
 			return rows;
 		}
 

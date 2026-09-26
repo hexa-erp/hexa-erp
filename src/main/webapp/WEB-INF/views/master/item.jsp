@@ -29,7 +29,9 @@
 		<span class="workspace-hint">코드순 · 품목 등록 정보를 조회하고 등록합니다.</span>
 	</div>
 	<form id="item-selection" method="post"
-		action="<c:url value='/master/item/active'/>" data-unimplemented-submit>
+		action="<c:url value='/master/item/active'/>"
+		data-unimplemented-submit>
+		<%@ include file="../common/return-search.jspf"%>
 		<input type="hidden" name="activeFlag" value="N">
 		<%-- imageUrl은 표시용 URL이며 저장 경로인 imagePath와 구분한다. --%>
 		<div class="table-wrap">
@@ -127,6 +129,7 @@
 </div>
 <form id="item-form" action="<c:url value='/master/item/save'/>"
 	method="post" enctype="multipart/form-data" data-unimplemented-submit>
+	<%@ include file="../common/return-search.jspf"%>
 	<div class="modal-body">
 		<div class="form-grid editor-fields">
 			<input type="hidden" name="itemId"><input type="hidden"
@@ -195,6 +198,7 @@
 </div>
 <form id="stock-form" action="<c:url value='/master/item/stock'/>"
 	method="post" data-unimplemented-submit>
+	<%@ include file="../common/return-search.jspf"%>
 	<div class="modal-body">
 		<div class="form-grid editor-fields">
 			<div class="field field-wide">

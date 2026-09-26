@@ -1,0 +1,6 @@
+<%@ page pageEncoding="UTF-8"%>
+<c:forEach var="returnEntry" items="${returnSearch}">
+	<c:forEach var="returnValue" items="${returnEntry.value}">
+		<c:param name="return.${returnEntry.key}" value="${returnValue}" />
+	</c:forEach>
+</c:forEach>

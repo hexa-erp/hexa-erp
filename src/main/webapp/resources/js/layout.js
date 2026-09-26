@@ -17,7 +17,6 @@
 		setExpanded(this, $(this).attr('aria-expanded') !== 'true');
 	});
 
-	// Enter/Space는 native button에 맡긴다. 방향키는 그룹 이동과 포커스만 보완한다.
 	$sidebar
 			.on(
 					'keydown.hexaLayout',

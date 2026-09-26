@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%-- changes[i] 중 선택한 행만 저장 대상이다. 단가의 쉼표는 표시용이며 원문 값을 제출한다. --%>
-<%-- 담당자는 검색조건이 아니다. 반복 ID는 결과 검색·페이지 이동에서도 유지한다. --%>
+<%-- 담당자는 검색조건이 아니다. 창고·거래처·품목 조건은 결과 검색·페이지 이동에도 유지한다. --%>
 <c:set var="pageTitle" value="판매 단가 일괄 변경" />
 <c:set var="activeMenu" value="sale" />
 <c:set var="workspacePage" value="true" />
@@ -117,6 +117,7 @@
 			</div>
 			<form method="post" action="${ctx}/sale/bulk-price/save"
 				data-unimplemented-submit id="bulk-price-form">
+				<%@ include file="../common/return-search.jspf"%>
 				<div class="table-wrap">
 					<table class="data-table workspace-table bulk-table">
 						<colgroup>

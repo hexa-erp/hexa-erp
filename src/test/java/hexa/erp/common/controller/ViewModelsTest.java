@@ -33,15 +33,11 @@ public class ViewModelsTest {
 		Map<String, String> search = new LinkedHashMap<>();
 		search.put("partnerId", "ignored-legacy");
 		search.put("partnerName", "조회되지 않은 이름");
-		ViewModels.filters(request, search, model, "warehouse", "partner", "item", "assignee");
-		assertEquals(Arrays.asList("001", "9007199254740993", "A-02"),
-				((Map<?, ?>) model.get("filterIds")).get("partnerIds"));
-		List<?> tags = (List<?>) ((Map<?, ?>) model.get("filterSelections")).get("partner");
-		for (Object value : tags) {
-			Map<?, ?> tag = (Map<?, ?>) value;
-			assertEquals("", tag.get("code"));
-			assertEquals("ID " + tag.get("id"), tag.get("name"));
-		}
+		Map<String, List<String>> ids = ViewModels.filters(request, search, model, "warehouse", "partner", "item",
+				"assignee");
+		assertSame(ids, model.get("filterIds"));
+		assertEquals(Arrays.asList("001", "9007199254740993", "A-02"), ids.get("partnerIds"));
+		assertFalse(model.containsKey("filterSelections"));
 		assertFalse(search.containsKey("partnerId"));
 		assertFalse(search.containsKey("partnerName"));
 	}
@@ -72,7 +68,7 @@ public class ViewModelsTest {
 		ViewModels.filters(request, search, model, "warehouse", "partner", "item");
 		assertTrue(search.isEmpty());
 		assertFalse(((Map<?, ?>) model.get("filterIds")).containsKey("assigneeIds"));
-		assertFalse(((Map<?, ?>) model.get("filterSelections")).containsKey("assignee"));
+		assertFalse(model.containsKey("filterSelections"));
 	}
 
 	@Test

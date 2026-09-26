@@ -8,7 +8,7 @@
                http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
                http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 	<!-- @Controller 매핑과 @ResponseBody 변환을 활성화한다. -->
-	<annotation-driven />
+	<annotation-driven ignore-default-model-on-redirect="true" />
 
 	<resources mapping="/resources/**" location="/resources/" />
 
@@ -21,7 +21,7 @@
 			value="text/html;charset=UTF-8" />
 	</beans:bean>
 
-	<!-- Controller만 스캔한다. Service·Mapper는 부모 root-context에서 등록한다. -->
+	<!-- Controller를 등록한다. Service·Mapper는 root-context.xml에서 등록한다. -->
 	<context:component-scan base-package="hexa.erp.common.controller" />
 	<context:component-scan base-package="hexa.erp.assignee.controller" />
 	<context:component-scan base-package="hexa.erp.partner.controller" />

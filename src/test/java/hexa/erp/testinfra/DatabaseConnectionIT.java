@@ -21,8 +21,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * 실제 Oracle 연결 점검: mvn -Dtest=DatabaseConnectionIT test
- * 기본 테스트에서 제외하며 DUAL 조회만 수행한다.
+ * 실제 Oracle 연결 점검: mvn -Dtest=DatabaseConnectionIT test 기본 테스트에서 제외하며 DUAL 조회만
+ * 수행한다.
  */
 @Log4j
 @RunWith(SpringJUnit4ClassRunner.class)

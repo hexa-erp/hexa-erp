@@ -6,7 +6,6 @@
 <c:set var="workspacePage" value="true" />
 <%@ include file="../common/header.jsp"%>
 <section class="erp-workspace document-workspace">
-	<%-- 검색·Enter 제출에도 진행상태가 유지되도록 hidden 하나로 전송한다. --%>
 	<form method="get" action="${ctx}/shipping-instruction/list"
 		class="list-search" data-status-search>
 		<input type="hidden" name="progressStatus"
@@ -41,7 +40,9 @@
 		<span class="workspace-hint">일자·번호순 · 품목명으로 검색할 수 있습니다.</span>
 	</div>
 	<form id="document-list-actions" method="post"
-		action="${ctx}/shipping-instruction/change-status" data-unimplemented-submit>
+		action="${ctx}/shipping-instruction/change-status"
+		data-unimplemented-submit>
+		<%@ include file="../common/return-search.jspf"%>
 		<div class="table-wrap">
 			<table class="data-table workspace-table document-table">
 				<thead>
@@ -63,8 +64,11 @@
 								name="selectedIds"
 								value="<c:out value="${row.shipInstructionId}"/>"
 								aria-label="전표 선택" /></td>
-							<td class="col-date"><a
-								href="${ctx}/shipping-instruction/form?id=<c:out value="${row.shipInstructionId}"/>"><c:out
+							<td class="col-date"><c:url var="documentEditUrl"
+									value="/shipping-instruction/form">
+									<c:param name="id" value="${row.shipInstructionId}" />
+									<%@ include file="../common/return-search-params.jspf"%>
+								</c:url> <a href="<c:out value='${documentEditUrl}'/>"><c:out
 										value="${fn:replace(row.businessDate, '-', '/')}" />-<c:out
 										value="${row.shipInstructionNo}" /></a></td>
 							<td><c:out value="${row.warehouseName}" /></td>
@@ -108,8 +112,8 @@
 			<button type="submit" name="operation" value="status"
 				data-status-submit hidden>상태 적용</button>
 			<button class="btn btn-danger" type="submit" name="operation"
-				value="delete" formaction="${ctx}/shipping-instruction/delete">선택
-				삭제</button>
+				value="delete" data-confirm-delete
+				formaction="${ctx}/shipping-instruction/delete">선택 삭제</button>
 		</div>
 	</form>
 </section>

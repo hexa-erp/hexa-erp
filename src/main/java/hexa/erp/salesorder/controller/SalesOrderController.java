@@ -3,28 +3,35 @@ package hexa.erp.salesorder.controller;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import hexa.erp.common.controller.ViewModels;
+import hexa.erp.common.service.FilterSelectionService;
+import lombok.Setter;
+import lombok.extern.log4j.Log4j;
 
+@Log4j
 @Controller
 @RequestMapping("/order")
 public class SalesOrderController {
+	@Setter(onMethod_ = @Autowired)
+	private FilterSelectionService filterSelectionService;
+
 	@GetMapping("/list")
 	public String list(@RequestParam Map<String, String> params, Model model) {
+		log.info("주문서 목록 조회 요청");
 		model.addAttribute("orderList", Collections.emptyList());
 		model.addAttribute("search", ViewModels.search(params));
 		model.addAttribute("activeMenu", "order");
@@ -35,10 +42,12 @@ public class SalesOrderController {
 
 	@GetMapping("/form")
 	public String form(@RequestParam Map<String, String> params, HttpServletResponse response, Model model) {
-		// 수정 조회 미구현 상태에서 요청 ID가 신규 저장 ID로 사용되지 않게 한다.
+		log.info("주문서 입력 화면 요청");
+		// TODO: 수정할 전표와 품목 내역을 조회해 form에 담는다.
 		if ((params.get("id") != null && !params.get("id").trim().isEmpty())
 				|| (params.get("salesOrderId") != null && !params.get("salesOrderId").trim().isEmpty())) {
 			response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
+			model.addAttribute("errorMessage", "기존 전표 조회는 아직 구현되지 않았습니다.");
 		}
 		Map<String, Object> form = new LinkedHashMap<>();
 		form.put("salesOrderId", "");
@@ -56,15 +65,16 @@ public class SalesOrderController {
 
 	@GetMapping("/status")
 	public String status(@RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
+		log.info("주문서 현황 조회 요청");
 		Map<String, String> search = ViewModels.search(params);
 		// 현황은 검색 결과 전체를 표시하며 페이지 분할하지 않는다.
 		search.remove("page");
 		search.remove("pageSize");
-		ViewModels.filters(request, search, model, "warehouse", "partner", "item", "assignee");
+		Map<String, List<String>> filterIds = ViewModels.filters(request, search, model, "warehouse", "partner", "item",
+				"assignee");
+		model.addAttribute("filterSelections", filterSelectionService.getSelections(filterIds));
 		model.addAttribute("search", search);
-		model.addAttribute("orderStatusList", Collections.emptyList());
-		model.addAttribute("statusList", Collections.emptyList());
-		model.addAttribute("reportMonths", Collections.emptyList());
+		model.addAttribute("monthGroups", Collections.emptyList());
 		model.addAttribute("statusTotals", Collections.emptyMap());
 		model.addAttribute("activeMenu", "order");
 		model.addAttribute("pageTitle", "주문서 현황");
@@ -73,6 +83,7 @@ public class SalesOrderController {
 
 	@GetMapping("/statement")
 	public String statement(Model model) {
+		log.info("주문서 전표 조회 요청");
 		model.addAttribute("form", Collections.singletonMap("lines", Collections.emptyList()));
 		model.addAttribute("statementTotals", Collections.emptyMap());
 		model.addAttribute("activeMenu", "order");
@@ -82,30 +93,40 @@ public class SalesOrderController {
 
 	@GetMapping("/unsold")
 	public String unsold(@RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
+		log.info("미판매 현황 조회 요청");
 		Map<String, String> search = ViewModels.search(params);
 		search.remove("page");
 		search.remove("pageSize");
 		if (search.get("cutoffDate") == null || search.get("cutoffDate").trim().isEmpty()) {
 			search.put("cutoffDate", LocalDate.now().toString());
 		}
-		ViewModels.filters(request, search, model, "warehouse", "partner", "item", "assignee");
+		Map<String, List<String>> filterIds = ViewModels.filters(request, search, model, "warehouse", "partner", "item",
+				"assignee");
+		model.addAttribute("filterSelections", filterSelectionService.getSelections(filterIds));
 		model.addAttribute("search", search);
-		model.addAttribute("unsoldList", Collections.emptyList());
-		model.addAttribute("remainingList", Collections.emptyList());
-		model.addAttribute("reportMonths", Collections.emptyList());
+		model.addAttribute("monthGroups", Collections.emptyList());
 		model.addAttribute("remainingTotals", Collections.emptyMap());
-		model.addAttribute("statusTotals", Collections.emptyMap());
 		model.addAttribute("activeMenu", "order");
 		model.addAttribute("pageTitle", "미판매 현황");
 		return "order/unsold";
 	}
 
-	@PostMapping({ "/save", "/delete", "/change-status" })
-	@ResponseBody
-	public ResponseEntity<Map<String, Object>> notImplemented() {
-		Map<String, Object> body = new LinkedHashMap<>();
-		body.put("saved", false);
-		body.put("message", "아직 구현되지 않은 기능입니다. 실제 데이터는 저장되지 않았습니다.");
-		return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(body);
+	@PostMapping("/save")
+	public String save(HttpServletResponse response, Model model) {
+		log.info("주문서 저장 요청");
+		return ViewModels.notImplemented(response, model);
 	}
+
+	@PostMapping("/delete")
+	public String delete(HttpServletResponse response, Model model) {
+		log.info("주문서 삭제 요청");
+		return ViewModels.notImplemented(response, model);
+	}
+
+	@PostMapping("/change-status")
+	public String changeStatus(HttpServletResponse response, Model model) {
+		log.info("주문서 진행 상태 변경 요청");
+		return ViewModels.notImplemented(response, model);
+	}
+
 }

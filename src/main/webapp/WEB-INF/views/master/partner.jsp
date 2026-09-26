@@ -29,7 +29,9 @@
 		<span class="workspace-hint">코드순 · 거래처 등록 정보를 조회하고 등록합니다.</span>
 	</div>
 	<form id="partner-selection" method="post"
-		action="<c:url value='/master/partner/active'/>" data-unimplemented-submit>
+		action="<c:url value='/master/partner/active'/>"
+		data-unimplemented-submit>
+		<%@ include file="../common/return-search.jspf"%>
 		<input type="hidden" name="activeFlag" value="N">
 		<div class="table-wrap">
 			<table class="data-table workspace-table master-table partner-table">
@@ -110,6 +112,7 @@
 </div>
 <form id="partner-form" action="<c:url value='/master/partner/save'/>"
 	method="post" data-unimplemented-submit>
+	<%@ include file="../common/return-search.jspf"%>
 	<div class="modal-body">
 		<div class="form-grid editor-fields">
 			<input type="hidden" name="partnerId"><input type="hidden"

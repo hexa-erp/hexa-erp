@@ -3,7 +3,9 @@
 
 
 <%-- businessDate 연월별 전체 결과의 월계·총합계를 표시하며 페이지 분할하지 않는다.
-     단가 합계는 평균이 아닌 상세행 단가의 단순 합계다. --%>
+     단가 합계는 평균이 아닌 상세행 단가의 단순 합계다.
+     monthGroups에는 조회된 행이 있는 월만 담고, 결과가 없으면 빈 목록을 전달한다.
+     각 묶음은 monthLabel, rows, totals를 가진다. --%>
 <c:set var="pageTitle" value="판매 현황" />
 <c:set var="activeMenu" value="sale" />
 <c:set var="workspacePage" value="true" />
@@ -167,7 +169,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<c:forEach var="monthGroup" items="${reportMonths}">
+						<c:forEach var="monthGroup" items="${monthGroups}">
 							<c:forEach var="row" items="${monthGroup.rows}">
 								<tr>
 									<td class="col-date"><c:out
@@ -205,13 +207,13 @@
 										value="${monthGroup.totals.totalAmount}" maxFractionDigits="0" /></td>
 							</tr>
 						</c:forEach>
-						<c:if test="${empty saleStatusList}">
+						<c:if test="${empty monthGroups}">
 							<tr>
 								<td colspan="8" class="empty-state">조회된 판매 내역이 없습니다.</td>
 							</tr>
 						</c:if>
 					</tbody>
-					<c:if test="${not empty saleStatusList}">
+					<c:if test="${not empty monthGroups}">
 						<tfoot>
 							<tr class="report-grand-total">
 								<th scope="row" colspan="3">총합계</th>

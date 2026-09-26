@@ -1,6 +1,6 @@
 <%@ page pageEncoding="UTF-8"%>
-<%-- lineIdField는 현재 상세 PK, sourceIdField는 원전표 상세 FK다. 삭제 시 기존 상세 ID만 removedLineIds에 보낸다.
-     단위·규격은 전표 스냅샷 --%>
+<%-- lineIdField는 이 전표 상세행 ID, sourceIdField는 원전표 상세행 ID다.
+     지운 기존 행 ID는 removedLineIds로 보낸다. 단위·규격은 전표에 복사한 값이다. --%>
 <section id="document-lines" data-line-id-field="${lineIdField}"
 	data-source-id-field="${sourceIdField}" data-priced="${priced}">
 	<div class="toolbar line-toolbar">

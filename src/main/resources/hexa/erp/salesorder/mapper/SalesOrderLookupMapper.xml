@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="hexa.erp.salesorder.mapper.SalesOrderLookupMapper">
+	<sql id="searchCondition">
+		WHERE h.DELETED_YN = 'N'
+		AND EXISTS (
+		SELECT 1
+		FROM SALES_ORDER_LINE active_line
+		WHERE active_line.SALES_ORDER_ID = h.SALES_ORDER_ID
+		AND active_line.DELETED_YN = 'N'
+		)
+		<if test="progressStatus != null and progressStatus != ''">
+			AND h.PROGRESS_STATUS = #{progressStatus}
+		</if>
+		<if test="criteria.keyword != null and criteria.keyword != ''">
+			AND (
+			UPPER(h.SALES_ORDER_NO) LIKE '%' || UPPER(#{criteria.keyword}) || '%'
+			OR TO_CHAR(h.BUSINESS_DATE, 'YYYY/MM/DD') LIKE '%' ||
+			#{criteria.keyword} || '%'
+			OR UPPER(h.PARTNER_NAME) LIKE '%' || UPPER(#{criteria.keyword}) || '%'
+			OR UPPER(h.ASSIGNEE_NAME) LIKE '%' || UPPER(#{criteria.keyword}) ||
+			'%'
+			OR EXISTS (
+			SELECT 1
+			FROM SALES_ORDER_LINE search_line
+			LEFT JOIN ITEM search_item ON search_item.ITEM_ID = search_line.ITEM_ID
+			WHERE search_line.SALES_ORDER_ID = h.SALES_ORDER_ID
+			AND search_line.DELETED_YN = 'N'
+			AND (
+			UPPER(search_item.ITEM_CODE) LIKE '%' || UPPER(#{criteria.keyword}) || '%'
+			OR UPPER(search_line.ITEM_NAME) LIKE '%' || UPPER(#{criteria.keyword})
+			|| '%'
+			)
+			)
+			)
+		</if>
+	</sql>
+
+	<select id="getListWithPaging"
+		resultType="hexa.erp.salesorder.domain.SalesOrderLookupVO">
+		SELECT DOCUMENT_ID, DOCUMENT_NO, BUSINESS_DATE, DUE_DATE,
+		PARTNER_ID,
+		PARTNER_CODE, PARTNER_NAME,
+		WAREHOUSE_ID, WAREHOUSE_CODE,
+		WAREHOUSE_NAME,
+		ASSIGNEE_ID, ASSIGNEE_CODE, ASSIGNEE_NAME,
+		NOTE,
+		PROGRESS_STATUS, ITEM_SUMMARY, TOTAL_AMOUNT, TOTAL_QUANTITY
+		FROM (
+		SELECT ROWNUM rn, ordered_document.*
+		FROM (
+		SELECT h.SALES_ORDER_ID AS DOCUMENT_ID,
+		h.SALES_ORDER_NO AS DOCUMENT_NO,
+		TO_CHAR(h.BUSINESS_DATE, 'YYYY-MM-DD') AS BUSINESS_DATE,
+		h.BUSINESS_DATE AS SORT_BUSINESS_DATE,
+		TO_CHAR(h.DUE_DATE, 'YYYY-MM-DD') AS DUE_DATE,
+		h.PARTNER_ID, p.PARTNER_CODE, h.PARTNER_NAME,
+		h.WAREHOUSE_ID, w.WAREHOUSE_CODE, h.WAREHOUSE_NAME,
+		h.ASSIGNEE_ID, a.ASSIGNEE_CODE, h.ASSIGNEE_NAME,
+		h.NOTE, h.PROGRESS_STATUS,
+		(
+		SELECT MIN(l.ITEM_NAME) KEEP (DENSE_RANK FIRST ORDER BY
+		l.SALES_ORDER_LINE_ID)
+		|| CASE WHEN COUNT(*) &gt; 1
+		THEN ' 외 ' || TO_CHAR(COUNT(*) - 1) || '건' ELSE '' END
+		FROM SALES_ORDER_LINE l
+		WHERE l.SALES_ORDER_ID = h.SALES_ORDER_ID
+		AND l.DELETED_YN = 'N'
+		) AS ITEM_SUMMARY,
+		(
+		SELECT NVL(SUM(l.TOTAL_AMOUNT), 0)
+		FROM SALES_ORDER_LINE l
+		WHERE l.SALES_ORDER_ID = h.SALES_ORDER_ID
+		AND l.DELETED_YN = 'N'
+		) AS TOTAL_AMOUNT,
+		(
+		SELECT NVL(SUM(l.QUANTITY), 0)
+		FROM SALES_ORDER_LINE l
+		WHERE l.SALES_ORDER_ID = h.SALES_ORDER_ID
+		AND l.DELETED_YN = 'N'
+		) AS TOTAL_QUANTITY
+		FROM SALES_ORDER h
+		LEFT JOIN BIZ_PARTNER p ON p.PARTNER_ID = h.PARTNER_ID
+		LEFT JOIN WAREHOUSE w ON w.WAREHOUSE_ID = h.WAREHOUSE_ID
+		LEFT JOIN ASSIGNEE a ON a.ASSIGNEE_ID = h.ASSIGNEE_ID
+		<include refid="searchCondition" />
+		ORDER BY h.BUSINESS_DATE DESC, h.SALES_ORDER_ID DESC
+		) ordered_document
+		WHERE ROWNUM &lt;= #{criteria.pageNum} * #{criteria.amount}
+		)
+		WHERE rn &gt;
+		(#{criteria.pageNum} - 1) * #{criteria.amount}
+		ORDER BY
+		SORT_BUSINESS_DATE DESC, DOCUMENT_ID DESC
+	</select>
+
+	<select id="getTotalCount" resultType="int">
+		SELECT COUNT(*)
+		FROM SALES_ORDER h
+		<include refid="searchCondition" />
+	</select>
+
+	<select id="getLines"
+		resultType="hexa.erp.salesorder.domain.SalesOrderLookupLineVO">
+		SELECT l.SALES_ORDER_LINE_ID AS LINE_ID, l.ITEM_ID,
+		i.ITEM_CODE,
+		l.ITEM_NAME, l.SPECIFICATION, l.UNIT, l.QUANTITY,
+		GREATEST(l.QUANTITY - NVL((
+		SELECT SUM(dl.QUANTITY)
+		FROM SALE_LINE dl
+		JOIN SALE dh ON dh.SALE_ID = dl.SALE_ID
+		WHERE dl.SALES_ORDER_LINE_ID = l.SALES_ORDER_LINE_ID
+		AND dl.DELETED_YN = 'N'
+		AND dh.DELETED_YN = 'N'
+		), 0), 0) AS REMAINING_QUANTITY,
+		l.UNIT_PRICE,
+		l.SUPPLY_AMOUNT, l.VAT_AMOUNT, l.TOTAL_AMOUNT, l.NOTE
+		FROM
+		SALES_ORDER_LINE l
+		JOIN SALES_ORDER h ON h.SALES_ORDER_ID =
+		l.SALES_ORDER_ID
+		LEFT JOIN ITEM i ON i.ITEM_ID = l.ITEM_ID
+		WHERE
+		l.SALES_ORDER_ID = #{documentId}
+		AND l.DELETED_YN = 'N'
+		AND h.DELETED_YN
+		= 'N'
+		ORDER BY l.SALES_ORDER_LINE_ID ASC
+	</select>
+</mapper>
+
