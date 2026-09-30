@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hexa.erp.shipment.mapper.ShipmentMapper">
+<!-- 목록과 단건 조회가 같은 컬럼을 쓰도록 공유한다. 품목 요약·수량 합계는 삭제되지 않은 행만 계산한다. -->
+<sql id="headerColumns">
+h.SHIPMENT_ID, h.SHIPMENT_NO,
+TO_CHAR(h.BUSINESS_DATE, 'YYYY-MM-DD') AS BUSINESS_DATE,
+h.BUSINESS_DATE AS SORT_BUSINESS_DATE,
+h.PARTNER_ID, p.PARTNER_CODE, h.PARTNER_NAME,
+h.WAREHOUSE_ID, w.WAREHOUSE_CODE, h.WAREHOUSE_NAME,
+h.ASSIGNEE_ID, a.ASSIGNEE_CODE, h.ASSIGNEE_NAME,
+h.NOTE, h.DELIVERY_CONTACT, h.DELIVERY_POSTAL_CODE, h.DELIVERY_ADDRESS,
+h.PROGRESS_STATUS, h.DELETED_YN,
+TO_CHAR(h.UPDATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS UPDATED_AT,
+(
+    SELECT MIN(l.ITEM_NAME) KEEP (DENSE_RANK FIRST ORDER BY l.SHIPMENT_LINE_ID)
+        || CASE WHEN COUNT(*) &gt; 1
+            THEN ' 외 ' || TO_CHAR(COUNT(*) - 1) || '건' ELSE '' END
+    FROM SHIPMENT_LINE l
+    WHERE l.SHIPMENT_ID = h.SHIPMENT_ID AND l.DELETED_YN = 'N'
+) AS ITEM_SUMMARY,
+(
+SELECT NVL(SUM(l.QUANTITY), 0)
+FROM SHIPMENT_LINE l
+WHERE l.SHIPMENT_ID = h.SHIPMENT_ID AND l.DELETED_YN = 'N'
+) AS TOTAL_QUANTITY
+</sql>
+
+<sql id="headerTables">
+FROM SHIPMENT h
+LEFT JOIN BIZ_PARTNER p ON p.PARTNER_ID = h.PARTNER_ID
+LEFT JOIN WAREHOUSE w ON w.WAREHOUSE_ID = h.WAREHOUSE_ID
+LEFT JOIN ASSIGNEE a ON a.ASSIGNEE_ID = h.ASSIGNEE_ID
+</sql>
+
+<!-- 목록과 건수의 검색조건이 달라지지 않도록 공유한다. -->
+<sql id="searchCondition">
+WHERE h.DELETED_YN = 'N'
+<if test="progressStatus != null and progressStatus != ''">
+AND h.PROGRESS_STATUS = #{progressStatus}
+</if>
+<if test="keyword != null and keyword != ''">
+AND (
+    UPPER(h.SHIPMENT_NO) LIKE '%' || UPPER(#{keyword}) || '%'
+    OR TO_CHAR(h.BUSINESS_DATE, 'YYYY/MM/DD') LIKE '%' || #{keyword} || '%'
+    OR UPPER(h.PARTNER_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+    OR UPPER(h.ASSIGNEE_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+    OR UPPER(h.WAREHOUSE_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+    OR UPPER(h.NOTE) LIKE '%' || UPPER(#{keyword}) || '%'
+    OR UPPER(h.DELIVERY_CONTACT) LIKE '%' || UPPER(#{keyword}) || '%'
+    OR UPPER(h.DELIVERY_POSTAL_CODE) LIKE '%' || UPPER(#{keyword}) || '%'
+    OR UPPER(h.DELIVERY_ADDRESS) LIKE '%' || UPPER(#{keyword}) || '%'
+    OR EXISTS (
+        SELECT 1
+        FROM SHIPMENT_LINE search_line
+        LEFT JOIN ITEM search_item ON search_item.ITEM_ID = search_line.ITEM_ID
+        WHERE search_line.SHIPMENT_ID = h.SHIPMENT_ID
+        AND search_line.DELETED_YN = 'N'
+        AND (
+            UPPER(search_item.ITEM_CODE) LIKE '%' || UPPER(#{keyword}) || '%'
+            OR UPPER(search_line.ITEM_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+        )
+    )
+)
+</if>
+</sql>
+
+<!-- Oracle 11g는 정렬 후 ROWNUM 상·하한으로 페이지를 나눈다. -->
+<select id="getListWithPaging" parameterType="hexa.erp.shipment.domain.ShipmentCriteria" resultType="hexa.erp.shipment.domain.ShipmentVO">
+SELECT SHIPMENT_ID, SHIPMENT_NO, BUSINESS_DATE,
+PARTNER_ID, PARTNER_CODE, PARTNER_NAME,
+WAREHOUSE_ID, WAREHOUSE_CODE, WAREHOUSE_NAME,
+ASSIGNEE_ID, ASSIGNEE_CODE, ASSIGNEE_NAME,
+NOTE, DELIVERY_CONTACT, DELIVERY_POSTAL_CODE, DELIVERY_ADDRESS,
+PROGRESS_STATUS, DELETED_YN, UPDATED_AT, ITEM_SUMMARY, TOTAL_QUANTITY
+    FROM (
+        SELECT ROWNUM rn, ordered_shipment.*
+        FROM (
+            SELECT <include refid="headerColumns" />
+            <include refid="headerTables" />
+            <include refid="searchCondition" />
+            ORDER BY h.BUSINESS_DATE DESC, h.SHIPMENT_ID DESC
+        ) ordered_shipment
+        WHERE ROWNUM &lt;= #{page} * #{pageSize}
+    )
+    WHERE rn &gt; (#{page} - 1) * #{pageSize}
+    ORDER BY SORT_BUSINESS_DATE DESC, SHIPMENT_ID DESC
+</select>
+
+    <select id="getTotalCount" parameterType="hexa.erp.shipment.domain.ShipmentCriteria"
+        resultType="int">
+        SELECT COUNT(*)
+        FROM SHIPMENT h
+        <include refid="searchCondition" />
+    </select>
+
+    <select id="read" parameterType="long" resultType="hexa.erp.shipment.domain.ShipmentVO">
+        SELECT <include refid="headerColumns" />
+        <include refid="headerTables" />
+        WHERE h.SHIPMENT_ID = #{shipmentId} AND h.DELETED_YN = 'N'
+    </select>
+
+    <select id="getLines" parameterType="long"
+      resultType="hexa.erp.shipment.domain.ShipmentLineVO">
+        SELECT l.SHIPMENT_LINE_ID, l.SHIPMENT_ID, l.SHIP_INSTRUCTION_LINE_ID,
+            l.ITEM_ID, i.ITEM_CODE, l.ITEM_NAME, l.SPECIFICATION, l.UNIT,
+            l.QUANTITY, l.NOTE, l.DELETED_YN
+        FROM SHIPMENT_LINE l
+        JOIN SHIPMENT h ON h.SHIPMENT_ID = l.SHIPMENT_ID
+        LEFT JOIN ITEM i ON i.ITEM_ID = l.ITEM_ID
+        WHERE l.SHIPMENT_ID = #{shipmentId}
+        AND l.DELETED_YN = 'N' AND h.DELETED_YN = 'N'
+        ORDER BY l.SHIPMENT_LINE_ID ASC
+    </select>
+
+    <insert id="insertSelectKey" parameterType="hexa.erp.shipment.domain.ShipmentVO">
+        <selectKey keyProperty="shipmentId" resultType="long" order="BEFORE">
+            SELECT SEQ_SHIPMENT.NEXTVAL FROM DUAL
+        </selectKey>
+        <!-- 전표번호는 시퀀스 ID를 최소 5자리로 0 채움한다. -->
+        INSERT INTO SHIPMENT (
+            SHIPMENT_ID, SHIPMENT_NO, BUSINESS_DATE,
+            PARTNER_ID, PARTNER_NAME, WAREHOUSE_ID, WAREHOUSE_NAME,
+            ASSIGNEE_ID, ASSIGNEE_NAME, NOTE,
+            DELIVERY_CONTACT, DELIVERY_POSTAL_CODE, DELIVERY_ADDRESS,
+            PROGRESS_STATUS, UPDATED_AT, DELETED_YN
+        ) VALUES (
+            #{shipmentId},
+            LPAD(TO_CHAR(#{shipmentId}), GREATEST(5, LENGTH(TO_CHAR(#{shipmentId}))), '0'),
+            TO_DATE(#{businessDate}, 'YYYY-MM-DD'),
+            #{partnerId}, #{partnerName}, #{warehouseId}, #{warehouseName},
+            #{assigneeId}, #{assigneeName}, #{note},
+            #{deliveryContact}, #{deliveryPostalCode}, #{deliveryAddress},
+            'CONFIRMED', LOCALTIMESTAMP, 'N'
+        )
+    </insert>
+
+    <!-- 전표번호와 진행상태는 수정하지 않는다. -->
+    <update id="update" parameterType="hexa.erp.shipment.domain.ShipmentVO">
+        UPDATE SHIPMENT
+        SET BUSINESS_DATE = TO_DATE(#{businessDate}, 'YYYY-MM-DD'),
+            PARTNER_ID = #{partnerId}, PARTNER_NAME = #{partnerName},
+            WAREHOUSE_ID = #{warehouseId}, WAREHOUSE_NAME = #{warehouseName},
+            ASSIGNEE_ID = #{assigneeId}, ASSIGNEE_NAME = #{assigneeName},
+            NOTE = #{note}, DELIVERY_CONTACT = #{deliveryContact},
+            DELIVERY_POSTAL_CODE = #{deliveryPostalCode}, DELIVERY_ADDRESS = #{deliveryAddress},
+            UPDATED_AT = LOCALTIMESTAMP
+        WHERE SHIPMENT_ID = #{shipmentId} AND DELETED_YN = 'N'
+    </update>
+
+    <insert id="insertLineSelectKey" parameterType="hexa.erp.shipment.domain.ShipmentLineVO">
+        <selectKey keyProperty="shipmentLineId" resultType="long" order="BEFORE">
+            SELECT SEQ_SHIPMENT_LINE.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO SHIPMENT_LINE (
+            SHIPMENT_LINE_ID, SHIPMENT_ID, SHIP_INSTRUCTION_LINE_ID,
+            ITEM_ID, ITEM_NAME, SPECIFICATION, UNIT, QUANTITY, NOTE, DELETED_YN
+            )VALUES (
+            #{shipmentLineId}, #{shipmentId}, #{shipInstructionLineId},
+            #{itemId}, #{itemName}, #{specification}, #{unit}, #{quantity}, #{note}, 'N'
+            )
+     </insert> 
+     
+         <update id="updateLine" parameterType="hexa.erp.shipment.domain.ShipmentLineVO">
+        UPDATE SHIPMENT_LINE
+        SET SHIP_INSTRUCTION_LINE_ID = #{shipInstructionLineId},
+            ITEM_ID = #{itemId}, ITEM_NAME = #{itemName},
+            SPECIFICATION = #{specification}, UNIT = #{unit},
+            QUANTITY = #{quantity}, NOTE = #{note}
+        WHERE SHIPMENT_LINE_ID = #{shipmentLineId}
+        AND SHIPMENT_ID = #{shipmentId} AND DELETED_YN = 'N'
+        </update>
+     <!-- 수정 화면에서 지운 행만 삭제 표시한다. 다른 전표의 행은 바뀌지 않는다. -->
+     <update id="removeSelectedLines">
+        UPDATE SHIPMENT_LINE
+        SET DELETED_YN = 'Y'
+        WHERE SHIPMENT_ID = #{shipmentId} AND DELETED_YN = 'N'
+        AND SHIPMENT_LINE_ID IN
+        <foreach collection="lineIds" item="lineId" open="(" separator="," close=")">
+            #{lineId}
+        </foreach>
+    </update>
+
+    <!-- 전표 삭제는 DELETED_YN만 변경하며, 품목 행은 removeLines로 함께 표시한다. -->
+    <update id="remove">
+        UPDATE SHIPMENT
+        SET DELETED_YN = 'Y', UPDATED_AT = LOCALTIMESTAMP
+        WHERE DELETED_YN = 'N' AND SHIPMENT_ID IN
+        <foreach collection="ids" item="shipmentId" open="(" separator="," close=")">
+            #{shipmentId}
+        </foreach>
+    </update>
+
+    <update id="removeLines">
+        UPDATE SHIPMENT_LINE
+        SET DELETED_YN = 'Y'
+        WHERE DELETED_YN = 'N' AND SHIPMENT_ID IN
+        <foreach collection="ids" item="shipmentId" open="(" separator="," close=")">
+            #{shipmentId}
+        </foreach>
+    </update>
+
+    <update id="changeStatus">
+        UPDATE SHIPMENT
+        SET PROGRESS_STATUS = #{progressStatus}, UPDATED_AT = LOCALTIMESTAMP
+        WHERE DELETED_YN = 'N' AND SHIPMENT_ID IN
+        <foreach collection="ids" item="shipmentId" open="(" separator="," close=")">
+            #{shipmentId}
+        </foreach>
+    </update>
+</mapper>
