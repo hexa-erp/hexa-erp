@@ -22,8 +22,8 @@
 		</div>
 		<a class="btn" href="<c:out value='${documentListUrl}'/>">목록</a>
 	</div>
-	<form id="document-form" data-document-form data-unimplemented-submit
-		method="post" action="${ctx}/shipment/save">
+	<form id="document-form" data-document-form method="post"
+		action="${ctx}/shipment/save">
 		<%@ include file="../common/return-search.jspf"%>
 		<input type="hidden" name="shipmentId"
 			value="<c:out value="${form.shipmentId}"/>" /> <input type="hidden"
@@ -126,6 +126,7 @@
 					name="note" maxlength="500" rows="2"><c:out
 						value="${form.note}" /></textarea></label>
 		</div>
+
 		<div class="toolbar editor-source-tools">
 			<button class="btn" type="button" data-source="shipping-instruction">출하지시서
 				불러오기</button>
