@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="hexa.erp.shipment.mapper.ShipmentMapper">
+<!-- 목록과 단건 조회가 같은 컬럼을 쓰도록 공유한다. 품목 요약·수량 합계는 삭제되지 않은 행만 계산한다. -->
 <sql id="headerColumns">
 h.SHIPMENT_ID, h.SHIPMENT_NO,
 TO_CHAR(h.BUSINESS_DATE, 'YYYY-MM-DD') AS BUSINESS_DATE,
@@ -32,6 +33,7 @@ LEFT JOIN WAREHOUSE w ON w.WAREHOUSE_ID = h.WAREHOUSE_ID
 LEFT JOIN ASSIGNEE a ON a.ASSIGNEE_ID = h.ASSIGNEE_ID
 </sql>
 
+<!-- 목록과 건수의 검색조건이 달라지지 않도록 공유한다. -->
 <sql id="searchCondition">
 WHERE h.DELETED_YN = 'N'
 <if test="progressStatus != null and progressStatus != ''">
@@ -63,6 +65,7 @@ AND (
 </if>
 </sql>
 
+<!-- Oracle 11g는 정렬 후 ROWNUM 상·하한으로 페이지를 나눈다. -->
 <select id="getListWithPaging" parameterType="hexa.erp.shipment.domain.ShipmentCriteria" resultType="hexa.erp.shipment.domain.ShipmentVO">
 SELECT SHIPMENT_ID, SHIPMENT_NO, BUSINESS_DATE,
 PARTNER_ID, PARTNER_CODE, PARTNER_NAME,
@@ -114,8 +117,8 @@ PROGRESS_STATUS, DELETED_YN, UPDATED_AT, ITEM_SUMMARY, TOTAL_QUANTITY
         <selectKey keyProperty="shipmentId" resultType="long" order="BEFORE">
             SELECT SEQ_SHIPMENT.NEXTVAL FROM DUAL
         </selectKey>
-        
-                INSERT INTO SHIPMENT (
+        <!-- 전표번호는 시퀀스 ID를 최소 5자리로 0 채움한다. -->
+        INSERT INTO SHIPMENT (
             SHIPMENT_ID, SHIPMENT_NO, BUSINESS_DATE,
             PARTNER_ID, PARTNER_NAME, WAREHOUSE_ID, WAREHOUSE_NAME,
             ASSIGNEE_ID, ASSIGNEE_NAME, NOTE,
@@ -132,6 +135,7 @@ PROGRESS_STATUS, DELETED_YN, UPDATED_AT, ITEM_SUMMARY, TOTAL_QUANTITY
         )
     </insert>
 
+    <!-- 전표번호와 진행상태는 수정하지 않는다. -->
     <update id="update" parameterType="hexa.erp.shipment.domain.ShipmentVO">
         UPDATE SHIPMENT
         SET BUSINESS_DATE = TO_DATE(#{businessDate}, 'YYYY-MM-DD'),
@@ -166,6 +170,7 @@ PROGRESS_STATUS, DELETED_YN, UPDATED_AT, ITEM_SUMMARY, TOTAL_QUANTITY
         WHERE SHIPMENT_LINE_ID = #{shipmentLineId}
         AND SHIPMENT_ID = #{shipmentId} AND DELETED_YN = 'N'
         </update>
+     <!-- 수정 화면에서 지운 행만 삭제 표시한다. 다른 전표의 행은 바뀌지 않는다. -->
      <update id="removeSelectedLines">
         UPDATE SHIPMENT_LINE
         SET DELETED_YN = 'Y'
@@ -176,6 +181,7 @@ PROGRESS_STATUS, DELETED_YN, UPDATED_AT, ITEM_SUMMARY, TOTAL_QUANTITY
         </foreach>
     </update>
 
+    <!-- 전표 삭제는 DELETED_YN만 변경하며, 품목 행은 removeLines로 함께 표시한다. -->
     <update id="remove">
         UPDATE SHIPMENT
         SET DELETED_YN = 'Y', UPDATED_AT = LOCALTIMESTAMP

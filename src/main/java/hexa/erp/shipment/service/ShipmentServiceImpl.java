@@ -86,6 +86,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 			if (existing == null) {
 				throw new IllegalArgumentException("수정할 출하전표를 찾을 수 없습니다.");
 			}
+			// 전표번호와 진행상태는 수정 화면에서 바꾸지 않으므로 기존 값을 유지한다.
 			shipment.setShipmentNo(existing.getShipmentNo());
 			shipment.setProgressStatus(existing.getProgressStatus());
 		} else {
@@ -101,6 +102,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 		Set<Long> lineIds = new HashSet<>();
 		if (shipment.getLines() != null) {
 			for (ShipmentLineVO line : shipment.getLines()) {
+				// 품목을 고르지 않은 빈 행은 저장하지 않는다.
 				if (line == null || line.getItemId() == null) {
 					continue;
 				}
@@ -126,6 +128,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 		if (!removedLineIds.isEmpty()) {
 			mapper.removeSelectedLines(shipment.getShipmentId(), removedLineIds);
 		}
+		// 행 ID가 없으면 새 행, 있으면 이 전표에 속한 기존 행만 수정한다.
 		for (ShipmentLineVO line : lines) {
 			line.setShipmentId(shipment.getShipmentId());
 			if (line.getShipmentLineId() == null) {
@@ -164,6 +167,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 		return mapper.changeStatus(ids, progressStatus);
 	}
 
+	// 품목명이 비어 있으면 품목 마스터에서 채우고, 수량은 소수점 3자리로 맞춘다.
 	private void prepareLine(ShipmentLineVO line) {
 		if (isBlank(line.getItemName())) {
 			ItemLookupVO item = itemLookupService.get(line.getItemId());
@@ -176,6 +180,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 		line.setQuantity(quantity.setScale(3, RoundingMode.HALF_UP));
 	}
 
+	// 이름이 비어 있으면 같은 ID의 기존 전표 이름을 우선 쓰고, 없으면 마스터에서 조회한다.
 	private void fillHeaderNames(ShipmentVO shipment, ShipmentVO existing) {
 		if (shipment.getPartnerId() == null) {
 			shipment.setPartnerName(null);
@@ -216,6 +221,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 		return value == null || value.trim().isEmpty();
 	}
 
+	// null과 중복 ID를 제거하고 순서는 유지한다.
 	private List<Long> cleanIds(List<Long> values) {
 		Set<Long> ids = new LinkedHashSet<>();
 		if (values != null) {
