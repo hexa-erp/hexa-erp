@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%-- 진행상태 탭과 검색어로 조회하고, 선택한 전표의 진행상태 변경·삭제를 한 form에서 처리한다. --%>
 
 <c:set var="pageTitle" value="출하 조회" />
 <c:set var="activeMenu" value="shipment" />
@@ -8,6 +9,7 @@
 <section class="erp-workspace document-workspace">
 	<form method="get" action="${ctx}/shipment/list" class="list-search"
 		data-status-search>
+		<%-- 진행상태 탭을 누르면 이 값을 바꾸고 1페이지부터 다시 조회한다. --%>
 		<input type="hidden" name="progressStatus"
 			value="<c:out value='${search.progressStatus}'/>" /> <input
 			type="hidden" name="pageSize" value="25" />
@@ -28,19 +30,20 @@
 					aria-pressed="${search.progressStatus eq 'CONFIRMED' ? 'true' : 'false'}">확인</button>
 			</div>
 		</div>
+
 		<label class="input-group list-keyword"><span class="sr-only">검색어</span><input
 			type="search" name="keyword"
 			value="<c:out value="${search.keyword}"/>" placeholder="입력 후 [Enter]" />
 			<button class="btn btn-primary" type="submit">검색</button></label>
 	</form>
-
 	<div class="workspace-meta">
 		<c:set var="basePath" value="/shipment/list" />
 		<%@ include file="../common/pagination.jsp"%>
 		<span class="workspace-hint">일자·번호순 · 품목명으로 검색할 수 있습니다.</span>
 	</div>
 	<form id="document-list-actions" method="post"
-		action="${ctx}/shipment/change-status" data-unimplemented-submit>
+		action="${ctx}/shipment/change-status">
+		<%-- 처리 후 같은 검색조건의 목록으로 돌아가도록 현재 검색조건을 return.* 로 함께 보낸다. --%>
 		<%@ include file="../common/return-search.jspf"%>
 		<div class="table-wrap">
 			<table class="data-table workspace-table document-table">
@@ -90,7 +93,6 @@
 				</tbody>
 			</table>
 		</div>
-
 		<div class="workspace-actions">
 			<a class="btn btn-primary" href="${ctx}/shipment/form">신규</a>
 			<div class="action-dropdown">
@@ -106,9 +108,11 @@
 						data-status-value="CONFIRMED">확인</button>
 				</div>
 			</div>
+			<%-- 상태 옵션을 고르면 nextProgressStatus에 값을 넣고 숨은 상태 적용 버튼으로 전송한다. --%>
 			<input type="hidden" name="nextProgressStatus" value="" />
 			<button type="submit" name="operation" value="status"
 				data-status-submit hidden>상태 적용</button>
+			<%-- 삭제는 formaction으로 전송 주소만 /shipment/delete로 바꾼다. --%>
 			<button class="btn btn-danger" type="submit" name="operation"
 				value="delete" data-confirm-delete
 				formaction="${ctx}/shipment/delete">선택 삭제</button>
