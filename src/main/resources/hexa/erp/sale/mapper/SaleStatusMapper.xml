@@ -12,6 +12,7 @@
 		l.TOTAL_AMOUNT, l.NOTE
 	</sql>
 
+	<!-- 값이 있는 조건만 추가한다. 종료일은 다음 날 0시 미만으로 비교해 당일 전체를 포함한다. -->
 	<sql id="searchCondition">
 		WHERE h.DELETED_YN = 'N'
 		AND l.DELETED_YN = 'N'
@@ -80,6 +81,7 @@
 		<if test="maxVatAmount != null">
 			AND l.VAT_AMOUNT &lt;= #{maxVatAmount}
 		</if>
+		<!-- 검색어는 전표번호·일자·품목·거래처·창고·담당자·비고 중 하나라도 포함하면 찾는다. -->
 		<if test="keyword != null and keyword.trim() != ''">
 			AND (
 			UPPER(h.SALE_NO) LIKE '%' || UPPER(TRIM(#{keyword})) || '%'
@@ -99,6 +101,7 @@
 			)
 		</if>
 	</sql>
+	<!-- 월별로 묶기 쉽도록 일자, 전표, 품목 행 순으로 정렬한다. -->
 	<select id="getStatusRows"
 		resultType="hexa.erp.sale.domain.SaleStatusRowVO">
 		SELECT
