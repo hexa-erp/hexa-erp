@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hexa.erp.sale.mapper.SaleStatusMapper">
+	<!-- 이름과 규격은 전표에 저장한 값을 사용하고 품목 코드만 마스터에서 읽는다. -->
+	<sql id="reportColumns">
+		h.SALE_ID, l.SALE_LINE_ID, h.SALE_NO,
+		TO_CHAR(h.BUSINESS_DATE, 'YYYY-MM-DD') AS BUSINESS_DATE,
+		h.PARTNER_ID, h.PARTNER_NAME, h.WAREHOUSE_ID, h.WAREHOUSE_NAME,
+		h.ASSIGNEE_ID, h.ASSIGNEE_NAME, h.PROGRESS_STATUS, h.NOTE AS HEADER_NOTE,
+		l.ITEM_ID, i.ITEM_CODE, l.ITEM_NAME, l.SPECIFICATION, l.UNIT,
+		l.QUANTITY, l.UNIT_PRICE, l.SUPPLY_AMOUNT, l.VAT_AMOUNT,
+		l.TOTAL_AMOUNT, l.NOTE
+	</sql>
+
+	<sql id="searchCondition">
+		WHERE h.DELETED_YN = 'N'
+		AND l.DELETED_YN = 'N'
+		<if test="startDate != null and startDate.trim() != ''">
+			AND h.BUSINESS_DATE &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+		</if>
+		<if test="endDate != null and endDate.trim() != ''">
+			AND h.BUSINESS_DATE &lt; TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
+		</if>
+		<if test="progressStatus != null and progressStatus.trim() != ''">
+			AND h.PROGRESS_STATUS = #{progressStatus}
+		</if>
+		<if test="specification != null and specification.trim() != ''">
+			AND UPPER(l.SPECIFICATION) LIKE '%' || UPPER(TRIM(#{specification})) ||
+			'%'
+		</if>
+		<if test="warehouseIds != null and warehouseIds.size() > 0">
+			AND h.WAREHOUSE_ID IN
+			<foreach collection="warehouseIds" item="warehouseId"
+				open="(" separator="," close=")">
+				#{warehouseId}
+			</foreach>
+		</if>
+		<if test="partnerIds != null and partnerIds.size() > 0">
+			AND h.PARTNER_ID IN
+			<foreach collection="partnerIds" item="partnerId" open="("
+				separator="," close=")">
+				#{partnerId}
+			</foreach>
+		</if>
+		<if test="itemIds != null and itemIds.size() > 0">
+			AND l.ITEM_ID IN
+			<foreach collection="itemIds" item="itemId" open="("
+				separator="," close=")">
+				#{itemId}
+			</foreach>
+		</if>
+		<if test="assigneeIds != null and assigneeIds.size() > 0">
+			AND h.ASSIGNEE_ID IN
+			<foreach collection="assigneeIds" item="assigneeId" open="("
+				separator="," close=")">
+				#{assigneeId}
+			</foreach>
+		</if>
+		<if test="minQuantity != null">
+			AND l.QUANTITY &gt;= #{minQuantity}
+		</if>
+		<if test="maxQuantity != null">
+			AND l.QUANTITY &lt;= #{maxQuantity}
+		</if>
+		<if test="minUnitPrice != null">
+			AND l.UNIT_PRICE &gt;= #{minUnitPrice}
+		</if>
+		<if test="maxUnitPrice != null">
+			AND l.UNIT_PRICE &lt;= #{maxUnitPrice}
+		</if>
+		<if test="minSupplyAmount != null">
+			AND l.SUPPLY_AMOUNT &gt;= #{minSupplyAmount}
+		</if>
+		<if test="maxSupplyAmount != null">
+			AND l.SUPPLY_AMOUNT &lt;= #{maxSupplyAmount}
+		</if>
+		<if test="minVatAmount != null">
+			AND l.VAT_AMOUNT &gt;= #{minVatAmount}
+		</if>
+		<if test="maxVatAmount != null">
+			AND l.VAT_AMOUNT &lt;= #{maxVatAmount}
+		</if>
+		<if test="keyword != null and keyword.trim() != ''">
+			AND (
+			UPPER(h.SALE_NO) LIKE '%' || UPPER(TRIM(#{keyword})) || '%'
+			OR TO_CHAR(h.BUSINESS_DATE, 'YYYY-MM-DD') LIKE '%' || TRIM(#{keyword})
+			|| '%'
+			OR TO_CHAR(h.BUSINESS_DATE, 'YYYY/MM/DD') LIKE '%' || TRIM(#{keyword})
+			|| '%'
+			OR UPPER(i.ITEM_CODE) LIKE '%' || UPPER(TRIM(#{keyword})) || '%'
+			OR UPPER(l.ITEM_NAME) LIKE '%' || UPPER(TRIM(#{keyword})) || '%'
+			OR UPPER(l.SPECIFICATION) LIKE '%' || UPPER(TRIM(#{keyword})) || '%'
+			OR UPPER(l.UNIT) LIKE '%' || UPPER(TRIM(#{keyword})) || '%'
+			OR UPPER(h.PARTNER_NAME) LIKE '%' || UPPER(TRIM(#{keyword})) || '%'
+			OR UPPER(h.WAREHOUSE_NAME) LIKE '%' || UPPER(TRIM(#{keyword})) || '%'
+			OR UPPER(h.ASSIGNEE_NAME) LIKE '%' || UPPER(TRIM(#{keyword})) || '%'
+			OR UPPER(h.NOTE) LIKE '%' || UPPER(TRIM(#{keyword})) || '%'
+			OR UPPER(l.NOTE) LIKE '%' || UPPER(TRIM(#{keyword})) || '%'
+			)
+		</if>
+	</sql>
+	<select id="getStatusRows"
+		resultType="hexa.erp.sale.domain.SaleStatusRowVO">
+		SELECT
+		<include refid="reportColumns" />
+		FROM SALE h
+		JOIN SALE_LINE l ON l.SALE_ID = h.SALE_ID
+		LEFT JOIN ITEM i ON i.ITEM_ID = l.ITEM_ID
+		<include refid="searchCondition" />
+		ORDER BY h.BUSINESS_DATE ASC, h.SALE_ID ASC, l.SALE_LINE_ID ASC
+	</select>
+</mapper>
