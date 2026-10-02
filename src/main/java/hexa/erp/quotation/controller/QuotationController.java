@@ -10,15 +10,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import hexa.erp.common.controller.PostRedirects;
 import hexa.erp.common.controller.ViewModels;
 import hexa.erp.common.service.FilterSelectionService;
+import hexa.erp.quotation.domain.QuotationVO;
+import hexa.erp.quotation.service.QuotationService;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j;
 
@@ -28,6 +34,9 @@ import lombok.extern.log4j.Log4j;
 public class QuotationController {
 	@Setter(onMethod_ = @Autowired)
 	private FilterSelectionService filterSelectionService;
+	
+	@Setter(onMethod_ = @Autowired)
+	private QuotationService service;
 
 	@GetMapping("/list")
 	public String list(@RequestParam Map<String, String> params, Model model) {
@@ -41,20 +50,27 @@ public class QuotationController {
 	}
 
 	@GetMapping("/form")
-	public String form(@RequestParam Map<String, String> params, HttpServletResponse response, Model model) {
+	public String form(@RequestParam(value = "id", required = false) Long id,@RequestParam(value = "quotationId", required = false) Long quotationId, 
+			HttpServletRequest request, RedirectAttributes rttr, Model model) {
 		log.info("견적서 입력 화면 요청");
-		// TODO: 수정할 전표와 품목 내역을 조회해 form에 담는다.
-		if ((params.get("id") != null && !params.get("id").trim().isEmpty())
-				|| (params.get("quotationId") != null && !params.get("quotationId").trim().isEmpty())) {
-			response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
-			model.addAttribute("errorMessage", "기존 전표 조회는 아직 구현되지 않았습니다.");
+	
+		Long documentId = id == null? quotationId : id;
+		QuotationVO form;
+		
+		if (documentId == null) {
+			form = new QuotationVO();
+			
+			form.setBusinessDate(LocalDate.now().toString());
+			form.setProgressStatus("IN_PROGRESS");
 		}
-		Map<String, Object> form = new LinkedHashMap<>();
-		form.put("quotationId", "");
-		form.put("quotationNo", "");
-		form.put("businessDate", LocalDate.now().toString());
-		form.put("progressStatus", "IN_PROGRESS");
-		form.put("lines", Collections.emptyList());
+		else {
+			form = service.get(quotationId);
+			if (form == null) {
+				rttr.addFlashAttribute("erroMessage", "조회할 견적서가 없습니다.");
+				return PostRedirects.toList("/quotation/list", request);
+			}
+		}
+		
 		model.addAttribute("form", form);
 		model.addAttribute("mode", "create");
 		model.addAttribute("isEdit", false);
@@ -112,9 +128,27 @@ public class QuotationController {
 	}
 
 	@PostMapping("/save")
-	public String save(HttpServletResponse response, Model model) {
+	public String save(QuotationVO quotation, BindingResult bindingResult,
+						HttpServletRequest request, RedirectAttributes rttr) {
 		log.info("견적서 저장 요청");
-		return ViewModels.notImplemented(response, model);
+		
+		boolean editing = quotation.getQuotationId() != null;
+		
+		if (bindingResult.hasErrors()) {
+			rttr.addFlashAttribute("errorMessage", "품목의 수량량과 단가 등을 입력해 주세요.");
+		}
+		else {
+			try {
+				service.save(quotation);
+			} catch(IllegalArgumentException e) {
+				rttr.addFlashAttribute("errorMessage", e.getMessage());
+			} 
+			catch(DataAccessException e){
+				log.error("견적서 저장 실패", e);
+				rttr.addFlashAttribute("errorMessage","견적서를 저장하지 못했습니다.");
+			}
+		}
+		return PostRedirects.afterDocumentSave("/quotation", editing, request);
 	}
 
 	@PostMapping("/delete")
