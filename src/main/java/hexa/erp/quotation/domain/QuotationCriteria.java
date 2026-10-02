@@ -14,6 +14,7 @@ public class QuotationCriteria {
 	
 	private String type;
 	private String keyword;
+	private String progressStatus;
 	
 	public void setPage(int page) {
 		this.page = Math.max(1, page);
@@ -21,5 +22,9 @@ public class QuotationCriteria {
 	
 	public void setKeyword(String keyword) {
 		this.keyword = keyword == null? "": keyword.trim();
+	}
+	
+	public void setProgressStatus(String progressStatus) {
+		this.progressStatus = progressStatus == null? "": progressStatus.trim();
 	}
 }
