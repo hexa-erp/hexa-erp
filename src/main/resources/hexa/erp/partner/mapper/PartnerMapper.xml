@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="hexa.erp.partner.mapper.PartnerMapper">
+
+    <sql id="searchCondition">
+        <where>
+            <if test='includeInactive != "Y"'>
+                AND p.ACTIVE_FLAG = 'Y'
+            </if>
+
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    UPPER(p.PARTNER_CODE) LIKE '%' || UPPER(#{keyword}) || '%'
+                    OR UPPER(p.PARTNER_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+                    OR UPPER(p.REPRESENTATIVE) LIKE '%' || UPPER(#{keyword}) || '%'
+                )
+            </if>
+        </where>
+    </sql>
+
+    <select id="getListWithPaging"
+            parameterType="hexa.erp.partner.domain.PartnerCriteria"
+            resultType="hexa.erp.partner.domain.PartnerVO">
+
+        SELECT
+            PARTNER_ID,
+            PARTNER_CODE,
+            PARTNER_NAME,
+            BUSINESS_NO,
+            REPRESENTATIVE,
+            BUSINESS_TYPE,
+            BUSINESS_ITEM,
+            PHONE,
+            MOBILE,
+            EMAIL,
+            POSTAL_CODE,
+            ADDRESS,
+            ASSIGNEE_ID,
+            ASSIGNEE_NAME,
+            NOTE,
+            ACTIVE_FLAG,
+            UPDATED_AT
+        FROM (
+            SELECT
+                ROWNUM rn,
+                ordered_partner.*
+            FROM (
+                SELECT
+                    p.PARTNER_ID,
+                    p.PARTNER_CODE,
+                    p.PARTNER_NAME,
+                    p.BUSINESS_NO,
+                    p.REPRESENTATIVE,
+                    p.BUSINESS_TYPE,
+                    p.BUSINESS_ITEM,
+                    p.PHONE,
+                    p.MOBILE,
+                    p.EMAIL,
+                    p.POSTAL_CODE,
+                    p.ADDRESS,
+                    p.ASSIGNEE_ID,
+                    p.ASSIGNEE_NAME,
+                    p.NOTE,
+                    p.ACTIVE_FLAG,
+                    TO_CHAR(
+                        p.UPDATED_AT,
+                        'YYYY-MM-DD HH24:MI:SS'
+                    ) AS UPDATED_AT
+                FROM BIZ_PARTNER p
+                <include refid="searchCondition"/>
+                ORDER BY
+                    p.PARTNER_CODE ASC,
+                    p.PARTNER_ID ASC
+            ) ordered_partner
+            WHERE ROWNUM &lt;= #{page} * #{pageSize}
+        )
+        WHERE rn &gt; (#{page} - 1) * #{pageSize}
+        ORDER BY
+            PARTNER_CODE ASC,
+            PARTNER_ID ASC
+    </select>
+
+    <select id="getTotalCount"
+            parameterType="hexa.erp.partner.domain.PartnerCriteria"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM BIZ_PARTNER p
+        <include refid="searchCondition"/>
+    </select>
+
+    <insert id="insertSelectKey"
+            parameterType="hexa.erp.partner.domain.PartnerVO">
+
+        <selectKey keyProperty="partnerId"
+                   resultType="long"
+                   order="BEFORE">
+            SELECT SEQ_PARTNER.NEXTVAL
+            FROM DUAL
+        </selectKey>
+
+        INSERT INTO BIZ_PARTNER (
+            PARTNER_ID,
+            PARTNER_CODE,
+            PARTNER_NAME,
+            BUSINESS_NO,
+            REPRESENTATIVE,
+            BUSINESS_TYPE,
+            BUSINESS_ITEM,
+            PHONE,
+            MOBILE,
+            EMAIL,
+            POSTAL_CODE,
+            ADDRESS,
+            ASSIGNEE_ID,
+            ASSIGNEE_NAME,
+            NOTE,
+            ACTIVE_FLAG,
+            UPDATED_AT
+        ) VALUES (
+            #{partnerId},
+            #{partnerCode},
+            #{partnerName},
+            #{businessNo},
+            #{representative},
+            #{businessType},
+            #{businessItem},
+            #{phone},
+            #{mobile},
+            #{email},
+            #{postalCode},
+            #{address},
+            #{assigneeId},
+            #{assigneeName},
+            #{note},
+            'Y',
+            LOCALTIMESTAMP
+        )
+    </insert>
+
+    <update id="update"
+            parameterType="hexa.erp.partner.domain.PartnerVO">
+
+        UPDATE BIZ_PARTNER
+        SET
+            PARTNER_NAME = #{partnerName},
+            BUSINESS_NO = #{businessNo},
+            REPRESENTATIVE = #{representative},
+            BUSINESS_TYPE = #{businessType},
+            BUSINESS_ITEM = #{businessItem},
+            PHONE = #{phone},
+            MOBILE = #{mobile},
+            EMAIL = #{email},
+            POSTAL_CODE = #{postalCode},
+            ADDRESS = #{address},
+            ASSIGNEE_ID = #{assigneeId},
+            ASSIGNEE_NAME = #{assigneeName},
+            NOTE = #{note},
+            UPDATED_AT = LOCALTIMESTAMP
+        WHERE PARTNER_ID = #{partnerId}
+    </update>
+
+    <update id="changeActive">
+        UPDATE BIZ_PARTNER
+        SET
+            ACTIVE_FLAG = #{activeFlag},
+            UPDATED_AT = LOCALTIMESTAMP
+        WHERE PARTNER_ID IN
+        <foreach collection="ids"
+                 item="partnerId"
+                 open="("
+                 separator=","
+                 close=")">
+            #{partnerId}
+        </foreach>
+    </update>
+
+</mapper>
