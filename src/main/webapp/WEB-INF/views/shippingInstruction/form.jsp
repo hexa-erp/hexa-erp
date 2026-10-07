@@ -21,7 +21,7 @@
 		</div>
 		<a class="btn" href="<c:out value='${documentListUrl}'/>">목록</a>
 	</div>
-	<form id="document-form" data-document-form data-unimplemented-submit
+	<form id="document-form" data-document-form
 		method="post" action="${ctx}/shipping-instruction/save">
 		<%@ include file="../common/return-search.jspf"%>
 		<input type="hidden" name="shipInstructionId"
