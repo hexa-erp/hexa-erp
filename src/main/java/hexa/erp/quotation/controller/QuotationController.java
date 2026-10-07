@@ -85,9 +85,9 @@ public class QuotationController {
 			form.setProgressStatus("IN_PROGRESS");
 		}
 		else {
-			form = service.get(quotationId);
+			form = service.get(documentId);
 			if (form == null) {
-				rttr.addFlashAttribute("erroMessage", "조회할 견적서가 없습니다.");
+				rttr.addFlashAttribute("errorMessage", "조회할 견적서가 없습니다.");
 				
 				return PostRedirects.toList("/quotation/list", request);
 			}
