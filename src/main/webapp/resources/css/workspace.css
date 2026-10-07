@@ -77,6 +77,8 @@
   background: #fafbfc;
 }
 .erp-workspace .workspace-actions .muted { font-size: 13px; margin-left: 4px; }
+.erp-workspace .workspace-actions .bulk-apply { margin-right: 8px; }
+.erp-workspace .workspace-actions .bulk-apply input { width: 150px; }
 .erp-workspace .workspace-actions .status-options { top: auto; bottom: calc(100% + 5px); }
 .erp-workspace .status-option { font-size: 13px; padding: 6px 10px; }
 

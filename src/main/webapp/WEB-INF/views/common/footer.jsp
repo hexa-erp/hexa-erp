@@ -104,13 +104,13 @@
 </c:if>
 <%-- 공통 스크립트가 사용하는 jQuery를 먼저 한 번만 로드한다. --%>
 <script src="${ctx}/resources/js/vendor/jquery-3.7.1.min.js"></script>
-<script src="${ctx}/resources/js/decimal.js?v=1"></script>
+<script src="${ctx}/resources/js/decimal.js?v=2"></script>
 <script src="${ctx}/resources/js/common.js?v=2"></script>
 <script src="${ctx}/resources/js/layout.js?v=1"></script>
 <script src="${ctx}/resources/js/reference-selector.js?v=2"></script>
 <script src="${ctx}/resources/js/document.js?v=2"></script>
 <c:if test="${not empty pageScript}">
-	<script src="${ctx}/resources/js/${pageScript}?v=2"></script>
+	<script src="${ctx}/resources/js/${pageScript}?v=3"></script>
 </c:if>
 <c:if test="${multiFilterPage}">
 	<script src="${ctx}/resources/js/multi-filter.js?v=1"></script>

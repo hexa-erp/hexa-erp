@@ -74,6 +74,35 @@
 		return value.coefficient < ZERO ? -whole : whole;
 	}
 
+	// HALF_UP으로 소수 scale자리까지 반올림한다.
+	function roundScale(value, scale) {
+		if (value.scale <= scale)
+			return {
+				coefficient : value.coefficient * power10(scale - value.scale),
+				scale : scale
+			};
+		return {
+			coefficient : roundInteger({
+				coefficient : value.coefficient,
+				scale : value.scale - scale
+			}),
+			scale : scale
+		};
+	}
+
+	// 단가를 percent%만큼 올리거나(음수면 내림) 소수 둘째 자리까지 반올림한다.
+	function adjustPercent(unitPrice, percent) {
+		var p = parse(unitPrice), r = parse(percent);
+		if (!p || !r)
+			return null;
+		// 단가 × (100 + percent) ÷ 100
+		var factor = BigInt(100) * power10(r.scale) + r.coefficient;
+		return stringify(roundScale({
+			coefficient : p.coefficient * factor,
+			scale : p.scale + r.scale + 2
+		}, 2));
+	}
+
 	function add(left, right) {
 		var a = parse(left), b = parse(right);
 		if (!a || !b)
@@ -118,6 +147,7 @@
 	return {
 		lineAmounts : lineAmounts,
 		add : add,
+		adjustPercent : adjustPercent,
 		format : format
 	};
 }));

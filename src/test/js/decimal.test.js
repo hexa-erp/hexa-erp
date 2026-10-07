@@ -35,6 +35,13 @@ cases.forEach(function(c) {
 		totalAmount : c[4]
 	}, c[0] + ' * ' + c[1]);
 });
+assert.strictEqual(decimal.adjustPercent('30000', '10'), '33000');
+assert.strictEqual(decimal.adjustPercent('30000', '-10'), '27000');
+assert.strictEqual(decimal.adjustPercent('19999', '10'), '21998.9');
+assert.strictEqual(decimal.adjustPercent('0.05', '10'), '0.06');
+assert.strictEqual(decimal.adjustPercent('1000', '2.5'), '1025');
+assert.strictEqual(decimal.adjustPercent('1000', '-100'), '0');
+assert.strictEqual(decimal.adjustPercent('', '10'), null);
 assert.strictEqual(decimal.add('0.1', '0.2'), '0.3');
 assert.strictEqual(decimal.add('1.005', '-1.005'), '0');
 assert.strictEqual(decimal.add('9007199254740993', '1'), '9007199254740994');
