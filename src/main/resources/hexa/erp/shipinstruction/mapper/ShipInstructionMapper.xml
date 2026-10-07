@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hexa.erp.shipinstruction.mapper.ShipInstructionMapper">
+	<sql id="headerColumns">
+		h.SHIP_INSTRUCTION_ID, h.SHIP_INSTRUCTION_NO,
+		TO_CHAR(h.BUSINESS_DATE, 'YYYY-MM-DD') AS BUSINESS_DATE,
+		h.PARTNER_ID, p.PARTNER_CODE, h.PARTNER_NAME,
+		h.WAREHOUSE_ID, w.WAREHOUSE_CODE, h.WAREHOUSE_NAME,
+		h.ASSIGNEE_ID, a.ASSIGNEE_CODE, h.ASSIGNEE_NAME,
+		h.NOTE, TO_CHAR(h.PLANNED_DATE, 'YYYY-MM-DD') AS PLANNED_DATE,
+		h.DELIVERY_CONTACT, h.DELIVERY_POSTAL_CODE, h.DELIVERY_ADDRESS,
+		h.PROGRESS_STATUS, h.DELETED_YN,
+		TO_CHAR(h.UPDATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS UPDATED_AT
+	</sql>
+	
+	<sql id="headerTables">
+		FROM SHIP_INSTRUCTION h
+		LEFT JOIN BIZ_PARTNER p ON p.PARTNER_ID = h.PARTNER_ID
+		LEFT JOIN WAREHOUSE w ON w.WAREHOUSE_ID = h.WAREHOUSE_ID
+		LEFT JOIN ASSIGNEE a ON a.ASSIGNEE_ID = h.ASSIGNEE_ID
+	</sql>	
+	
+	<select id="read" parameterType="long"
+	resultType="hexa.erp.shipinstruction.domain.ShipInstructionVO">
+		SELECT <include refid="headerColumns" />
+		<include refid="headerTables" />
+		WHERE h.SHIP_INSTRUCTION_ID = #{shipInstructionId} AND h.DELETED_YN = 'N'
+	</select>
+
+	<select id ="getLines" parameterType="long" resultType="hexa.erp.shipinstruction.domain.ShipInstructionLineVO">
+		SELECT l.SHIP_INSTRUCTION_LINE_ID, l.SHIP_INSTRUCTION_ID, l.SALE_LINE_ID,
+		l.ITEM_ID, i.ITEM_CODE, l.ITEM_NAME, l.SPECIFICATION, l.UNIT, l.QUANTITY, l.NOTE, l.DELETED_YN
+		FROM SHIP_INSTRUCTION_LINE l
+		JOIN SHIP_INSTRUCTION h ON h.SHIP_INSTRUCTION_ID = l.SHIP_INSTRUCTION_ID
+		LEFT JOIN ITEM i ON i.ITEM_ID = l.ITEM_ID
+		WHERE l.SHIP_INSTRUCTION_ID = #{shipInstructionId}
+		AND l.DELETED_YN = 'N' AND h.DELETED_YN = 'N'
+		ORDER BY l.SHIP_INSTRUCTION_LINE_ID ASC
+	</select>
+
+	<insert id="insertSelectKey" parameterType="hexa.erp.shipinstruction.domain.ShipInstructionVO">
+		<selectKey keyProperty="shipInstructionId" resultType="long" order="BEFORE">
+			SELECT SEQ_SHIP_INST.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO SHIP_INSTRUCTION (
+			SHIP_INSTRUCTION_ID, SHIP_INSTRUCTION_NO, BUSINESS_DATE,
+			PARTNER_ID, PARTNER_NAME, WAREHOUSE_ID, WAREHOUSE_NAME,
+			ASSIGNEE_ID, ASSIGNEE_NAME, NOTE, PLANNED_DATE,
+			DELIVERY_CONTACT, DELIVERY_POSTAL_CODE, DELIVERY_ADDRESS,
+			PROGRESS_STATUS, UPDATED_AT, DELETED_YN
+		) VALUES (
+			#{shipInstructionId},
+			LPAD(TO_CHAR(#{shipInstructionId}), GREATEST(5,LENGTH(TO_CHAR(#{shipInstructionId}))), '0'), TO_DATE(#{businessDate}, 'YYYY-MM-DD'),
+			#{partnerId}, #{partnerName}, #{warehouseId}, #{warehouseName},
+			#{assigneeId}, #{assigneeName}, #{note}, TO_DATE(#{plannedDate}, 'YYYY-MM-DD'),
+			#{deliveryContact}, #{deliveryPostalCode}, #{deliveryAddress},
+			'IN_PROGRESS', LOCALTIMESTAMP, 'N'
+		)
+	</insert>
+
+	<update id="update" parameterType="hexa.erp.shipinstruction.domain.ShipInstructionVO">
+		UPDATE SHIP_INSTRUCTION
+		SET BUSINESS_DATE = TO_DATE(#{businessDate}, 'YYYY-MM-DD'),
+			PARTNER_ID = #{partnerId}, PARTNER_NAME = #{partnerName},
+			WAREHOUSE_ID = #{warehouseId}, WAREHOUSE_NAME = #{warehouseName},
+			ASSIGNEE_ID = #{assigneeId}, ASSIGNEE_NAME = #{assigneeName},
+			NOTE = #{note}, PLANNED_DATE = TO_DATE(#{plannedDate}, 'YYYY-MM-DD'),
+			DELIVERY_CONTACT = #{deliveryContact}, DELIVERY_POSTAL_CODE = #{deliveryPostalCode},
+			DELIVERY_ADDRESS = #{deliveryAddress}, UPDATED_AT = LOCALTIMESTAMP
+			WHERE SHIP_INSTRUCTION_ID = #{shipInstructionId} AND DELETED_YN = 'N'
+	</update>
+	
+	<insert id="insertLineSelectKey" parameterType="hexa.erp.shipinstruction.domain.ShipInstructionLineVO">
+		<selectKey keyProperty="shipInstructionLineId" resultType="long" order="BEFORE">
+			SELECT SEQ_SHIP_INST_LINE.NEXTVAL FROM DUAL		
+		</selectKey>	
+		INSERT INTO SHIP_INSTRUCTION_LINE (
+			SHIP_INSTRUCTION_LINE_ID, SHIP_INSTRUCTION_ID, SALE_LINE_ID,
+			ITEM_ID, ITEM_NAME, SPECIFICATION, UNIT, QUANTITY, NOTE, DELETED_YN
+		) VALUES (
+			#{shipInstructionLineId}, #{shipInstructionId}, #{saleLineId}, #{itemId}, #{itemName}, #{specification}, #{unit}, #{quantity}, #{note}, 'N'
+		)
+	</insert>
+	
+	<update id="updateLine" parameterType="hexa.erp.shipinstruction.domain.ShipInstructionLineVO">
+		UPDATE SHIP_INSTRUCTION_LINE
+		SET SALE_LINE_ID = #{saleLineId}, ITEM_ID = #{itemId}, ITEM_NAME = #{itemName},
+			SPECIFICATION = #{specification}, UNIT = #{unit},
+			QUANTITY = #{quantity}, NOTE = #{note}
+		WHERE SHIP_INSTRUCTION_LINE_ID = #{shipInstructionLineId}
+		AND SHIP_INSTRUCTION_ID = #{shipInstructionId} AND DELETED_YN = 'N'
+	</update>	
+	
+	<update id="removeSelectedLines">
+		UPDATE SHIP_INSTRUCTION_LINE
+		SET DELETED_YN = 'Y'
+		WHERE SHIP_INSTRUCTION_ID = #{shipInstructionId} AND DELETED_YN = 'N'
+		AND SHIP_INSTRUCTION_LINE_ID IN
+		<foreach collection="lineIds" item="lineId" open="(" separator="," close=")">
+			#{lineId}
+		</foreach>	
+	</update>	
+</mapper>
