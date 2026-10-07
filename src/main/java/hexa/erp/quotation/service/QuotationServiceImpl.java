@@ -195,18 +195,39 @@ public class QuotationServiceImpl implements QuotationService {
 		return quotation.getQuotationId();
 	}
 	
+	@Transactional
 	@Override
 	public int remove(List<Long> selectedIds) {
-		log.info("견적서 삭제");
 		
-		return 0;
+		List<Long> ids = cleanIds(selectedIds);
+		
+		if (ids.isEmpty()) {
+			return 0;
+		}
+		
+		int result = mapper.remove(ids);
+		mapper.removeLines(ids);
+		
+		log.info("견적서 삭제" + result + " 건");
+		return result;
+		
 	}
 
 	@Override
 	public int changeStatus(List<Long> selectedIds, String progressStatus) {
-		log.info("견적서 진행 상황 변경");
 		
-		return 0;
+		List<Long> ids = cleanIds(selectedIds);
+		
+		if (ids.isEmpty()) {
+			return 0;
+		}
+		
+		if (!"UNCONFIRMED".equals(progressStatus) && !"IN_PROGRESS".equals(progressStatus) && !"COMPLETED".equals(progressStatus)) {
+			throw new IllegalArgumentException("진행상태는 미확인, 진행중, 완료 중에 선택해 주세요.");
+		}
+		
+		log.info("견적서 진행 상태 변경: " + progressStatus);
+		return mapper.changeStatus(ids, progressStatus);
 	}
 	
 	//품목 행 처리
