@@ -35,7 +35,10 @@ public interface QuotationMapper {
 	//견적서 삭제 - 기본 정보
 	public int remove(List<Long> ids);
 	
-	//견적서  삭제 - 품목 행
+	//견저서 삭제 - 품목 행
+	public int removeLines(List<Long> ids);
+	
+	//품목행만  삭제
 	public int removeSelectedLines(@Param("quotationId") Long quotationId, @Param("quotationLineId") List<Long> ids);
 	
 	//진행 상태 변경

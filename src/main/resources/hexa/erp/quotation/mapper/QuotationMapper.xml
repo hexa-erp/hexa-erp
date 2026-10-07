@@ -154,6 +154,19 @@
 			</foreach>
 </update>
 
+<update id="removeLines">
+		update QUOTATION_LINE set deleted_yn = 'Y'
+		where deleted_yn = 'N'
+		and quotation_id in 
+			<foreach collection="ids"
+				item="quotationLineId" 
+				open="(" 
+				separator="," 
+				close=")">
+			 #{quotationId}
+			</foreach>
+</update>
+
 <update id="removeSelectedLines">
 	update QUOTATION_LINE set deleted_yn = 'Y'
 	where quotation_id = #{quotationId}, deleted_yn = 'N'
