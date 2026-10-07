@@ -13,9 +13,8 @@
 		<c:when test="${not reportResults}">
 			<div class="workspace-heading">
 				<h1>판매 단가 일괄 변경</h1>
-				<p class="workspace-hint">같은 품목이라도 판매 상세행마다 단가를 따로 변경합니다.</p>
+				<p class="workspace-hint">판매 상세행마다 단가를 따로 바꾸거나, 선택한 행에 같은 단가·비율을 한 번에 적용합니다.</p>
 			</div>
-
 			<form class="report-search" method="get"
 				action="${ctx}/sale/bulk-price">
 				<input type="hidden" name="view" value="results" /> <input
@@ -73,7 +72,6 @@
 			</form>
 		</c:when>
 		<c:otherwise>
-
 			<c:url var="searchConditionsUrl" value="/sale/bulk-price">
 				<c:forEach var="conditionParam" items="${search}">
 					<c:if
@@ -113,10 +111,10 @@
 				</div>
 				<c:set var="basePath" value="/sale/bulk-price" /><%@ include
 					file="../common/pagination.jsp"%><span
-					class="workspace-hint">변경할 행을 선택한 뒤 단가를 입력하세요.</span>
+					class="workspace-hint">변경할 행을 선택한 뒤 단가를 입력하거나 [선택 행에 적용]을 누르세요.</span>
 			</div>
 			<form method="post" action="${ctx}/sale/bulk-price/save"
-				data-unimplemented-submit id="bulk-price-form">
+				id="bulk-price-form">
 				<%@ include file="../common/return-search.jspf"%>
 				<div class="table-wrap">
 					<table class="data-table workspace-table bulk-table">
@@ -164,8 +162,10 @@
 						</thead>
 						<tbody>
 							<c:forEach var="row" items="${salePriceList}" varStatus="loop">
+								<%-- data-quantity는 sale.js가 단가 입력 시 금액을 미리 계산하는 데 쓴다. 저장 금액은 서버에서 다시 계산한다. --%>
 								<tr data-bulk-price-row
 									data-quantity="<c:out value="${row.quantity}"/>">
+									<%-- 체크한 행만 selected=true로 넘어간다. 두 ID는 다른 전표의 행을 바꾸지 않도록 서버에서 함께 확인한다. --%>
 									<td class="col-select"><input type="checkbox"
 										name="changes[${loop.index}].selected" value="true"
 										aria-label="단가 변경 행 선택" /><input type="hidden"
@@ -215,13 +215,21 @@
 					</table>
 				</div>
 				<div class="workspace-actions">
+					<%-- 선택 행 일괄 적용: 단가 지정 또는 현재 단가 기준 비율(%) 조정. 화면 값만 바꾸고 저장은 [선택한 단가 저장] 버튼으로 한다. --%>
+					<div class="input-group bulk-apply">
+						<select data-bulk-apply-mode aria-label="단가 적용 방식">
+							<option value="price">단가 지정</option>
+							<option value="percent">비율(%) 조정</option>
+						</select> <input type="number" step="any" data-bulk-apply-value
+							placeholder="변경할 단가" aria-label="적용할 값" /><span
+							data-bulk-apply-unit>원</span>
+						<button class="btn" type="button" data-bulk-apply>선택 행에 적용</button>
+					</div>
 					<button class="btn btn-primary" type="submit">선택한 단가 저장</button>
 					<span class="muted">단가 변경 시 금액이 자동으로 계산됩니다.</span>
 				</div>
 			</form>
-
 			<c:set var="pageScript" value="sale.js" />
-
 		</c:otherwise>
 	</c:choose>
 </section>
