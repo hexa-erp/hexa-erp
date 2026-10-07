@@ -18,7 +18,7 @@
 		case when count(*) &gt; 1
 		then ' 외 ' || TO_CHAR(count(*) - 1) || '건' else '' end
 		from quotation_line l
-		where l.quotation_id = h.quotaion_id and l.deleted_yn = 'N'
+		where l.quotation_id = h.quotation_id and l.deleted_yn = 'N'
 	) as item_summary,
 	(
 		select NVL(sum(l.total_amount),0)
@@ -34,7 +34,7 @@
 	
 	left join BIZ_PARTNER p on h.partner_id = p.partner_id
 	
-	left join WAREHOUSE w on h.warehouse_id = w.warehouseid
+	left join WAREHOUSE w on h.warehouse_id = w.warehouse_id
 	
 	left join ASSIGNEE a on h.assignee_id = a.assignee_id
 </sql>
@@ -159,7 +159,7 @@
 		where deleted_yn = 'N'
 		and quotation_id in 
 			<foreach collection="ids"
-				item="quotationLineId" 
+				item="quotationId" 
 				open="(" 
 				separator="," 
 				close=")">
@@ -171,17 +171,17 @@
 	update QUOTATION_LINE set deleted_yn = 'Y'
 	where quotation_id = #{quotationId}, deleted_yn = 'N'
 	and quotation_line_id in
-		<foreach collection="ids"
-			item="quotationId"
+		<foreach collection="lineIds"
+			item="lineId"
 			open="("
 			separator=","
 			close=")">
-		  #{quotationLineId}
+		  #{lineId}
 		</foreach>
 </update>
 
 <update id="changeStatus">
-	update QUOTATION set progress_status = #{progressStatus}, updated_at = LOCALTIMESTAP
+	update QUOTATION set progress_status = #{progressStatus}, updated_at = LOCALTIMESTAMP
 	where deleted_yn = 'N'
 	and quotation_id in
 		<foreach collection="ids"

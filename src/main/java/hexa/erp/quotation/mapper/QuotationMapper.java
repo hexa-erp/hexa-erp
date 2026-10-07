@@ -33,14 +33,14 @@ public interface QuotationMapper {
 	public int updateLine(QuotationLineVO line);
 	
 	//견적서 삭제 - 기본 정보
-	public int remove(List<Long> ids);
+	public int remove(@Param("ids") List<Long> ids);
 	
 	//견저서 삭제 - 품목 행
-	public int removeLines(List<Long> ids);
+	public int removeLines(@Param("ids") List<Long> ids);
 	
 	//품목행만  삭제
-	public int removeSelectedLines(@Param("quotationId") Long quotationId, @Param("quotationLineId") List<Long> ids);
+	public int removeSelectedLines(@Param("quotationId") Long quotationId, @Param("lineIds") List<Long> lineIds);
 	
 	//진행 상태 변경
-	public int changeStatus(@Param("quotationId") List<Long> quotationId, @Param("progressStatus") String progressStatus);
+	public int changeStatus(@Param("ids") List<Long> ids, @Param("progressStatus") String progressStatus);
 }
