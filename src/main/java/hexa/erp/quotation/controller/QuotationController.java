@@ -1,5 +1,6 @@
 package hexa.erp.quotation.controller;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -23,6 +24,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import hexa.erp.common.controller.PostRedirects;
 import hexa.erp.common.controller.ViewModels;
 import hexa.erp.common.service.FilterSelectionService;
+import hexa.erp.quotation.domain.QuotationCriteria;
+import hexa.erp.quotation.domain.QuotationLineVO;
 import hexa.erp.quotation.domain.QuotationVO;
 import hexa.erp.quotation.service.QuotationService;
 import lombok.Setter;
@@ -39,13 +42,31 @@ public class QuotationController {
 	private QuotationService service;
 
 	@GetMapping("/list")
-	public String list(@RequestParam Map<String, String> params, Model model) {
+	public String list(QuotationCriteria criteria, @RequestParam Map<String, String> params, Model model) {
 		log.info("견적서 목록 조회 요청");
-		model.addAttribute("quotationList", Collections.emptyList());
-		model.addAttribute("search", ViewModels.search(params));
+		
+		//페이징 처리
+		int totalCount = service.getTotal(criteria);
+		int totalPages = Math.max(1, (int)Math.ceil((double)totalCount / criteria.getPageSize()));
+		criteria.setPage(Math.min(criteria.getPage(), totalPages));
+		
+		//검색 조건, 페이징 상태 유지
+		Map<String, String> search = ViewModels.search(params);
+		search.put("keyword", criteria.getKeyword());
+		search.put("progressStatus", criteria.getProgressStatus());
+		search.put("page", String.valueOf(criteria.getPage()));
+		search.put("pageSize", String.valueOf(criteria.getPageSize()));
+		
+		model.addAttribute("quotationList", service.getList(criteria));
+		model.addAttribute("search", search);
+		model.addAttribute("page", criteria.getPage());
+		model.addAttribute("pageSize", criteria.getPageSize());
+		model.addAttribute("totalPages", totalPages);		
+		model.addAttribute("totalCount", totalCount);
+		model.addAttribute("basePath", "/quotation/list");		
 		model.addAttribute("activeMenu", "quotation");
 		model.addAttribute("pageTitle", "견적서 조회");
-		ViewModels.emptyPage(model, 25, "/quotation/list");
+
 		return "quotation/list";
 	}
 
@@ -64,9 +85,10 @@ public class QuotationController {
 			form.setProgressStatus("IN_PROGRESS");
 		}
 		else {
-			form = service.get(quotationId);
+			form = service.get(documentId);
 			if (form == null) {
-				rttr.addFlashAttribute("erroMessage", "조회할 견적서가 없습니다.");
+				rttr.addFlashAttribute("errorMessage", "조회할 견적서가 없습니다.");
+				
 				return PostRedirects.toList("/quotation/list", request);
 			}
 		}
@@ -76,6 +98,7 @@ public class QuotationController {
 		model.addAttribute("isEdit", false);
 		model.addAttribute("activeMenu", "quotation");
 		model.addAttribute("pageTitle", "견적서 입력");
+		
 		return "quotation/form";
 	}
 
@@ -98,12 +121,33 @@ public class QuotationController {
 	}
 
 	@GetMapping("/statement")
-	public String statement(Model model) {
+	public String statement(@RequestParam(value = "id", required = false) Long id,HttpServletResponse response, Model model) {
 		log.info("견적서 전표 조회 요청");
-		model.addAttribute("form", Collections.singletonMap("lines", Collections.emptyList()));
-		model.addAttribute("statementTotals", Collections.emptyMap());
+		
+		QuotationVO form = id == null? null : service.get(id);
+		
+		if (form == null) {
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			form = new QuotationVO();
+		}
+		
+		// 견적서 품목별 금액을 더해서 전표 전체 합계 계산
+		Map<String, BigDecimal> totals = new LinkedHashMap<>();
+		totals.put("supplyAmount", BigDecimal.ZERO);
+		totals.put("vatAmount", BigDecimal.ZERO);
+		totals.put("totalAmount", BigDecimal.ZERO);
+		
+		for (QuotationLineVO line : form.getLines()) {
+			totals.put("supplyAmount", totals.get("supplyAmount").add(line.getSupplyAmount()));
+			totals.put("vatAmount", totals.get("vatAmount").add(line.getVatAmount()));
+			totals.put("totalAmount", totals.get("totalAmount").add(line.getTotalAmount()));
+		}
+		
+		model.addAttribute("form", form);
+		model.addAttribute("statementTotals", totals);
 		model.addAttribute("activeMenu", "quotation");
 		model.addAttribute("pageTitle", "견적서 전표");
+		
 		return "quotation/statement";
 	}
 
@@ -148,19 +192,53 @@ public class QuotationController {
 				rttr.addFlashAttribute("errorMessage","견적서를 저장하지 못했습니다.");
 			}
 		}
+		
 		return PostRedirects.afterDocumentSave("/quotation", editing, request);
 	}
 
 	@PostMapping("/delete")
-	public String delete(HttpServletResponse response, Model model) {
+	public String delete(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds, HttpServletRequest request, RedirectAttributes rttr) {
 		log.info("견적서 삭제 요청");
-		return ViewModels.notImplemented(response, model);
+		
+		if (selectedIds == null || selectedIds.isEmpty()) {
+			rttr.addFlashAttribute("errorMessage", "삭제할 견적서를 선택해 주세요.");
+		}
+		else {
+			try {
+				if (service.remove(selectedIds) == 0) {
+					rttr.addFlashAttribute("errorMessage", "삭제할 견적서가 없습니다.");
+				}
+			} catch(DataAccessException e) {
+				log.error("견적서 삭제 실패", e);
+				rttr.addFlashAttribute("errorMessage", "견적서를 삭제하지 못했습니다.");
+			}
+		}
+		
+		return PostRedirects.toList("/quotation/list", request);
 	}
 
 	@PostMapping("/change-status")
-	public String changeStatus(HttpServletResponse response, Model model) {
+	public String changeStatus(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds, 
+			@RequestParam(value = "nextProgressStatus", required = false) String nextProgressStatus, 
+			HttpServletRequest request, RedirectAttributes rttr) {
 		log.info("견적서 진행 상태 변경 요청");
-		return ViewModels.notImplemented(response, model);
+		
+		if (selectedIds == null || selectedIds.isEmpty()) {
+			rttr.addFlashAttribute("errorMessage", "진행 상태를 변경할 견적서를 선택해 주세요.");
+		}
+		else {
+			try {
+				if (service.changeStatus(selectedIds, nextProgressStatus) == 0) {
+					rttr.addFlashAttribute("errorMessage", "진행상태를 변경할 견적서가 없습니다.");
+				}
+			} catch(IllegalArgumentException e) {
+				rttr.addFlashAttribute("errorMessage", e.getMessage());
+			} catch(DataAccessException e) {
+				rttr.addFlashAttribute("errorMessage", "견적서의 진행상를 변경하지 못했습니다.");
+			}
+		}
+		
+		return PostRedirects.toList("/quotation/list", request);
 	}
 
 }
