@@ -35,6 +35,7 @@ cases.forEach(function(c) {
 		totalAmount : c[4]
 	}, c[0] + ' * ' + c[1]);
 });
+// 단가 비율 조정: 인상·인하, 소수 둘째 자리 HALF_UP 반올림, 빈 단가는 null
 assert.strictEqual(decimal.adjustPercent('30000', '10'), '33000');
 assert.strictEqual(decimal.adjustPercent('30000', '-10'), '27000');
 assert.strictEqual(decimal.adjustPercent('19999', '10'), '21998.9');

@@ -76,6 +76,7 @@
 
 	// HALF_UP으로 소수 scale자리까지 반올림한다.
 	function roundScale(value, scale) {
+		// 자릿수가 모자라면 0을 붙여 맞추고, 넘치면 넘친 자리만 정수 반올림으로 자른다.
 		if (value.scale <= scale)
 			return {
 				coefficient : value.coefficient * power10(scale - value.scale),
@@ -96,6 +97,8 @@
 		if (!p || !r)
 			return null;
 		// 단가 × (100 + percent) ÷ 100
+		// percent의 소수 자릿수에 맞춰 100도 같은 배율로 키운 뒤 더한다. (2.5% → 1000 + 25)
+		// ÷ 100은 scale을 2 늘리는 것으로 대신한다.
 		var factor = BigInt(100) * power10(r.scale) + r.coefficient;
 		return stringify(roundScale({
 			coefficient : p.coefficient * factor,
