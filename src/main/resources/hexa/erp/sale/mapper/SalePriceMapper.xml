@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hexa.erp.sale.mapper.SalePriceMapper">
+	<!-- 이름과 규격은 전표에 저장한 값을 사용하고 품목 코드만 마스터에서 읽는다. -->
+	<sql id="rowTables">
+		FROM SALE h
+		JOIN SALE_LINE l ON l.SALE_ID = h.SALE_ID
+		LEFT JOIN ITEM i ON i.ITEM_ID = l.ITEM_ID
+		<!-- 원주문이 삭제되어도 판매에 연결된 원주문 일자와 번호는 표시한다. -->
+		LEFT JOIN SALES_ORDER_LINE source_line ON
+		source_line.SALES_ORDER_LINE_ID = l.SALES_ORDER_LINE_ID
+		LEFT JOIN SALES_ORDER source_header ON source_header.SALES_ORDER_ID =
+		source_line.SALES_ORDER_ID
+	</sql>
+	<!-- 값이 있는 조건만 추가한다. 종료일은 다음 날 0시 미만으로 비교해 당일 전체를 포함한다. -->
+	<sql id="searchCondition">
+		WHERE h.DELETED_YN = 'N' AND l.DELETED_YN = 'N'
+		<if test="startDate != null and startDate.trim() != ''">
+			AND h.BUSINESS_DATE &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+		</if>
+
+		<if test="endDate != null and endDate.trim() != ''">
+			AND h.BUSINESS_DATE &lt; TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
+		</if>
+		<if test="progressStatus != null and progressStatus != ''">
+			AND h.PROGRESS_STATUS = #{progressStatus}
+		</if>
+		<if test="warehouseIds != null and warehouseIds.size() > 0">
+			AND h.WAREHOUSE_ID IN
+			<foreach collection="warehouseIds" item="warehouseId"
+				open="(" separator="," close=")">
+				#{warehouseId}
+			</foreach>
+		</if>
+		<if test="partnerIds != null and partnerIds.size() > 0">
+			AND h.PARTNER_ID IN
+			<foreach collection="partnerIds" item="partnerId" open="("
+				separator="," close=")">
+				#{partnerId}
+			</foreach>
+		</if>
+		<if test="itemIds != null and itemIds.size() > 0">
+			AND l.ITEM_ID IN
+			<foreach collection="itemIds" item="itemId" open="("
+				separator="," close=")">
+				#{itemId}
+			</foreach>
+		</if>
+		<!-- 검색어는 전표번호·일자·원주문·품목·거래처·창고·담당자·비고 중 하나라도 포함하면 찾는다. -->
+		<if test="keyword != null and keyword != ''">
+			AND (
+			UPPER(h.SALE_NO) LIKE '%' || UPPER(#{keyword}) || '%'
+			OR TO_CHAR(h.BUSINESS_DATE, 'YYYY-MM-DD') LIKE '%' || #{keyword} || '%'
+			OR TO_CHAR(h.BUSINESS_DATE, 'YYYY/MM/DD') LIKE '%' || #{keyword} ||
+			'%'
+			OR UPPER(h.PARTNER_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+			OR UPPER(h.ASSIGNEE_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+			OR UPPER(h.WAREHOUSE_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+			OR UPPER(source_header.SALES_ORDER_NO) LIKE '%' || UPPER(#{keyword}) ||
+			'%'
+			OR TO_CHAR(source_header.BUSINESS_DATE, 'YYYY-MM-DD') LIKE '%' ||
+			#{keyword} || '%'
+			OR TO_CHAR(source_header.BUSINESS_DATE, 'YYYY/MM/DD') LIKE '%' ||
+			#{keyword} || '%'
+			OR UPPER(i.ITEM_CODE) LIKE '%' || UPPER(#{keyword}) || '%'
+			OR UPPER(l.ITEM_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+			OR UPPER(l.SPECIFICATION) LIKE '%' || UPPER(#{keyword}) || '%'
+			OR UPPER(l.UNIT) LIKE '%' || UPPER(#{keyword}) || '%'
+			OR UPPER(l.NOTE) LIKE '%' || UPPER(#{keyword}) || '%'
+			)
+		</if>
+	</sql>
+
+	<!-- 정렬한 결과에 ROWNUM을 붙여 (page - 1) * pageSize 초과, page * pageSize 이하 행만 자른다. -->
+	<select id="getListWithPaging"
+		resultType="hexa.erp.sale.domain.SalePriceVO">
+		SELECT SALE_LINE_ID, SALE_ID, SALE_NO, BUSINESS_DATE,
+		PARTNER_NAME, ASSIGNEE_NAME, WAREHOUSE_NAME, SOURCE_BUSINESS_DATE,
+		SOURCE_DOCUMENT_NO,
+		ITEM_CODE, ITEM_NAME, SPECIFICATION, QUANTITY, UNIT, UNIT_PRICE,
+		SUPPLY_AMOUNT, VAT_AMOUNT, TOTAL_AMOUNT, NOTE, CREATED_AT, UPDATED_AT
+		FROM (
+		SELECT ROWNUM rn, ordered_row.*
+		FROM (
+		SELECT l.SALE_LINE_ID, h.SALE_ID, h.SALE_NO,
+		TO_CHAR(h.BUSINESS_DATE, 'YYYY-MM-DD') AS BUSINESS_DATE,
+		<!-- 문자열로 바꾼 일자 대신 DATE 값으로 바깥 쿼리를 다시 정렬하기 위한 컬럼 -->
+		h.BUSINESS_DATE AS SORT_BUSINESS_DATE,
+		h.PARTNER_NAME, h.ASSIGNEE_NAME, h.WAREHOUSE_NAME,
+		TO_CHAR(source_header.BUSINESS_DATE, 'YYYY-MM-DD') AS
+		SOURCE_BUSINESS_DATE,
+		source_header.SALES_ORDER_NO AS SOURCE_DOCUMENT_NO,
+		i.ITEM_CODE, l.ITEM_NAME, l.SPECIFICATION, l.QUANTITY, l.UNIT,
+		l.UNIT_PRICE, l.SUPPLY_AMOUNT, l.VAT_AMOUNT, l.TOTAL_AMOUNT, l.NOTE,
+		TO_CHAR(h.CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT,
+		TO_CHAR(h.UPDATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS UPDATED_AT
+		<include refid="rowTables" />
+		<include refid="searchCondition" />
+		ORDER BY h.BUSINESS_DATE DESC, h.SALE_ID DESC, l.SALE_LINE_ID ASC
+		) ordered_row
+		WHERE ROWNUM &lt;= #{page} * #{pageSize}
+		)
+		WHERE rn &gt; (#{page} - 1) * #{pageSize}
+		ORDER BY SORT_BUSINESS_DATE DESC, SALE_ID DESC, SALE_LINE_ID ASC
+	</select>
+
+	<select id="getTotalCount" resultType="int">
+		SELECT COUNT(*)
+		<include refid="rowTables" />
+		<include refid="searchCondition" />
+	</select>
+	<!-- 품목 행이 해당 전표에 속하는지 확인하면서 금액 계산에 쓸 수량을 읽는다. -->
+	<select id="read" resultType="hexa.erp.sale.domain.SalePriceVO">
+		SELECT l.SALE_LINE_ID, l.SALE_ID, l.QUANTITY
+		FROM SALE_LINE l
+		JOIN SALE h ON h.SALE_ID = l.SALE_ID
+		WHERE l.SALE_LINE_ID = #{saleLineId} AND l.SALE_ID = #{saleId}
+		AND l.DELETED_YN = 'N' AND h.DELETED_YN = 'N'
+	</select>
+	<!-- 전표나 품목 행이 그 사이 삭제됐으면 0건이 바뀐다. -->
+	<update id="updatePrice">
+		UPDATE SALE_LINE
+		SET UNIT_PRICE = #{unitPrice}, SUPPLY_AMOUNT = #{supplyAmount},
+		VAT_AMOUNT = #{vatAmount}, TOTAL_AMOUNT = #{totalAmount}
+		WHERE SALE_LINE_ID = #{saleLineId} AND SALE_ID = #{saleId} AND DELETED_YN =
+		'N'
+		AND EXISTS (SELECT 1 FROM SALE h WHERE h.SALE_ID = #{saleId} AND
+		h.DELETED_YN = 'N')
+	</update>
+	<update id="updateSaleTimestamp">
+		UPDATE SALE SET UPDATED_AT = LOCALTIMESTAMP
+		WHERE SALE_ID = #{saleId} AND DELETED_YN = 'N'
+	</update>
+</mapper>
