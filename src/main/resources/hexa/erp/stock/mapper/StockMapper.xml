@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="hexa.erp.stock.mapper.StockMapper">
+
+    <!-- 전체 현재고 조회 -->
+    <select id="getList"
+            resultType="hexa.erp.stock.domain.StockVO">
+
+        SELECT
+            WAREHOUSE_ID AS warehouseId,
+            ITEM_ID AS itemId,
+            QUANTITY AS quantity,
+            TO_CHAR(
+                UPDATED_AT,
+                'YYYY-MM-DD HH24:MI:SS'
+            ) AS updatedAt
+        FROM STOCK
+        ORDER BY
+            WAREHOUSE_ID,
+            ITEM_ID
+    </select>
+
+    <!-- 창고와 품목별 현재고 조회 -->
+    <select id="read"
+            resultType="hexa.erp.stock.domain.StockVO">
+
+        SELECT
+            WAREHOUSE_ID AS warehouseId,
+            ITEM_ID AS itemId,
+            QUANTITY AS quantity,
+            TO_CHAR(
+                UPDATED_AT,
+                'YYYY-MM-DD HH24:MI:SS'
+            ) AS updatedAt
+        FROM STOCK
+        WHERE WAREHOUSE_ID = #{warehouseId}
+            AND ITEM_ID = #{itemId}
+    </select>
+
+    <!-- 사용 중인 창고 조회 -->
+    <select id="getWarehouseList"
+            resultType="hexa.erp.warehouse.domain.WarehouseLookupVO">
+
+        SELECT
+            WAREHOUSE_ID AS warehouseId,
+            WAREHOUSE_CODE AS warehouseCode,
+            WAREHOUSE_NAME AS warehouseName,
+            WAREHOUSE_TYPE AS warehouseType,
+            ACTIVE_FLAG AS activeFlag
+        FROM WAREHOUSE
+        WHERE ACTIVE_FLAG = 'Y'
+        ORDER BY
+            WAREHOUSE_CODE,
+            WAREHOUSE_ID
+    </select>
+
+    <!-- 신규 현재고 등록 -->
+    <insert id="insert"
+            parameterType="hexa.erp.stock.domain.StockVO">
+
+        INSERT INTO STOCK (
+            WAREHOUSE_ID,
+            ITEM_ID,
+            QUANTITY,
+            UPDATED_AT
+        ) VALUES (
+            #{warehouseId},
+            #{itemId},
+            #{quantity},
+            LOCALTIMESTAMP
+        )
+    </insert>
+
+    <!-- 기존 현재고 수정 -->
+    <update id="update"
+            parameterType="hexa.erp.stock.domain.StockVO">
+
+        UPDATE STOCK
+        SET
+            QUANTITY = #{quantity},
+            UPDATED_AT = LOCALTIMESTAMP
+        WHERE WAREHOUSE_ID = #{warehouseId}
+            AND ITEM_ID = #{itemId}
+    </update>
+
+    <!-- 재고 변동 이력 등록 -->
+    <insert id="insertMovement"
+            parameterType="hexa.erp.stock.domain.StockMovementVO">
+
+        INSERT INTO STOCK_MOVEMENT (
+            MOVEMENT_ID,
+            SALE_ID,
+            SALE_LINE_ID,
+            WAREHOUSE_ID,
+            ITEM_ID,
+            QUANTITY_DELTA,
+            OCCURRED_AT
+        ) VALUES (
+            SEQ_STOCK_MOVEMENT.NEXTVAL,
+            NULL,
+            NULL,
+            #{warehouseId},
+            #{itemId},
+            #{quantityDelta},
+            LOCALTIMESTAMP
+        )
+    </insert>
+
+</mapper>
