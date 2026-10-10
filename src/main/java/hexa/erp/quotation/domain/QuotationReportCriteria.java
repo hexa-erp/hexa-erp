@@ -6,9 +6,10 @@ import java.util.List;
 
 import lombok.Data;
 
+//견적서 현황 및 검색 조건
 @Data
 public class QuotationReportCriteria {
- 
+
 	private String startDate;
 	private String endDate;
 	private String quotationNo;

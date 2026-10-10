@@ -4,9 +4,10 @@ import java.math.BigDecimal;
 
 import lombok.Data;
 
+//견적서 현황 조회 품목 행 별 상세 
 @Data
 public class QuotationReportRowVO {
-
+	
 	private Long quotationId;
 	private Long quotationLineId;
 	private String quotationNo;
