@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="hexa.erp.quotation.mapper.QuotationReportMapper">
+
+<sql id="reportColumns">
+	h.quotation_id, l.quotation_line_id, h.quotation_no,
+	TO_CHAR(h.business_date, 'YYYY-MM-DD') AS business_date,
+	h.partner_id, h.partner_name, h.warehouse_id, h.warehouse_name,
+	h.assignee_id, h.assignee_name, h.progress_status, h.note AS header_note,
+	l.item_id, i.item_code, l.item_name,
+	l.specification, l.unit, l.quantity, 
+	l.unit_price, l.supply_amount, l.vat_amount,
+	l.total_amount, l.note 
+</sql>	
+
+<sql id="searchCondition">
+	WHERE h.deleted_yn = 'N' AND l.deleted_yn = 'N'
+	
+	<if test="startDate != null and startDate.trim() != ''">
+		AND h.business_date &gt; = TO_DATE(#{startDate}, 'YYYY-MM-DD')
+	</if>
+	<if test="endDate != null and endDate.trim() != ''">
+		AND h.business_date &lt; = TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
+	</if>
+	<if test="quotationNo != null and quotationNo.trim() != ''">
+		AND UPPER(h.quotation_no) LIKE '%' || UPPER(TRIM(#{quotationNo})) || '%'
+	</if>
+	<if test="progressStatus != null and progressStatus.trim() != ''">
+		AND h.progress_status = #{progressStatus}
+	</if>
+	<if test="specification != null and specification.trim() != ''">
+		AND UPPER(l.specification) LIKE '%' || UPPER(TRIM(#{specification})) || '%'
+	</if>
+	<if test="warehouseIds != null and warehouseIds.size() > 0">
+		AND h.warehouse_id IN
+		<foreach collection="warehouseIds" item="warehouseId"
+			open="(" separator="," close=")">
+			#{warehouseId}
+		</foreach>
+	</if>
+	<if test="partnerIds != null and partnerIds.size() > 0">
+		AND h.partner_id IN
+		<foreach collection="partnerIds" item="partnerId"
+			open="(" separator="," close=")">
+			#{partnerId}
+		</foreach>
+	</if>
+	<if test="itemIds != null and itemIds.size() > 0">
+		AND l.item_id IN
+		<foreach collection="itemIds" item="itemId"
+			open="(" separator="," close=")">
+			#{itemId}
+		</foreach>
+	</if>
+	<if test="assigneeIds != null and assigneeIds.size() > 0">
+		AND h.assignee_id IN
+		<foreach collection="assigneeIds" item="assigneeId"
+			open="(" separator="," close=")">
+			#{assigneeId}
+		</foreach>
+	</if>
+	<if test="minUnitPrice != null">
+		AND l.unit_price &gt;=#{minUnitPrice}
+	</if>
+	<if test="maxUnitPrice != null">
+		AND l.unit_price &lt;=#{maxUnitPrice}
+	</if>
+	<if test="keyword != null and keyword.trim() != ''">
+		AND (
+			UPPER(h.quotation_no) LIKE '%' || TRIM(#{keyword}) || '%'
+			OR TO_CHAR(h.business_date, 'YYYY-MM-DD') LIKE '%' || TRIM(#{keyword}) || '%'
+			OR TO_CHAR(h.business_date, 'YYYY/MM/DD') LIKE '%' || TRIM(#{keyword}) || '%'
+			OR UPPER(i.item_code) LIKE '%' || TRIM(#{keyword}) || '%'
+			OR UPPER(l.item_name) LIKE '%' || TRIM(#{keyword}) || '%'
+			OR UPPER(l.specification) LIKE '%' || TRIM(#{keyword}) || '%'
+			OR UPPER(l.unit) LIKE '%' || TRIM(#{keyword}) || '%'
+			OR UPPER(h.partner_name) LIKE '%' || TRIM(#{keyword}) || '%'
+			OR UPPER(h.warehouse_name) LIKE '%' || TRIM(#{keyword}) || '%'
+			OR UPPER(h.assignee_name) LIKE '%' || TRIM(#{keyword}) || '%'
+			OR UPPER(h.note) LIKE '%' || TRIM(#{keyword}) || '%'
+			OR UPPER(l.note) LIKE '%' || TRIM(#{keyword}) || '%'
+		)
+	</if>
+</sql>
+
+<select id="getStatusRows" resultType="hexa.erp.quotation.domain.QuotationReportRowVO">
+	select <include refid="reportColumns"/>
+	from QUOTATION h
+	join QUOTATION_LINE l on l.quotation_id = h.quotation_id
+	left join item i on i.item_id = l.item_id
+	
+	<include refid="searchCondition"/>
+	
+	<if test="minQuantity != null">
+		AND l.quantity &gt;= #{minQuantity}
+	</if>
+	<if test="maxQuantity != null">
+		AND l.quantity &lt;= #{maxQuantity}
+	</if>
+	<if test="minSupplyAmount != null">
+		AND l.supply_amount &gt;= #{minSupplyAmount}
+	</if>
+	<if test="maxSupplyAmount != null">
+		AND l.supply_amount &lt;= #{maxSupplyAmount}
+	</if>
+	<if test="minVatAmount != null">
+		AND l.vat_amount &gt;= #{minVatAmount}
+	</if>
+	<if test="maxVatAmount != null">
+		AND l.vat_amount &lt;= #{maxVatAmount}
+	</if>
+	ORDER BY h.business_date ASC, h.quotation_id ASC, l.quotation_line_id ASC 
+</select>
+	
+</mapper>
