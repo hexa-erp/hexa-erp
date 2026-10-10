@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="hexa.erp.warehouse.mapper.WarehouseMapper">
+
+    <!-- 공통 검색 조건 -->
+    <sql id="searchCondition">
+        <where>
+            <if test='includeInactive != "Y"'>
+                AND w.ACTIVE_FLAG = 'Y'
+            </if>
+
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    UPPER(w.WAREHOUSE_CODE)
+                        LIKE '%' || UPPER(#{keyword}) || '%'
+                    OR UPPER(w.WAREHOUSE_NAME)
+                        LIKE '%' || UPPER(#{keyword}) || '%'
+                    OR UPPER(w.WAREHOUSE_TYPE)
+                        LIKE '%' || UPPER(#{keyword}) || '%'
+                )
+            </if>
+        </where>
+    </sql>
+
+    <!-- 창고 목록 조회 -->
+    <select id="getListWithPaging"
+            parameterType="hexa.erp.warehouse.domain.WarehouseCriteria"
+            resultType="hexa.erp.warehouse.domain.WarehouseVO">
+
+        SELECT
+            WAREHOUSE_ID,
+            WAREHOUSE_CODE,
+            WAREHOUSE_NAME,
+            WAREHOUSE_TYPE,
+            ACTIVE_FLAG,
+            UPDATED_AT
+        FROM (
+            SELECT
+                ROWNUM rn,
+                ordered_warehouse.*
+            FROM (
+                SELECT
+                    w.WAREHOUSE_ID,
+                    w.WAREHOUSE_CODE,
+                    w.WAREHOUSE_NAME,
+                    w.WAREHOUSE_TYPE,
+                    w.ACTIVE_FLAG,
+                    TO_CHAR(
+                        w.UPDATED_AT,
+                        'YYYY-MM-DD HH24:MI:SS'
+                    ) AS UPDATED_AT
+                FROM WAREHOUSE w
+                <include refid="searchCondition"/>
+                ORDER BY
+                    w.WAREHOUSE_CODE ASC,
+                    w.WAREHOUSE_ID ASC
+            ) ordered_warehouse
+            WHERE ROWNUM &lt;= #{page} * #{pageSize}
+        )
+        WHERE rn &gt; (#{page} - 1) * #{pageSize}
+        ORDER BY
+            WAREHOUSE_CODE ASC,
+            WAREHOUSE_ID ASC
+    </select>
+
+    <!-- 검색 조건 전체 건수 조회 -->
+    <select id="getTotalCount"
+            parameterType="hexa.erp.warehouse.domain.WarehouseCriteria"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM WAREHOUSE w
+        <include refid="searchCondition"/>
+    </select>
+
+    <!-- 신규 창고 등록 -->
+    <insert id="insertSelectKey"
+            parameterType="hexa.erp.warehouse.domain.WarehouseVO">
+
+        <selectKey keyProperty="warehouseId"
+                   resultType="long"
+                   order="BEFORE">
+            SELECT SEQ_WAREHOUSE.NEXTVAL
+            FROM DUAL
+        </selectKey>
+
+        INSERT INTO WAREHOUSE (
+            WAREHOUSE_ID,
+            WAREHOUSE_CODE,
+            WAREHOUSE_NAME,
+            WAREHOUSE_TYPE,
+            ACTIVE_FLAG,
+            UPDATED_AT
+        ) VALUES (
+            #{warehouseId},
+            #{warehouseCode},
+            #{warehouseName},
+            #{warehouseType},
+            'Y',
+            LOCALTIMESTAMP
+        )
+    </insert>
+
+    <!-- 기존 창고 정보 수정 -->
+    <update id="update"
+            parameterType="hexa.erp.warehouse.domain.WarehouseVO">
+
+        UPDATE WAREHOUSE
+        SET
+            WAREHOUSE_NAME = #{warehouseName},
+            WAREHOUSE_TYPE = #{warehouseType},
+            UPDATED_AT = LOCALTIMESTAMP
+        WHERE WAREHOUSE_ID = #{warehouseId}
+    </update>
+
+    <!-- 창고 사용 여부 변경 -->
+    <update id="changeActive">
+        UPDATE WAREHOUSE
+        SET
+            ACTIVE_FLAG = #{activeFlag},
+            UPDATED_AT = LOCALTIMESTAMP
+        WHERE WAREHOUSE_ID IN
+        <foreach collection="ids"
+                 item="warehouseId"
+                 open="("
+                 separator=","
+                 close=")">
+            #{warehouseId}
+        </foreach>
+    </update>
+
+</mapper>

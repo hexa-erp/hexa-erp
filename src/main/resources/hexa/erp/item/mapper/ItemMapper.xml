@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="hexa.erp.item.mapper.ItemMapper">
+
+    <!-- 공통 검색 조건 -->
+    <sql id="searchCondition">
+        <where>
+            <if test='includeInactive != "Y"'>
+                AND i.ACTIVE_FLAG = 'Y'
+            </if>
+
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    UPPER(i.ITEM_CODE)
+                        LIKE '%' || UPPER(#{keyword}) || '%'
+                    OR UPPER(i.ITEM_NAME)
+                        LIKE '%' || UPPER(#{keyword}) || '%'
+                )
+            </if>
+        </where>
+    </sql>
+
+    <!-- 품목 목록 조회 -->
+    <select id="getListWithPaging"
+            parameterType="hexa.erp.item.domain.ItemCriteria"
+            resultType="hexa.erp.item.domain.ItemVO">
+
+        SELECT
+            ITEM_ID,
+            ITEM_CODE,
+            ITEM_NAME,
+            SPECIFICATION,
+            UNIT,
+            ITEM_TYPE,
+            INBOUND_PRICE,
+            OUTBOUND_PRICE,
+            IMAGE_PATH,
+            NOTE,
+            ACTIVE_FLAG,
+            UPDATED_AT
+        FROM (
+            SELECT
+                ROWNUM rn,
+                ordered_item.*
+            FROM (
+                SELECT
+                    i.ITEM_ID,
+                    i.ITEM_CODE,
+                    i.ITEM_NAME,
+                    i.SPECIFICATION,
+                    i.UNIT,
+                    i.ITEM_TYPE,
+                    i.INBOUND_PRICE,
+                    i.OUTBOUND_PRICE,
+                    i.IMAGE_PATH,
+                    i.NOTE,
+                    i.ACTIVE_FLAG,
+                    TO_CHAR(
+                        i.UPDATED_AT,
+                        'YYYY-MM-DD HH24:MI:SS'
+                    ) AS UPDATED_AT
+                FROM ITEM i
+                <include refid="searchCondition"/>
+                ORDER BY
+                    i.ITEM_CODE ASC,
+                    i.ITEM_ID ASC
+            ) ordered_item
+            WHERE ROWNUM &lt;= #{page} * #{pageSize}
+        )
+        WHERE rn &gt; (#{page} - 1) * #{pageSize}
+        ORDER BY
+            ITEM_CODE ASC,
+            ITEM_ID ASC
+    </select>
+
+    <!-- 검색 조건 전체 건수 조회 -->
+    <select id="getTotalCount"
+            parameterType="hexa.erp.item.domain.ItemCriteria"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM ITEM i
+        <include refid="searchCondition"/>
+    </select>
+
+    <!-- 품목 한 건 조회 -->
+    <select id="read"
+            parameterType="long"
+            resultType="hexa.erp.item.domain.ItemVO">
+
+        SELECT
+            ITEM_ID,
+            ITEM_CODE,
+            ITEM_NAME,
+            SPECIFICATION,
+            UNIT,
+            ITEM_TYPE,
+            INBOUND_PRICE,
+            OUTBOUND_PRICE,
+            IMAGE_PATH,
+            NOTE,
+            ACTIVE_FLAG,
+            TO_CHAR(
+                UPDATED_AT,
+                'YYYY-MM-DD HH24:MI:SS'
+            ) AS UPDATED_AT
+        FROM ITEM
+        WHERE ITEM_ID = #{itemId}
+    </select>
+
+    <!-- 신규 품목 등록 -->
+    <insert id="insertSelectKey"
+            parameterType="hexa.erp.item.domain.ItemVO">
+
+        <selectKey keyProperty="itemId"
+                   resultType="long"
+                   order="BEFORE">
+            SELECT SEQ_ITEM.NEXTVAL
+            FROM DUAL
+        </selectKey>
+
+        INSERT INTO ITEM (
+            ITEM_ID,
+            ITEM_CODE,
+            ITEM_NAME,
+            SPECIFICATION,
+            UNIT,
+            ITEM_TYPE,
+            INBOUND_PRICE,
+            OUTBOUND_PRICE,
+            IMAGE_PATH,
+            NOTE,
+            ACTIVE_FLAG,
+            UPDATED_AT
+        ) VALUES (
+            #{itemId},
+            #{itemCode},
+            #{itemName},
+            #{specification},
+            #{unit},
+            #{itemType},
+            #{inboundPrice},
+            #{outboundPrice},
+            #{imagePath},
+            #{note},
+            'Y',
+            LOCALTIMESTAMP
+        )
+    </insert>
+
+    <!-- 기존 품목 정보 수정 -->
+    <update id="update"
+            parameterType="hexa.erp.item.domain.ItemVO">
+
+        UPDATE ITEM
+        SET
+            ITEM_NAME = #{itemName},
+            SPECIFICATION = #{specification},
+            UNIT = #{unit},
+            ITEM_TYPE = #{itemType},
+            INBOUND_PRICE = #{inboundPrice},
+            OUTBOUND_PRICE = #{outboundPrice},
+            IMAGE_PATH = #{imagePath},
+            NOTE = #{note},
+            UPDATED_AT = LOCALTIMESTAMP
+        WHERE ITEM_ID = #{itemId}
+    </update>
+
+    <!-- 품목 사용 여부 변경 -->
+    <update id="changeActive">
+        UPDATE ITEM
+        SET
+            ACTIVE_FLAG = #{activeFlag},
+            UPDATED_AT = LOCALTIMESTAMP
+        WHERE ITEM_ID IN
+        <foreach collection="ids"
+                 item="itemId"
+                 open="("
+                 separator=","
+                 close=")">
+            #{itemId}
+        </foreach>
+    </update>
+
+</mapper>
