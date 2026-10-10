@@ -2,17 +2,21 @@ package hexa.erp.stock.service;
 
 import java.util.List;
 
+import hexa.erp.stock.domain.StockMovementVO;
 import hexa.erp.stock.domain.StockVO;
 import hexa.erp.warehouse.domain.WarehouseLookupVO;
 
 public interface StockService {
 
-    // 전체 현재고 조회
-    List<StockVO> getList();
+	// 전체 현재고 조회
+	List<StockVO> getList();
 
-    // 사용 중인 창고 조회
-    List<WarehouseLookupVO> getWarehouseList();
+	// 사용 중인 창고 조회
+	List<WarehouseLookupVO> getWarehouseList();
 
-    // 품목 현재고 조정
-    void adjust(StockVO stock);
+	// 품목 현재고 조정
+	void adjust(StockVO stock);
+
+	// 판매 재고 증감
+	void applySaleMovement(StockMovementVO movement);
 }
