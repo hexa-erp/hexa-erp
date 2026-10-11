@@ -27,6 +27,9 @@ public interface StockMapper {
 
     // 기존 현재고 수정
     int update(StockVO stock);
+    
+    // 현재고 증감량 반영
+    int addQuantity(StockMovementVO movement);
 
     // 재고 변동 이력 등록
     void insertMovement(StockMovementVO movement);
