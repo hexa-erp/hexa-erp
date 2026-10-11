@@ -49,8 +49,9 @@
 		$(form.elements).each(
 				function() {
 					var $input = $(this);
-					if (!this.name || this.name.indexOf('return.') === 0 || this.type === 'submit'
-							|| this.type === 'reset' || this.type === 'button')
+					if (!this.name || this.name.indexOf('return.') === 0
+							|| this.type === 'submit' || this.type === 'reset'
+							|| this.type === 'button')
 						return;
 					var initial = Object.prototype.hasOwnProperty.call(record,
 							this.name) ? record[this.name]
@@ -106,11 +107,12 @@
 									&& $(this).attr('data-stock-warehouse-id') === warehouse;
 						});
 		var current = $matches.length ? $matches.first().attr(
-				'data-stock-quantity') : '';
+				'data-stock-quantity') : (id && warehouse ? '0' : '');
+
 		$('#stock-current').text(
 				current !== '' ? Number(current).toLocaleString('ko-KR', {
 					maximumFractionDigits : 3
-				}) : '조회값 없음');
+				}) : '—');
 		setValue(form, 'quantity', current);
 	}
 
@@ -173,7 +175,7 @@
 							if ($target.attr('data-stock-open') === 'current') {
 								var itemForm = $('#item-form')[0];
 								if (!value(itemForm, 'itemId'))
-									return notify('품목을 저장한 후 재고수량을 입력할 수 있습니다. 아직 저장·재고 처리 기능은 구현되지 않았습니다.');
+									return notify('품목을 저장한 후 재고수량을 입력할 수 있습니다.');
 								item = {
 									itemId : value(itemForm, 'itemId'),
 									itemName : value(itemForm, 'itemName')
@@ -236,10 +238,12 @@
 			showPhoto('');
 			return;
 		}
-		if (!file.type || file.type.indexOf('image/') !== 0) {
+		if (!/\.(jpe?g|png|gif)$/i.test(file.name) || file.size > 5242880) {
+
 			$(this).val('');
 			showPhoto('');
-			return notify('이미지 파일을 선택해 주세요.');
+
+			return notify('JPG·PNG·GIF 파일을 5MB 이하로 선택해 주세요.');
 		}
 		photoObjectUrl = URL.createObjectURL(file);
 		setValue(this.form, 'removeImage', 'N');

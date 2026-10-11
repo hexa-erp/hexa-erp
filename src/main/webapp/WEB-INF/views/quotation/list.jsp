@@ -45,7 +45,7 @@
 			있습니다.</span>
 	</div>
 	<form id="document-list-actions" method="post"
-		action="${ctx}/quotation/change-status" data-unimplemented-submit>
+		action="${ctx}/quotation/change-status">
 		<%@ include file="../common/return-search.jspf"%>
 		<div class="table-wrap">
 			<table class="data-table workspace-table document-table">
