@@ -26,7 +26,10 @@ import hexa.erp.common.controller.ViewModels;
 import hexa.erp.common.service.FilterSelectionService;
 import hexa.erp.quotation.domain.QuotationCriteria;
 import hexa.erp.quotation.domain.QuotationLineVO;
+import hexa.erp.quotation.domain.QuotationReportCriteria;
+import hexa.erp.quotation.domain.QuotationReportVO;
 import hexa.erp.quotation.domain.QuotationVO;
+import hexa.erp.quotation.service.QuotationReportService;
 import hexa.erp.quotation.service.QuotationService;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j;
@@ -40,7 +43,12 @@ public class QuotationController {
 	
 	@Setter(onMethod_ = @Autowired)
 	private QuotationService service;
+	
+	@Setter(onMethod_ = @Autowired)
+	private QuotationReportService reportService;
+	
 
+	//견적서 조회 및 페이징
 	@GetMapping("/list")
 	public String list(QuotationCriteria criteria, @RequestParam Map<String, String> params, Model model) {
 		log.info("견적서 목록 조회 요청");
@@ -70,6 +78,7 @@ public class QuotationController {
 		return "quotation/list";
 	}
 
+	//견적서 신규 입력 및 기존 견적서 조회
 	@GetMapping("/form")
 	public String form(@RequestParam(value = "id", required = false) Long id,@RequestParam(value = "quotationId", required = false) Long quotationId, 
 			HttpServletRequest request, RedirectAttributes rttr, Model model) {
@@ -78,6 +87,7 @@ public class QuotationController {
 		Long documentId = id == null? quotationId : id;
 		QuotationVO form;
 		
+		//신규 견적서 입력 시 기본값 설정
 		if (documentId == null) {
 			form = new QuotationVO();
 			
@@ -85,6 +95,7 @@ public class QuotationController {
 			form.setProgressStatus("IN_PROGRESS");
 		}
 		else {
+			//기존 견적서 조회
 			form = service.get(documentId);
 			if (form == null) {
 				rttr.addFlashAttribute("errorMessage", "조회할 견적서가 없습니다.");
@@ -102,24 +113,38 @@ public class QuotationController {
 		return "quotation/form";
 	}
 
+	//견적서 현황 조회
 	@GetMapping("/status")
-	public String status(@RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
+	public String status(QuotationReportCriteria criteria, BindingResult bindingResult,
+			@RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
 		log.info("견적서 현황 조회 요청");
-		Map<String, String> search = ViewModels.search(params);
-		// 현황은 검색 결과 전체를 표시하며 페이지 분할하지 않는다.
-		search.remove("page");
-		search.remove("pageSize");
-		Map<String, List<String>> filterIds = ViewModels.filters(request, search, model, "warehouse", "partner", "item",
-				"assignee");
-		model.addAttribute("filterSelections", filterSelectionService.getSelections(filterIds));
-		model.addAttribute("search", search);
-		model.addAttribute("monthGroups", Collections.emptyList());
-		model.addAttribute("statusTotals", Collections.emptyMap());
+		
+		//검색 조건 및 필터 설정
+		prepareReportSearch(criteria, params, request, model);
+		QuotationReportVO report = new QuotationReportVO();
+		
+		//견적서 현황 조회
+		if ("results".equals(params.get("view"))) {
+			if (bindingResult.hasErrors()) {
+				model.addAttribute("errorMessage", "검색조건의 수량과 금액을 확인해 주세요.");
+			} else {
+				try {
+					report = reportService.getStatus(criteria);
+				} catch (DataAccessException e) {
+					log.error("견석서 현황 조회 실패", e);
+					model.addAttribute("errorMessage", "현황을 조회하지 못했습니다. 검색조건을 확인해 주세요.");
+				}
+			}
+		}
+		
+		model.addAttribute("monthGroups", report.getMonthGroups());
+		model.addAttribute("statusTotals", report.getTotals());
 		model.addAttribute("activeMenu", "quotation");
 		model.addAttribute("pageTitle", "견적서 현황");
 		return "quotation/status";
 	}
 
+	//견적서 전표 조회
 	@GetMapping("/statement")
 	public String statement(@RequestParam(value = "id", required = false) Long id,HttpServletResponse response, Model model) {
 		log.info("견적서 전표 조회 요청");
@@ -171,11 +196,13 @@ public class QuotationController {
 		return "quotation/unordered";
 	}
 
+	//견적서 신규 등록 및 수정
 	@PostMapping("/save")
 	public String save(QuotationVO quotation, BindingResult bindingResult,
 						HttpServletRequest request, RedirectAttributes rttr) {
 		log.info("견적서 저장 요청");
 		
+		//신규 등록 및 수정 구분
 		boolean editing = quotation.getQuotationId() != null;
 		
 		if (bindingResult.hasErrors()) {
@@ -183,6 +210,7 @@ public class QuotationController {
 		}
 		else {
 			try {
+				//견적서 저장
 				service.save(quotation);
 			} catch(IllegalArgumentException e) {
 				rttr.addFlashAttribute("errorMessage", e.getMessage());
@@ -196,6 +224,7 @@ public class QuotationController {
 		return PostRedirects.afterDocumentSave("/quotation", editing, request);
 	}
 
+	//선택한 견적서 삭제
 	@PostMapping("/delete")
 	public String delete(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds, HttpServletRequest request, RedirectAttributes rttr) {
 		log.info("견적서 삭제 요청");
@@ -217,6 +246,7 @@ public class QuotationController {
 		return PostRedirects.toList("/quotation/list", request);
 	}
 
+	//선택한 견적서 진행 상태 변경
 	@PostMapping("/change-status")
 	public String changeStatus(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds, 
 			@RequestParam(value = "nextProgressStatus", required = false) String nextProgressStatus, 
@@ -239,6 +269,22 @@ public class QuotationController {
 		}
 		
 		return PostRedirects.toList("/quotation/list", request);
+	}
+	
+	//견적서 현황 검색 조건 및 필터 
+	private void prepareReportSearch(QuotationReportCriteria criteria, Map<String, String> params, HttpServletRequest request, Model model) {
+		Map<String, String> search = ViewModels.search(params);
+		search.remove("page");
+		search.remove("pageSize");
+		
+		Map<String, List<String>> filterIds = ViewModels.filters(request, search, model, "warehouse", "partner", "item", "assignee");
+		criteria.setWarehouseIds(filterIds.get("warehouseIds"));
+		criteria.setPartnerIds(filterIds.get("partnerIds"));
+		criteria.setItemIds(filterIds.get("itemIds"));
+		criteria.setAssigneeIds(filterIds.get("assigneeIds"));
+		
+		model.addAttribute("filterSelections", filterSelectionService.getSelections(filterIds));
+		model.addAttribute("search", search);
 	}
 
 }
