@@ -6,7 +6,7 @@ import java.util.List;
 
 import lombok.Data;
 
-//견적서 현황 및 검색 조건
+//견적서 현황 및 미주문 현황 검색 조건
 @Data
 public class QuotationReportCriteria {
 
@@ -16,6 +16,9 @@ public class QuotationReportCriteria {
 	private String keyword;
 	private String progressStatus;
 	private String specification;
+	
+	//미주문 현황: 주문 여부 및 잔여 수량 계산 기준일
+	private String cutoffDate;
 	
 	private BigDecimal minQuantity;
 	private BigDecimal maxQuantity;

@@ -41,6 +41,12 @@
 								${search.datePreset eq 'thisMonth' ? 'selected' : ''}>금월(~오늘)</option>
 							<option value="lastMonth"
 								${search.datePreset eq 'lastMonth' ? 'selected' : ''}>전월</option></select></label>
+					<label class="field"><span>견적일자</span>
+   	 				<div class="input-group"><input type="date" name="startDate"
+            			value="<c:out value="${search.startDate}"/>" aria-label="조회 시작일" /><span>~</span><input
+            			type="date" name="endDate"
+            			value="<c:out value="${search.endDate}"/>" aria-label="조회 종료일" />
+    				</div></label>
 					<label class="field"><span>기준일자</span><input type="date"
 						name="cutoffDate" value="<c:out value="${search.cutoffDate}"/>"
 						required /></label> <label class="field"><span>견적서 번호</span><input
@@ -61,7 +67,7 @@
 					<label class="field"><span>규격</span><input type="text"
 						name="specification"
 						value="<c:out value="${search.specification}"/>" maxlength="100" /></label>
-					<label class="field"><span>수량</span>
+					<label class="field"><span>미주문 수량</span>
 						<div class="input-group">
 							<input type="number" name="minQuantity" step="0.001"
 								value="<c:out value="${search.minQuantity}"/>"
@@ -77,7 +83,7 @@
 								name="maxUnitPrice" step="0.01"
 								value="<c:out value="${search.maxUnitPrice}"/>"
 								aria-label="최대 단가" />
-						</div></label> <label class="field"><span>공급가액</span>
+						</div></label> <label class="field"><span>미주문 공급가액</span>
 						<div class="input-group">
 							<input type="number" name="minSupplyAmount" step="1"
 								value="<c:out value="${search.minSupplyAmount}"/>"
@@ -85,7 +91,7 @@
 								name="maxSupplyAmount" step="1"
 								value="<c:out value="${search.maxSupplyAmount}"/>"
 								aria-label="최대 공급가액" />
-						</div></label> <label class="field"><span>부가세</span>
+						</div></label> <label class="field"><span>미주문 부가세</span>
 						<div class="input-group">
 							<input type="number" name="minVatAmount" step="1"
 								value="<c:out value="${search.minVatAmount}"/>"
