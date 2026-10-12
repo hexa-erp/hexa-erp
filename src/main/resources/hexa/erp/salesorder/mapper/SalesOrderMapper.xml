@@ -9,7 +9,7 @@
 		h.warehouse_id, w.warehouse_code, h.warehouse_name,
 		h.assignee_id, a.assignee_code, h.assignee_name,
 		h.note, h.progress_status, h.deleted_yn,
-		TO_CHAR(h.updated_at, 'YYYY-MM-DD') AS updated_at
+		TO_CHAR(h.updated_at, 'YYYY-MM-DD HH24:MI:SS') AS updated_at
 	</sql>
 
 	<sql id="headerTables">
@@ -72,7 +72,7 @@
 	<update id="update">
 		UPDATE SALES_ORDER
 		SET business_date = TO_DATE(#{businessDate}), 
-			due_date = TO_DATE(#{dueDate}),
+			due_date = TO_DATE(#{dueDate}, 'YYYY-MM-DD'),
 			partner_id = #{partnerId}, partner_name = #{partnerName}, 
 			warehouse_id = #{warehouseId}, warehouse_name = #{warehouseName},
 			assignee_id = #{assigneeId}, assignee_name = #{assigneeName}, 
