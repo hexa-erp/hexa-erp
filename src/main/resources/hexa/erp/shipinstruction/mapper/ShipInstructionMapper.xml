@@ -4,13 +4,25 @@
 	<sql id="headerColumns">
 		h.SHIP_INSTRUCTION_ID, h.SHIP_INSTRUCTION_NO,
 		TO_CHAR(h.BUSINESS_DATE, 'YYYY-MM-DD') AS BUSINESS_DATE,
+		h.BUSINESS_DATE AS SORT_BUSINESS_DATE,
 		h.PARTNER_ID, p.PARTNER_CODE, h.PARTNER_NAME,
 		h.WAREHOUSE_ID, w.WAREHOUSE_CODE, h.WAREHOUSE_NAME,
 		h.ASSIGNEE_ID, a.ASSIGNEE_CODE, h.ASSIGNEE_NAME,
 		h.NOTE, TO_CHAR(h.PLANNED_DATE, 'YYYY-MM-DD') AS PLANNED_DATE,
 		h.DELIVERY_CONTACT, h.DELIVERY_POSTAL_CODE, h.DELIVERY_ADDRESS,
 		h.PROGRESS_STATUS, h.DELETED_YN,
-		TO_CHAR(h.UPDATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS UPDATED_AT
+		TO_CHAR(h.UPDATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS UPDATED_AT,
+		(
+			SELECT MIN(l.ITEM_NAME) KEEP (DENSE_RANK FIRST ORDER BY l.SHIP_INSTRUCTION_LINE_ID)
+				|| CASE WHEN COUNT(*) &gt; 1 THEN ' 외 ' || TO_CHAR(COUNT(*) - 1) || '건' ELSE '' END
+				FROM SHIP_INSTRUCTION_LINE l
+				WHERE l.SHIP_INSTRUCTION_ID = h.SHIP_INSTRUCTION_ID AND l.DELETED_YN = 'N'		
+		) AS ITEM_SUMMARY,
+		(
+			SELECT NVL(SUM(l.QUANTITY), 0)
+			FROM SHIP_INSTRUCTION_LINE l
+			WHERE l.SHIP_INSTRUCTION_ID = h.SHIP_INSTRUCTION_ID AND l.DELETED_YN = 'N'
+		) AS TOTAL_QUANTITY
 	</sql>
 	
 	<sql id="headerTables">
@@ -19,6 +31,66 @@
 		LEFT JOIN WAREHOUSE w ON w.WAREHOUSE_ID = h.WAREHOUSE_ID
 		LEFT JOIN ASSIGNEE a ON a.ASSIGNEE_ID = h.ASSIGNEE_ID
 	</sql>	
+	
+	<sql id="searchCondition">
+		WHERE h.DELETED_YN = 'N'
+		<if test="progressStatus != null and progressStatus != ''">>>
+			AND h.PROGRESS_STATUS = #{progressStatus}
+		</if> 
+		<if test="keyword != null and keyword != ''">
+			AND (
+				UPPER(h.SHIP_INSTRUCTION_NO) LIKE '%' || UPPER(#{keyword}) || '%'
+				OR TO_CHAR(h.BUSINESS_DATE, 'YYYY/MM/DD') LIKE '%' || #{keyword} || '%'
+				OR TO_CHAR(h.PLANNED_DATE, 'YYYY/MM/DD') LIKE '%' || #{keyword} || '%'
+				OR UPPER(h.PARTNER_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+				OR UPPER(h.ASSIGNEE_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+				OR UPPER(h.WAREHOUSE_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+				OR UPPER(h.NOTE) LIKE '%' || UPPER(#{keyword}) || '%'
+				OR UPPER(h.DELIVERY_CONTACT) LIKE '%' || UPPER(#{keyword}) || '%'
+				OR UPPER(h.DELIVERY_POSTAL_CODE) LIKE '%' || UPPER(#{keyword}) || '%'
+				OR UPPER(h.DELIVERY_ADDRESS) LIKE '%' || UPPER(#{keyword}) || '%'
+				OR EXISTS (
+					SELECT 1
+					FROM SHIP_INSTRUCTION_LINE search_line
+					LEFT JOIN ITEM search_item ON search_item.ITEM_ID = search_line.ITEM_ID
+					WHERE search_line.SHIP_INSTRUCTION_ID = h.SHIP_INSTRUCTION_ID
+					AND search_line.DELETED_YN = 'N'
+					AND (
+						UPPER(search_item.ITEM_CODE) LIKE '%' || UPPER(#{keyword}) || '%'
+						OR UPPER(search_line.ITEM_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+					)
+				)
+			)
+		</if>
+	</sql>
+
+	<select id="getListWithPaging" parameterType="hexa.erp.shipinstruction.domain.ShipInstructionCriteria" resultType="hexa.erp.shipinstruction.domain.ShipInstructionVO">
+		SELECT SHIP_INSTRUCTION_ID, SHIP_INSTRUCTION_NO, BUSINESS_DATE,
+			PARTNER_ID, PARTNER_CODE, PARTNER_NAME,
+			WAREHOUSE_ID, WAREHOUSE_CODE, WAREHOUSE_NAME,
+			ASSIGNEE_ID, ASSIGNEE_CODE, ASSIGNEE_NAME,
+			NOTE, PLANNED_DATE, DELIVERY_CONTACT, DELIVERY_POSTAL_CODE, DELIVERY_ADDRESS,
+			PROGRESS_STATUS, DELETED_YN, UPDATED_AT, ITEM_SUMMARY, TOTAL_QUANTITY
+		FROM (
+			SELECT ROWNUM rn, ordered_instruction.*
+			FROM (
+				SELECT <include refid="headerColumns" />
+				<include refid="headerTables" />
+				<include refid="searchCondition" />
+				ORDER BY h.BUSINESS_DATE DESC, h.SHIP_INSTRUCTION_ID DESC
+			) ordered_instruction
+			WHERE ROWNUM &lt;=#{page} * #{pageSize}	
+		)
+		WHERE rn &gt; (#{page} - 1) * #{pageSize}
+		ORDER BY SORT_BUSINESS_DATE DESC, SHIP_INSTRUCTION_ID DESC
+	</select>
+	
+	<select id="getTotalCount" parameterType="hexa.erp.shipinstruction.domain.ShipInstructionCriteria" resultType="int">
+		SELECT COUNT(*)
+		FROM SHIP_INSTRUCTION h
+		<include refid="searchCondition" />
+	</select>
+	
 	
 	<select id="read" parameterType="long"
 	resultType="hexa.erp.shipinstruction.domain.ShipInstructionVO">
@@ -100,4 +172,31 @@
 			#{lineId}
 		</foreach>	
 	</update>	
+	
+	<update id="remove">
+		UPDATE SHIP_INSTRUCTION
+		SET DELETED_YN = 'Y', UPDATED_AT = LOCALTIMESTAMP
+		WHERE DELETED_YN = 'N' AND SHIP_INSTRUCTION_ID IN
+		<foreach collection="ids" item="shipInstructionId" open="(" separator="," close=")">
+			#{shipInstructionId}
+		</foreach>
+	</update>
+	
+	<update id="removeLines">
+		UPDATE SHIP_INSTRUCTION_LINE
+		SET DELETED_YN = 'Y'
+		WHERE DELETED_YN = 'N' AND SHIP_INSTRUCTION_ID IN
+		<foreach collection="ids" item="shipInstructionId" open="(" separator="," close=")">
+			#{shipInstructionId}
+		</foreach>
+	</update>
+	
+	<update id="changeStatus">
+		UPDATE SHIP_INSTRUCTION
+		SET PROGRESS_STATUS = #{progressStatus}, UPDATED_AT = LOCALTIMESTAMP
+		WHERE DELETED_YN = 'N' AND SHIP_INSTRUCTION_ID IN
+		<foreach collection="ids" item="shipInstructionId" open="(" separator="," close=")">
+			#{shipInstructionId}
+		</foreach>	
+	</update>
 </mapper>

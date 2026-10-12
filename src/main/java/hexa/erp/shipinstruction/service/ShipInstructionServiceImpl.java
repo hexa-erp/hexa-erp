@@ -20,6 +20,7 @@ import hexa.erp.item.domain.ItemLookupVO;
 import hexa.erp.item.service.ItemLookupService;
 import hexa.erp.partner.domain.PartnerLookupVO;
 import hexa.erp.partner.service.PartnerLookupService;
+import hexa.erp.shipinstruction.domain.ShipInstructionCriteria;
 import hexa.erp.shipinstruction.domain.ShipInstructionLineVO;
 import hexa.erp.shipinstruction.domain.ShipInstructionVO;
 import hexa.erp.shipinstruction.mapper.ShipInstructionMapper;
@@ -42,10 +43,20 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 	private AssigneeLookupService assigneeLookupService;
 	@Setter(onMethod_ = @Autowired)
 	private ItemLookupService itemLookupService;
-
+	
+	@Override
+	public List<ShipInstructionVO> getList(ShipInstructionCriteria criteria) {
+		return mapper.getListWithPaging(criteria);
+	}
+	
+	@Override
+	public int getTotal(ShipInstructionCriteria criteria) {
+		return mapper.getTotalCount(criteria);
+	}
+	
+	
 	@Override
 	public ShipInstructionVO get(Long shipInstructionId) {
-		// TODO Auto-generated method stub
 		if (shipInstructionId == null) {
 			return null;
 		}
@@ -60,7 +71,6 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 	@Override
 	@Transactional
 	public Long save(ShipInstructionVO shipInstruction) {
-		// TODO Auto-generated method stub
 		if (shipInstruction == null || isBlank(shipInstruction.getBusinessDate())) {
 			throw new IllegalArgumentException("출하지시 일자를 입력해 주세요.");
 		}
@@ -142,7 +152,34 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 		log.info("출하지시서 저장: " + shipInstruction.getShipInstructionId());
 		return shipInstruction.getShipInstructionId();
 	}
-
+	
+	@Override
+	@Transactional
+	public int remove(List<Long> seletedIds) {
+		List<Long> ids = cleanIds(seletedIds);
+		if (ids.isEmpty()) {
+			return 0;
+		}
+		int count = mapper.remove(ids);
+		mapper.removeLines(ids);
+		log.info("출하지시서 삭제: " + count + "건");
+		return count;
+	}
+	
+	@Override
+	public int changeStatus(List<Long> seletedIds, String progressStatus) {
+		List<Long> ids = cleanIds(seletedIds);
+		if (ids.isEmpty()) {
+			return 0;
+		}
+		if (!"IN_PROGRESS".equals(progressStatus) && !"COMPLETED".equals(progressStatus)) {
+			throw new IllegalArgumentException("진행상태는 진행중, 완료 중에서 선택해 주세요.");
+		}
+		log.info("출하지시서 진행상태 변경: " + progressStatus);
+		return mapper.changeStatus(ids, progressStatus);
+	}
+	
+	
 	private void prepareLine(ShipInstructionLineVO line) {
 		if (isBlank(line.getItemName())) {
 			ItemLookupVO item = itemLookupService.get(line.getItemId());

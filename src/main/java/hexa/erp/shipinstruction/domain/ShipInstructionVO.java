@@ -1,5 +1,6 @@
 package hexa.erp.shipinstruction.domain;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +29,8 @@ public class ShipInstructionVO {
 	private String progressStatus = "IN_PROGRESS";
 	private String updatedAt;
 	private String deletedYn;
+	private String itemSummary;
+	private BigDecimal totalQuantity;
 	private List<ShipInstructionLineVO> lines = new ArrayList<>();
 	private List<Long> removedLineIds = new ArrayList<>();
 }

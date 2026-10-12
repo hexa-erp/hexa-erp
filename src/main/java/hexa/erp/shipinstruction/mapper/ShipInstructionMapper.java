@@ -4,21 +4,33 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
 
+import hexa.erp.shipinstruction.domain.ShipInstructionCriteria;
 import hexa.erp.shipinstruction.domain.ShipInstructionLineVO;
 import hexa.erp.shipinstruction.domain.ShipInstructionVO;
 
 public interface ShipInstructionMapper {
+	List<ShipInstructionVO> getListWithPaging(ShipInstructionCriteria criteria);
+
+	int getTotalCount(ShipInstructionCriteria criteria);
+
 	ShipInstructionVO read(Long shipInstructionId);
-	
+
 	List<ShipInstructionLineVO> getLines(Long shipInstructionId);
-	
+
 	void insertSelectKey(ShipInstructionVO shipInstruction);
-	
+
 	int update(ShipInstructionVO shipInstruction);
-	
+
 	void insertLineSelectKey(ShipInstructionLineVO line);
-	
+
 	int updateLine(ShipInstructionLineVO line);
-	
-	int removeSelectedLines(@Param("shipInstructionId") Long shipInstructionId, @Param("lineIds")List<Long> lineIds);
+
+	int removeSelectedLines(@Param("shipInstructionId") Long shipInstructionId, @Param("lineIds") List<Long> lineIds);
+
+	int remove(@Param("ids") List<Long> ids);
+
+	int removeLines(@Param("ids") List<Long> ids);
+
+	int changeStatus(@Param("ids") List<Long> ids, @Param("progressStatus") String progressStatus);
+
 }

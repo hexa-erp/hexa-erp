@@ -2,6 +2,7 @@ package hexa.erp.shipinstruction.controller;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import hexa.erp.common.controller.PostRedirects;
 import hexa.erp.common.controller.ViewModels;
+import hexa.erp.shipinstruction.domain.ShipInstructionCriteria;
 import hexa.erp.shipinstruction.domain.ShipInstructionVO;
 import hexa.erp.shipinstruction.service.ShipInstructionService;
 import lombok.Setter;
@@ -33,13 +35,26 @@ public class ShipInstructionController {
 	private ShipInstructionService service;
 
 	@GetMapping("/list")
-	public String list(@RequestParam Map<String, String> params, Model model) {
+	public String list(ShipInstructionCriteria criteria, @RequestParam Map<String, String> params, Model model) {
 		log.info("출하지시서 목록 조회 요청");
-		model.addAttribute("shipInstructionList", Collections.emptyList());
-		model.addAttribute("search", ViewModels.search(params));
+		int totalCount = service.getTotal(criteria);
+		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
+		criteria.setPage(Math.min(criteria.getPage(), totalPages));
+		Map<String, String> search = ViewModels.search(params);
+		search.put("keyword", criteria.getKeyword());
+		search.put("progressStatus", criteria.getProgressStatus());
+		search.put("page", String.valueOf(criteria.getPage()));
+		search.put("pageSize", String.valueOf(criteria.getPageSize()));
+		
+		model.addAttribute("shipInstructionList", service.getList(criteria));
+		model.addAttribute("search", search);
+		model.addAttribute("page", criteria.getPage());
+		model.addAttribute("pageSize", criteria.getPageSize());
+		model.addAttribute("totalPages", totalPages);
+		model.addAttribute("totalCount", totalCount);
+		model.addAttribute("basePath", "/shipping-instruction/list");
 		model.addAttribute("activeMenu", "shipping-instruction");
 		model.addAttribute("pageTitle", "출하지시서 조회");
-		ViewModels.emptyPage(model, 25, "/shipping-instruction/list");
 		return "shippingInstruction/list";
 	}
 
@@ -92,15 +107,41 @@ public class ShipInstructionController {
 	}
 
 	@PostMapping("/delete")
-	public String delete(HttpServletResponse response, Model model) {
+	public String delete(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds, HttpServletRequest request, RedirectAttributes rttr) {
 		log.info("출하지시서 삭제 요청");
-		return ViewModels.notImplemented(response, model);
+		if(selectedIds == null || selectedIds.isEmpty()) {
+			rttr.addFlashAttribute("errorMessage", "삭제할 출하지시서를 선택해 주세요.");
+		} else {
+			try {
+				if (service.remove(selectedIds) == 0) {
+					rttr.addFlashAttribute("errorMessage", "삭제할 출하지시서가 없습니다.");
+				}
+			} catch (DataAccessException e) {
+				log.error("출하지시서 삭제 실패", e);
+				rttr.addFlashAttribute("errorMessage", "출하지시서를 삭제하지 못했습니다.");
+			}
+		}
+		return PostRedirects.toList("/shipping-instruction/list", request);
 	}
 
 	@PostMapping("/change-status")
-	public String changeStatus(HttpServletResponse response, Model model) {
+	public String changeStatus(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds, @RequestParam(value = "nextProgressStatus", defaultValue = "") String nextProgressStatus, HttpServletRequest request, RedirectAttributes rttr) {
 		log.info("출하지시서 진행 상태 변경 요청");
-		return ViewModels.notImplemented(response, model);
+		if(selectedIds == null || selectedIds.isEmpty()) {
+			rttr.addFlashAttribute("errorMessage", "진행상태를 변경할 출하지시서를 선택해 주세요.");
+		} else {
+			try {
+				if (service.changeStatus(selectedIds, nextProgressStatus) == 0) {
+					rttr.addFlashAttribute("errorMessage", "변경할 출하지시서가 없습니다.");
+				}
+			} catch (IllegalArgumentException e) {
+				rttr.addFlashAttribute("errorMessage", e.getMessage());
+			} catch (DataAccessException e) {	
+				log.error("출하지시서 진행 상태 변경 실패", e);
+				rttr.addFlashAttribute("errorMessage", "출하지시서의 진행상태를 변경하지 못했습니다.");
+			}
+		}
+		return PostRedirects.toList("/shipping-instruction/list", request);
 	}
 
 }
