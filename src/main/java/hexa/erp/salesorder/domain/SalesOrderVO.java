@@ -31,5 +31,5 @@ public class SalesOrderVO {
 	private String deletedYn;
 	
 	private List<SalesOrderLineVO> lines = new ArrayList<>();
-	private List<Long> removedIds = new ArrayList<>();
+	private List<Long> removedLineIds = new ArrayList<>();
 }

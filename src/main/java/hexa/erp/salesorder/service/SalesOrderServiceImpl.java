@@ -110,7 +110,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 			throw new IllegalArgumentException("선택한 출하창고를 찾을 수 없습니다.");
 		}
 		
-		List<Long> removedLineIds = cleanIds(salesOrder.getRemovedIds());
+		List<Long> removedLineIds = cleanIds(salesOrder.getRemovedLineIds());
 		List<SalesOrderLineVO> lines = new ArrayList<>();
 		Set<Long> lineIds = new HashSet<>();
 		
