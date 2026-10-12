@@ -128,6 +128,53 @@ public class StockMapperTests {
             )
         );
     }
+    
+    // 현재고 수량 증감 확인
+    @Test
+    public void testAddQuantity() {
+        ItemVO item = createItem();
+        itemMapper.insertSelectKey(item);
+
+        WarehouseLookupVO warehouse =
+            stockMapper.getWarehouseList().get(0);
+
+        StockVO stock = new StockVO();
+        stock.setWarehouseId(warehouse.getWarehouseId());
+        stock.setItemId(item.getItemId());
+        stock.setQuantity(new BigDecimal("10"));
+
+        stockMapper.insert(stock);
+
+        StockMovementVO movement = new StockMovementVO();
+        movement.setWarehouseId(warehouse.getWarehouseId());
+        movement.setItemId(item.getItemId());
+        movement.setQuantityDelta(new BigDecimal("-3"));
+
+        log.info("========== STOCK QUANTITY ADD TEST ==========");
+        log.info("WAREHOUSE ID: " + movement.getWarehouseId());
+        log.info("ITEM ID: " + movement.getItemId());
+        log.info("BEFORE QUANTITY: " + stock.getQuantity());
+        log.info("QUANTITY DELTA: " + movement.getQuantityDelta());
+
+        int updateCount = stockMapper.addQuantity(movement);
+
+        StockVO changedStock = stockMapper.read(
+            movement.getWarehouseId(),
+            movement.getItemId()
+        );
+
+        log.info("UPDATE COUNT: " + updateCount);
+        log.info("AFTER QUANTITY: " + changedStock.getQuantity());
+
+        assertEquals(1, updateCount);
+        assertNotNull(changedStock);
+        assertEquals(
+            0,
+            new BigDecimal("7").compareTo(
+                changedStock.getQuantity()
+            )
+        );
+    }
 
     // 재고 변동 이력 등록 확인
     @Test

@@ -33,6 +33,70 @@ public class StockServiceImpl implements StockService {
     public List<WarehouseLookupVO> getWarehouseList() {
         return mapper.getWarehouseList();
     }
+    
+	// 판매 재고 증감
+    @Override
+    @Transactional
+    public void applySaleMovement(
+            StockMovementVO movement) {
+
+        if (
+            movement == null
+            || movement.getSaleId() == null
+            || movement.getSaleLineId() == null
+            || movement.getWarehouseId() == null
+            || movement.getItemId() == null
+            || movement.getQuantityDelta() == null
+        ) {
+            throw new IllegalArgumentException(
+                "판매, 품목 행, 창고와 재고 증감량을 입력해 주세요."
+            );
+        }
+
+        BigDecimal quantityDelta =
+            movement.getQuantityDelta().setScale(
+                3,
+                RoundingMode.HALF_UP
+            );
+
+        if (quantityDelta.compareTo(
+                BigDecimal.ZERO) == 0) {
+
+            return;
+        }
+
+        movement.setQuantityDelta(quantityDelta);
+
+        StockVO current = mapper.read(
+            movement.getWarehouseId(),
+            movement.getItemId()
+        );
+
+        if (current == null) {
+            current = new StockVO();
+            current.setWarehouseId(
+                movement.getWarehouseId()
+            );
+            current.setItemId(
+                movement.getItemId()
+            );
+            current.setQuantity(BigDecimal.ZERO);
+
+            mapper.insert(current);
+        }
+
+        mapper.addQuantity(movement);
+        mapper.insertMovement(movement);
+
+        log.info(
+            "판매 재고 증감: 창고 "
+                + movement.getWarehouseId()
+                + ", 품목 "
+                + movement.getItemId()
+                + ", 증감량 "
+                + quantityDelta
+        );
+    }
 
     // 현재고와 변동 이력 저장
     @Override
