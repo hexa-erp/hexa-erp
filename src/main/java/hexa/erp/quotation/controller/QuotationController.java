@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -176,21 +177,38 @@ public class QuotationController {
 		return "quotation/statement";
 	}
 
+	//미주문 현황 조회
 	@GetMapping("/unordered")
-	public String unordered(@RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
+	public String unordered(QuotationReportCriteria criteria, BindingResult bindingResult,
+			@RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
 		log.info("미주문 현황 조회 요청");
-		Map<String, String> search = ViewModels.search(params);
-		search.remove("page");
-		search.remove("pageSize");
-		if (search.get("cutoffDate") == null || search.get("cutoffDate").trim().isEmpty()) {
-			search.put("cutoffDate", LocalDate.now().toString());
+		
+		if(!StringUtils.hasText(criteria.getCutoffDate())) {
+			criteria.setCutoffDate(LocalDate.now().toString());
+			params.put("cutoffDate", criteria.getCutoffDate());
 		}
-		Map<String, List<String>> filterIds = ViewModels.filters(request, search, model, "warehouse", "partner", "item",
-				"assignee");
-		model.addAttribute("filterSelections", filterSelectionService.getSelections(filterIds));
-		model.addAttribute("search", search);
-		model.addAttribute("monthGroups", Collections.emptyList());
-		model.addAttribute("remainingTotals", Collections.emptyMap());
+		
+		//검색 조건 및 필터 설정
+		prepareReportSearch(criteria, params, request, model);
+		
+		QuotationReportVO report = new QuotationReportVO();
+		
+		//미주문 현황 조회
+		if("results".equals(params.get("view"))) {
+			if(bindingResult.hasErrors()) {
+				model.addAttribute("errorMessage", "검색조건의 수량과 금액을 확인해 주세요.");
+			} else {
+				try {
+					report = reportService.getUnordered(criteria);
+				} catch (DataAccessException e) {
+					log.error("미주문 현황 조회 실패", e);
+					model.addAttribute("errorMessage", "미주문 현황을 조회하지 못했습니다. 검색조건을 확인해 주세요.");
+				}
+			}
+		}
+		
+		model.addAttribute("monthGroups", report.getMonthGroups());
+		model.addAttribute("remainingTotals", report.getTotals());
 		model.addAttribute("activeMenu", "quotation");
 		model.addAttribute("pageTitle", "미주문 현황");
 		return "quotation/unordered";
@@ -271,7 +289,7 @@ public class QuotationController {
 		return PostRedirects.toList("/quotation/list", request);
 	}
 	
-	//견적서 현황 검색 조건 및 필터 
+	//검색 조건 및 필터 
 	private void prepareReportSearch(QuotationReportCriteria criteria, Map<String, String> params, HttpServletRequest request, Model model) {
 		Map<String, String> search = ViewModels.search(params);
 		search.remove("page");

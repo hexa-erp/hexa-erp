@@ -7,4 +7,7 @@ public interface QuotationReportService {
 
 	//견적서 현황 조회 및 월별 합계 
 	QuotationReportVO getStatus(QuotationReportCriteria criteria);
+	
+	//미주문 현황 조회
+	QuotationReportVO getUnordered(QuotationReportCriteria criteria);
 }
