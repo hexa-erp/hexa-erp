@@ -40,8 +40,7 @@
 		<span class="workspace-hint">일자·번호순 · 품목명으로 검색할 수 있습니다.</span>
 	</div>
 	<form id="document-list-actions" method="post"
-		action="${ctx}/shipping-instruction/change-status"
-		data-unimplemented-submit>
+		action="${ctx}/shipping-instruction/change-status">
 		<%@ include file="../common/return-search.jspf"%>
 		<div class="table-wrap">
 			<table class="data-table workspace-table document-table">
