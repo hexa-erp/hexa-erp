@@ -139,7 +139,7 @@ public class SalesOrderController {
 		boolean editing = salesOrder.getSalesOrderId() != null;
 		
 		if (bindingResult.hasErrors()) {
-			rttr.addFlashAttribute("errorMessage", "품목의 수량량과 단가 등을 입력해 주세요.");
+			rttr.addFlashAttribute("errorMessage", "품목의 수량과 단가 등을 입력해 주세요.");
 		}
 		else {
 			try {
