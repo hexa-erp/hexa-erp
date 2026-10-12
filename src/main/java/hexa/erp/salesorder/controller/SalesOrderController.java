@@ -2,7 +2,6 @@ package hexa.erp.salesorder.controller;
 
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,15 +9,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import hexa.erp.common.controller.PostRedirects;
 import hexa.erp.common.controller.ViewModels;
 import hexa.erp.common.service.FilterSelectionService;
+import hexa.erp.salesorder.domain.SalesOrderVO;
+import hexa.erp.salesorder.service.SalesOrderService;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j;
 
@@ -28,6 +33,9 @@ import lombok.extern.log4j.Log4j;
 public class SalesOrderController {
 	@Setter(onMethod_ = @Autowired)
 	private FilterSelectionService filterSelectionService;
+	
+	@Setter(onMethod_ = @Autowired)
+	private SalesOrderService service;
 
 	@GetMapping("/list")
 	public String list(@RequestParam Map<String, String> params, Model model) {
@@ -40,21 +48,32 @@ public class SalesOrderController {
 		return "order/list";
 	}
 
+	//주문서 신규 입력 및 기존 주문서 조회
 	@GetMapping("/form")
-	public String form(@RequestParam Map<String, String> params, HttpServletResponse response, Model model) {
+	public String form(@RequestParam(value = "id", required = false) Long id, @RequestParam Map<String, String> params, @RequestParam(value = "salesOrderId", required = false) Long salesOrderId, 
+			HttpServletRequest request, Model model, RedirectAttributes rttr) {
 		log.info("주문서 입력 화면 요청");
-		// TODO: 수정할 전표와 품목 내역을 조회해 form에 담는다.
-		if ((params.get("id") != null && !params.get("id").trim().isEmpty())
-				|| (params.get("salesOrderId") != null && !params.get("salesOrderId").trim().isEmpty())) {
-			response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
-			model.addAttribute("errorMessage", "기존 전표 조회는 아직 구현되지 않았습니다.");
+		
+		Long documentId = id == null? salesOrderId : id;
+		SalesOrderVO form;
+		
+		//신규 주문서 입력 시 기본값 설정
+		if (documentId == null) {
+			form = new SalesOrderVO();
+			
+			form.setBusinessDate(LocalDate.now().toString());
+			form.setProgressStatus("IN_PROGRESS");
 		}
-		Map<String, Object> form = new LinkedHashMap<>();
-		form.put("salesOrderId", "");
-		form.put("salesOrderNo", "");
-		form.put("businessDate", LocalDate.now().toString());
-		form.put("progressStatus", "IN_PROGRESS");
-		form.put("lines", Collections.emptyList());
+		else {
+			//기존 주문서 조회
+			form = service.get(documentId);
+			if (form == null) {
+				rttr.addFlashAttribute("errorMessage", "조회할 주문서가 없습니다.");
+				
+				return PostRedirects.toList("/order/list", request);
+			}
+		}
+		
 		model.addAttribute("form", form);
 		model.addAttribute("mode", "create");
 		model.addAttribute("isEdit", false);
@@ -111,11 +130,33 @@ public class SalesOrderController {
 		return "order/unsold";
 	}
 
+	//주문서 신규 등록 및 수정
 	@PostMapping("/save")
-	public String save(HttpServletResponse response, Model model) {
-		log.info("주문서 저장 요청");
-		return ViewModels.notImplemented(response, model);
+	public String save(SalesOrderVO salesOrder, BindingResult bindingResult, HttpServletRequest request, RedirectAttributes rttr) {
+		log.info("견적서 저장 요청");
+		
+		//신규 등록 및 수정 구분
+		boolean editing = salesOrder.getSalesOrderId() != null;
+		
+		if (bindingResult.hasErrors()) {
+			rttr.addFlashAttribute("errorMessage", "품목의 수량과 단가 등을 입력해 주세요.");
+		}
+		else {
+			try {
+				//주문서 저장
+				service.save(salesOrder);
+			} catch(IllegalArgumentException e) {
+				rttr.addFlashAttribute("errorMessage", e.getMessage());
+			} 
+			catch(DataAccessException e){
+				log.error("주문서 저장 실패", e);
+				rttr.addFlashAttribute("errorMessage","주문서를 저장하지 못했습니다.");
+			}
+		}
+		
+		return PostRedirects.afterDocumentSave("/order", editing, request);
 	}
+	
 
 	@PostMapping("/delete")
 	public String delete(HttpServletResponse response, Model model) {

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hexa.erp.salesorder.mapper.SalesOrderMapper">
+	<sql id="headerColumns">
+		h.sales_order_id, h.sales_order_no,
+		TO_CHAR(h.business_date, 'YYYY-MM-DD') AS business_date,
+		TO_CHAR(h.due_date, 'YYYY-MM-DD') AS due_date,
+		h.partner_id, p.partner_code, h.partner_name,
+		h.warehouse_id, w.warehouse_code, h.warehouse_name,
+		h.assignee_id, a.assignee_code, h.assignee_name,
+		h.note, h.progress_status, h.deleted_yn,
+		TO_CHAR(h.updated_at, 'YYYY-MM-DD HH24:MI:SS') AS updated_at
+	</sql>
+
+	<sql id="headerTables">
+		FROM SALES_ORDER h
+		LEFT JOIN BIZ_PARTNER p ON p.partner_id = h.partner_id
+		LEFT JOIN WAREHOUSE w ON w.warehouse_id = h.warehouse_id
+		LEFT JOIN ASSIGNEE a ON a.assignee_id = h.assignee_id
+	</sql>
+	
+	<select id="read" resultType="hexa.erp.salesorder.domain.SalesOrderVO">
+		SELECT <include refid="headerColumns" />
+		<include refid="headerTables" />
+		WHERE h.sales_order_id = #{salesOrderId} AND h.deleted_yn = 'N'
+	</select>
+	
+	<select id="getLines" resultType="hexa.erp.salesorder.domain.SalesOrderLineVO">
+		SELECT l.sales_order_line_id, l.sales_order_id, l.quotation_line_id,
+			   l.item_id, i.item_code, l.item_name, l.specification, l.note,
+			   l.unit, l.unit_price, l.quantity, l.supply_amount, l.vat_amount, l.total_amount
+		FROM SALES_ORDER_LINE l
+		JOIN SALES_ORDER h on h.sales_order_id = l.sales_order_id
+		LEFT JOIN item i ON i.item_id = l.item_id
+		WHERE h.sales_order_id = #{salesOrderId} 
+		AND l.deleted_yn = 'N' AND h.deleted_yn = 'N'
+		ORDER BY l.sales_order_line_id ASC
+	</select>
+	
+	<insert id="insertSelectKey">
+		<selectKey keyProperty="salesOrderId" resultType="Long" order="BEFORE">
+			SELECT seq_sales_order.NEXTVAL FROM DUAL
+		</selectKey>
+		
+		INSERT INTO SALES_ORDER (
+			sales_order_id, sales_order_no, business_date, due_date,
+			partner_id, partner_name, warehouse_id, warehouse_name,
+			assignee_id, assignee_name, note
+			) VALUES (
+				#{salesOrderId}, LPAD(TO_CHAR(#{salesOrderId}), GREATEST(5, LENGTH(TO_CHAR(#{salesOrderId}))), '0'),
+				TO_DATE(#{businessDate}, 'YYYY-MM-DD'), TO_DATE(#{dueDate}, 'YYYY-MM-DD'), #{partnerId}, #{partnerName}, 
+				#{warehouseId}, #{warehouseName}, #{assigneeId}, #{assigneeName}, #{note}
+					)
+	</insert>
+	
+	<insert id="insertLineSelectKey">
+		<selectKey keyProperty="salesOrderLineId" resultType="Long" order="BEFORE">
+			SELECT seq_sales_order_line.NEXTVAL FROM DUAL
+		</selectKey>
+		
+		INSERT INTO SALES_ORDER_LINE (
+			sales_order_line_id, sales_order_id, quotation_line_id,
+			item_id, item_name, specification, unit, quantity, 
+			unit_price, supply_amount, vat_amount, total_amount, note
+			) VALUES (
+				#{salesOrderLineId}, #{salesOrderId}, #{quotationLineId},
+				#{itemId}, #{itemName}, #{specification}, #{unit}, #{quantity},
+				#{unitPrice}, #{supplyAmount}, #{vatAmount}, #{totalAmount}, #{note}
+					)
+	</insert>
+	
+	<update id="update">
+		UPDATE SALES_ORDER
+		SET business_date = TO_DATE(#{businessDate}), 
+			due_date = TO_DATE(#{dueDate}, 'YYYY-MM-DD'),
+			partner_id = #{partnerId}, partner_name = #{partnerName}, 
+			warehouse_id = #{warehouseId}, warehouse_name = #{warehouseName},
+			assignee_id = #{assigneeId}, assignee_name = #{assigneeName}, 
+			note = #{note}, updated_at = LOCALTIMESTAMP 
+		WHERE sales_order_id = #{salesOrderId}
+		AND deleted_yn = 'N'
+	</update>
+	
+	<update id="updateLine">
+		UPDATE SALES_ORDER_LINE
+		SET quotation_line_id = #{quotationLineId},
+			item_id = #{itemId}, item_name = #{itemName},
+			specification = #{specification}, unit = #{unit},
+			quantity = #{quantity}, unit_price = #{unitPrice},
+			supply_amount = #{supplyAmount}, vat_amount = #{vatAmount}, 
+			total_amount = #{totalAmount}, note = #{note}
+		WHERE sales_order_line_id = #{salesOrderLineId}
+		AND sales_order_id = #{salesOrderId} AND deleted_yn = 'N'
+	</update>
+	
+	<update id="remove">
+		UPDATE SALES_ORDER
+		SET deleted_yn = 'Y'
+		WHERE sales_order_id = #{salesOrderId} AND deleted_yn = 'N'
+	</update>
+	
+	<update id="removeLines">
+		UPDATE SALES_ORDER_LINE
+		SET deleted_yn = 'Y'
+		WHERE sales_order_id = #{salesOrderId} AND deleted_yn = 'N'
+		AND sales_order_line_id IN
+		<foreach collection="lineIds" item="lineId" open="(" separator="," close=")">
+			#{lineId}
+		</foreach>
+	</update>
+	
+	<update id="removeSelectedLines">
+		UPDATE SALES_ORDER_LINE 
+		SET deleted_yn = 'Y'
+		WHERE sales_order_id = #{salesOrderId} AND deleted_yn = 'N'
+		AND sales_order_line_id IN
+		<foreach collection="lineIds" item="lineId" open="(" separator="," close=")">
+			#{lineId}
+		</foreach>
+	</update>
+</mapper>
