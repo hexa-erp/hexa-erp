@@ -31,15 +31,27 @@ public class QuotationReportServiceImpl implements QuotationReportService {
 		//품목별 상세 행 조회
 		List<QuotationReportRowVO> rows = mapper.getStatusRows(criteria);
 		
-		//조회 결과 월결 그룹화 및 합계 계산
-		return makeReport(rows);
+		
+		return makeReport(rows, false);
 
 	}
 	
+	//검색 조건에 맞는 미주문 현황 조회
+	@Override
+	public QuotationReportVO getUnordered(QuotationReportCriteria criteria) {
+		log.info("미주문 현황 상세 행 조회");
+		
+		//미주문 품목 조회 - 기준일까지의 주문 수량 차감
+		List<QuotationReportRowVO> rows = mapper.getUnorderedRows(criteria);
+		
+		
+		return makeReport(rows, true);
+	}
+	
 	//조회 결과를 월별로 그룹화, 월별 및 전체 합계 계산
-	private QuotationReportVO makeReport(List<QuotationReportRowVO> rows) {
+	private QuotationReportVO makeReport(List<QuotationReportRowVO> rows, boolean unordered) {
 		QuotationReportVO report = new QuotationReportVO();
-		report.setTotals(makeTotals());
+		report.setTotals(makeTotals(unordered));
 		
 		String currentMonth = null;
 		List<QuotationReportRowVO> monthRows = null;
@@ -53,7 +65,7 @@ public class QuotationReportServiceImpl implements QuotationReportService {
 			if(!monthLabel.equals(currentMonth)) {
 				currentMonth = monthLabel;
 				monthRows = new ArrayList<>();
-				monthTotals = makeTotals();
+				monthTotals = makeTotals(unordered);
 				
 				//현재 월의 행 추가 및 합계 누적
 				Map<String, Object> monthGroup = new LinkedHashMap<>();
@@ -65,30 +77,48 @@ public class QuotationReportServiceImpl implements QuotationReportService {
 			}
 			
 			monthRows.add(row);
-			addTotals(monthTotals, row);
-			addTotals(report.getTotals(), row);
+			addTotals(monthTotals, row, unordered);
+			addTotals(report.getTotals(), row, unordered);
 		}
 		
 		return report;
 	}
 	
 	//수량, 단가, 공급가액 합계 초기화
-	private Map<String, BigDecimal> makeTotals(){
+	private Map<String, BigDecimal> makeTotals(boolean unordered){
 		Map<String, BigDecimal> totals = new LinkedHashMap<>();
 		totals.put("quantity", BigDecimal.ZERO);
-		totals.put("unitPrice", BigDecimal.ZERO);
-		totals.put("supplyAmount", BigDecimal.ZERO);
+		
+		if (unordered) {
+			//미주문 현황의 잔여 수량 및 금액 합계 초기화
+			totals.put("remainingQuantity", BigDecimal.ZERO);
+			totals.put("remainingSupplyAmount", BigDecimal.ZERO);
+			totals.put("remainingVatAmount", BigDecimal.ZERO);
+		}
+		else {
+			//견적서 현황의 단가 및 공급가액 합계 초기화
+			totals.put("unitPrice", BigDecimal.ZERO);
+			totals.put("supplyAmount", BigDecimal.ZERO);
+		}
 		
 		return totals;
 		
 	}
 	
-	//행의 수량, 단가, 공급가액 합계에 누적
-	private void addTotals(Map<String,BigDecimal> totals, QuotationReportRowVO row) {
+	//품목 벼 수량, 금액 합계에 누적
+	private void addTotals(Map<String,BigDecimal> totals, QuotationReportRowVO row, boolean unordered) {
 		addValue(totals, "quantity", row.getQuantity());
-		addValue(totals, "unitPrice", row.getUnitPrice());
-		addValue(totals, "supplyAmount", row.getSupplyAmount());
 		
+		if (unordered) {
+			//미주문 현황의 잔여 수량 및 금액  누적
+			addValue(totals, "remainingQuantity", row.getRemainingQuantity());
+			addValue(totals, "remainingSupplyAmount", row.getRemainingSupplyAmount());
+			addValue(totals, "remainingVatAmount", row.getRemainingVatAmount());
+		} else {
+			//견적서 현황의 단가 및 공급가액 누적
+			addValue(totals, "unitPrice", row.getUnitPrice());
+			addValue(totals, "supplyAmount", row.getSupplyAmount());
+		}
 	}
 	
 	//기존 합계에 값 더하기
@@ -97,4 +127,7 @@ public class QuotationReportServiceImpl implements QuotationReportService {
 			totals.put(key, totals.get(key).add(value));
 		}
 	}
+
+	
+	
 }
