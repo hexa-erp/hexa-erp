@@ -1,5 +1,6 @@
 package hexa.erp.salesorder.domain;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +30,9 @@ public class SalesOrderVO {
 	private String progressStatus = "IN_PROGRESS";
 	private String updatedAt;
 	private String deletedYn;
+	
+	private String itemSummary;
+	private BigDecimal totalAmount;
 	
 	private List<SalesOrderLineVO> lines = new ArrayList<>();
 	private List<Long> removedLineIds = new ArrayList<>();
