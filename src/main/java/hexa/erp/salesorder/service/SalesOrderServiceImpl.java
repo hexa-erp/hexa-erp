@@ -20,6 +20,7 @@ import hexa.erp.item.domain.ItemLookupVO;
 import hexa.erp.item.service.ItemLookupService;
 import hexa.erp.partner.domain.PartnerLookupVO;
 import hexa.erp.partner.service.PartnerLookupService;
+import hexa.erp.salesorder.domain.SalesOrderCriteria;
 import hexa.erp.salesorder.domain.SalesOrderLineVO;
 import hexa.erp.salesorder.domain.SalesOrderVO;
 import hexa.erp.salesorder.mapper.SalesOrderMapper;
@@ -47,6 +48,16 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 	@Setter(onMethod_=@Autowired)
 	private ItemLookupService itemLookupService;
 	
+    @Override
+    public List<SalesOrderVO> getList(SalesOrderCriteria criteria) {
+        return mapper.getListWithPaging(criteria);
+    }
+ 
+    @Override
+    public int getTotal(SalesOrderCriteria criteria) {
+        return mapper.getTotalCount(criteria);
+    }
+    
 	@Override
 	public SalesOrderVO get(Long salesOrderId) {
 		log.info("주문서 조회");
@@ -114,6 +125,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 		List<SalesOrderLineVO> lines = new ArrayList<>();
 		Set<Long> lineIds = new HashSet<>();
 		
+		//중복, 삭제된 품목 행 검사
 		if(salesOrder.getLines() != null) {
 			for (SalesOrderLineVO line : salesOrder.getLines()) {
 				if(line == null || line.getItemId() == null) {
@@ -133,11 +145,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 		}
 		salesOrder.setLines(lines);
 		
-		//신규 견적서 등록
+		//신규 주문서 등록
 		if(existing == null) {
 			mapper.insertSelectKey(salesOrder);
 		
-		//기존 견적서 수정
+		//기존 주문서 수정
 		} else if (mapper.update(salesOrder) != 1) {
 			throw new IllegalArgumentException("수정할 주문서를 찾을 수 없습니다.");
 		}
@@ -149,11 +161,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 		for(SalesOrderLineVO line : lines) {
 			line.setSalesOrderId(salesOrder.getSalesOrderId());
 			
-			//신규 견적서 품목 행 입력
+			//신규 주문서 품목 행 입력
 			if (line.getSalesOrderLineId() == null) {
 				mapper.insertLineSelectKey(line);
 			
-			//기존 견적서 품목 행 수정
+			//기존 주문서 품목 행 수정
 			} else if (mapper.updateLine(line) != 1) {
 				throw new IllegalArgumentException("주문서에 속하지 않거나 삭제된 품목 행 입니다.");
 			}
@@ -162,6 +174,43 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 		log.info("주문서 저장: " + salesOrder.getSalesOrderId());
 		return salesOrder.getSalesOrderId();
 	}
+	
+	//주문서 삭제
+	@Override
+    @Transactional
+    public int remove(List<Long> selectedIds) {
+        List<Long> ids = cleanIds(selectedIds);
+        if (ids.isEmpty()) {
+            return 0;
+        }
+        
+        //주문서 기본 정보 삭제
+        int count = mapper.remove(ids);
+        
+        //주문서 품목 행 삭제
+        mapper.removeLines(ids);
+        
+        log.info("주문서 삭제: " + count + "건");
+        
+        return count;
+    }
+	
+	//주문서 진행 상태 변경
+    @Override
+    public int changeStatus(List<Long> selectedIds, String progressStatus) {
+        List<Long> ids = cleanIds(selectedIds);
+        if (ids.isEmpty()) {
+            return 0;
+        }
+        
+        if (!"UNCONFIRMED".equals(progressStatus) && !"IN_PROGRESS".equals(progressStatus)
+                && !"COMPLETED".equals(progressStatus)) {
+            throw new IllegalArgumentException("진행상태는 미확인, 진행중, 완료 중에서 선택해 주세요.");
+        }
+        
+        log.info("주문서 진행상태 변경: " + progressStatus);
+        return mapper.changeStatus(ids, progressStatus);
+    }
 	
 	//품목행 값 계산
 	private void prepareLine(SalesOrderLineVO line) {
