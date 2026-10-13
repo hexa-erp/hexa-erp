@@ -5,11 +5,24 @@
 		h.sales_order_id, h.sales_order_no,
 		TO_CHAR(h.business_date, 'YYYY-MM-DD') AS business_date,
 		TO_CHAR(h.due_date, 'YYYY-MM-DD') AS due_date,
+		h.business_date AS sort_business_date,
 		h.partner_id, p.partner_code, h.partner_name,
 		h.warehouse_id, w.warehouse_code, h.warehouse_name,
 		h.assignee_id, a.assignee_code, h.assignee_name,
 		h.note, h.progress_status, h.deleted_yn,
-		TO_CHAR(h.updated_at, 'YYYY-MM-DD HH24:MI:SS') AS updated_at
+		TO_CHAR(h.updated_at, 'YYYY-MM-DD HH24:MI:SS') AS updated_at,
+        (
+            SELECT MIN(l.item_name) KEEP (DENSE_RANK FIRST ORDER BY l.sales_order_line_id)
+                || CASE WHEN COUNT(*) &gt; 1
+                    THEN ' 외 ' || TO_CHAR(COUNT(*) - 1) || '건' ELSE '' END
+            FROM SALES_ORDER_LINE l
+            WHERE l.sales_order_id = h.sales_order_id AND l.deleted_yn = 'N'
+        ) AS item_summary,
+        (
+            SELECT NVL(SUM(l.total_amount), 0)
+            FROM SALES_ORDER_LINE l
+            WHERE l.sales_order_id = h.sales_order_id AND l.deleted_yn = 'N'
+        ) AS total_amount
 	</sql>
 
 	<sql id="headerTables">
@@ -19,6 +32,62 @@
 		LEFT JOIN ASSIGNEE a ON a.assignee_id = h.assignee_id
 	</sql>
 	
+	 <sql id="searchCondition">
+        WHERE h.deleted_yn = 'N'
+        <if test="progressStatus != null and progressStatus != ''">
+            AND h.progress_status = #{progressStatus}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+                UPPER(h.sales_order_no) LIKE '%' || UPPER(#{keyword}) || '%'
+                OR TO_CHAR(h.business_date, 'YYYY/MM/DD') LIKE '%' || #{keyword} || '%'
+                OR UPPER(h.partner_name) LIKE '%' || UPPER(#{keyword}) || '%'
+                OR UPPER(h.assignee_name) LIKE '%' || UPPER(#{keyword}) || '%'
+                OR UPPER(h.warehouse_name) LIKE '%' || UPPER(#{keyword}) || '%'
+                OR UPPER(h.note) LIKE '%' || UPPER(#{keyword}) || '%'
+                OR EXISTS (
+                    SELECT 1
+                    FROM SALES_ORDER_LINE search_line
+                    LEFT JOIN ITEM search_item ON search_item.item_id = search_line.item_id
+                    WHERE search_line.sales_order_id = h.sales_order_id
+                    AND search_line.deleted_yn = 'N'
+                    AND (
+                        UPPER(search_item.item_code) LIKE '%' || UPPER(#{keyword}) || '%'
+                        OR UPPER(search_line.item_name) LIKE '%' || UPPER(#{keyword}) || '%'
+                    )
+                )
+            )
+        </if>
+    </sql>
+
+    <select id="getListWithPaging" parameterType="hexa.erp.salesorder.domain.SalesOrderCriteria"
+        resultType="hexa.erp.salesorder.domain.SalesOrderVO">
+        SELECT sales_order_id, sales_order_no, business_date, due_date,
+            partner_id, partner_code, partner_name,
+            warehouse_id, warehouse_code, warehouse_name,
+            assignee_id, assignee_code, assignee_name,
+            note, progress_status, deleted_yn, updated_at, item_summary, total_amount
+        FROM (
+            SELECT ROWNUM rn, ordered_sales_order.*
+            FROM (
+                SELECT <include refid="headerColumns" />
+                <include refid="headerTables" />
+                <include refid="searchCondition" />
+                ORDER BY h.business_date DESC, h.sales_order_id DESC
+            ) ordered_sales_order
+            WHERE ROWNUM &lt;= #{page} * #{pageSize}
+        )
+        WHERE rn &gt; (#{page} - 1) * #{pageSize}
+        ORDER BY sort_business_date DESC, sales_order_id DESC
+    </select>
+    
+    <select id="getTotalCount" parameterType="hexa.erp.salesorder.domain.SalesOrderCriteria"
+        resultType="int">
+        SELECT COUNT(*)
+        FROM SALES_ORDER h
+        <include refid="searchCondition" />
+    </select>
+
 	<select id="read" resultType="hexa.erp.salesorder.domain.SalesOrderVO">
 		SELECT <include refid="headerColumns" />
 		<include refid="headerTables" />
@@ -93,21 +162,15 @@
 		AND sales_order_id = #{salesOrderId} AND deleted_yn = 'N'
 	</update>
 	
-	<update id="remove">
-		UPDATE SALES_ORDER
-		SET deleted_yn = 'Y'
-		WHERE sales_order_id = #{salesOrderId} AND deleted_yn = 'N'
-	</update>
-	
-	<update id="removeLines">
-		UPDATE SALES_ORDER_LINE
-		SET deleted_yn = 'Y'
-		WHERE sales_order_id = #{salesOrderId} AND deleted_yn = 'N'
-		AND sales_order_line_id IN
-		<foreach collection="lineIds" item="lineId" open="(" separator="," close=")">
-			#{lineId}
-		</foreach>
-	</update>
+	 <update id="remove">
+        UPDATE SALES_ORDER_LINE
+        SET deleted_yn = 'Y'
+        WHERE deleted_yn = 'N' AND sales_order_id IN
+        <foreach collection="ids" item="salesOrderId" open="(" separator="," close=")">
+            #{salesOrderId}
+        </foreach>
+    </update>
+
 	
 	<update id="removeSelectedLines">
 		UPDATE SALES_ORDER_LINE 
@@ -118,4 +181,13 @@
 			#{lineId}
 		</foreach>
 	</update>
+	
+	<update id="changeStatus">
+        UPDATE SALES_ORDER
+        SET progress_status = #{progressStatus}, updated_at = LOCALTIMESTAMP
+        WHERE deleted_yn = 'N' AND sales_order_id IN
+        <foreach collection="ids" item="salesOrderId" open="(" separator="," close=")">
+            #{salesOrderId}
+        </foreach>
+    </update>
 </mapper>
