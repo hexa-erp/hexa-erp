@@ -8,6 +8,7 @@ import java.util.Map;
 
 import lombok.Data;
 
+//주문서 현황 조회 월별 결과
 @Data
 public class SalesOrderReportVO {
 
