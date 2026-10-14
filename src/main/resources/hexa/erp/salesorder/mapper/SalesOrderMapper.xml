@@ -140,7 +140,7 @@
 	
 	<update id="update">
 		UPDATE SALES_ORDER
-		SET business_date = TO_DATE(#{businessDate}), 
+		SET business_date = TO_DATE(#{businessDate}, 'YYYY-MM-DD'),
 			due_date = TO_DATE(#{dueDate}, 'YYYY-MM-DD'),
 			partner_id = #{partnerId}, partner_name = #{partnerName}, 
 			warehouse_id = #{warehouseId}, warehouse_name = #{warehouseName},
@@ -163,14 +163,22 @@
 	</update>
 	
 	 <update id="remove">
-        UPDATE SALES_ORDER_LINE
-        SET deleted_yn = 'Y'
-        WHERE deleted_yn = 'N' AND sales_order_id IN
-        <foreach collection="ids" item="salesOrderId" open="(" separator="," close=")">
-            #{salesOrderId}
-        </foreach>
-    </update>
+    	UPDATE SALES_ORDER
+    	SET deleted_yn = 'Y', updated_at = LOCALTIMESTAMP
+    	WHERE deleted_yn = 'N' AND sales_order_id IN
+    	<foreach collection="ids" item="salesOrderId" open="(" separator="," close=")">
+        	#{salesOrderId}
+    	</foreach>
+	</update>
 
+	<update id="removeLines">
+    	UPDATE SALES_ORDER_LINE
+    	SET deleted_yn = 'Y'
+    	WHERE deleted_yn = 'N' AND sales_order_id IN
+    	<foreach collection="ids" item="salesOrderId" open="(" separator="," close=")">
+       		#{salesOrderId}
+    	</foreach>
+	</update>
 	
 	<update id="removeSelectedLines">
 		UPDATE SALES_ORDER_LINE 
