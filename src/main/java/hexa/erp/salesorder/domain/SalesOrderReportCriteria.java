@@ -14,7 +14,6 @@ public class SalesOrderReportCriteria {
 	private String dueStartDate;
 	private String dueEndDate;
 	
-	private String salesOrderNo;
 	private String keyword;
 	private String progressStatus;
 	private String specification;
