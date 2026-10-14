@@ -39,7 +39,7 @@ public interface SalesOrderMapper {
 	int remove (@Param("ids") List<Long> ids);
 	
 	//주문서 삭제 - 품목 행
-	int removeLines(@Param("lineIds") List<Long> ids);
+	int removeLines(@Param("ids") List<Long> ids);
 	
 	//주문서 진행 상태 변경
 	int changeStatus(@Param("ids") List<Long> ids, @Param("progressStatus") String progressStatus);
