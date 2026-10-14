@@ -40,6 +40,13 @@
 								${search.datePreset eq 'thisMonth' ? 'selected' : ''}>금월(~오늘)</option>
 							<option value="lastMonth"
 								${search.datePreset eq 'lastMonth' ? 'selected' : ''}>전월</option></select></label>
+					<label class="field"><span>견적일자</span>
+    				<div class="input-group">
+       		 			<input type="date" name="startDate"
+            				value="<c:out value="${search.startDate}"/>" aria-label="조회 시작일" /><span>~</span><input
+            				type="date" name="endDate"
+            				value="<c:out value="${search.endDate}"/>" aria-label="조회 종료일" />
+    				</div></label>
 					<label class="field"><span>기준일자</span><input type="date"
 						name="cutoffDate" value="<c:out value="${search.cutoffDate}"/>"
 						required /></label> <label class="field"><span>납기일자</span>
@@ -65,14 +72,14 @@
 					<label class="field"><span>규격</span><input type="text"
 						name="specification"
 						value="<c:out value="${search.specification}"/>" maxlength="100" /></label>
-					<label class="field"><span>수량</span>
+					<label class="field"><span>미판매 수량</span>
 						<div class="input-group">
 							<input type="number" name="minQuantity" step="0.001"
 								value="<c:out value="${search.minQuantity}"/>"
-								aria-label="최소 수량" /><span>~</span><input type="number"
+								aria-label="최소 미판매 수량" /><span>~</span><input type="number"
 								name="maxQuantity" step="0.001"
 								value="<c:out value="${search.maxQuantity}"/>"
-								aria-label="최대 수량" />
+								aria-label="최대 미판매 수량" />
 						</div></label>
 					<fieldset class="field field-wide">
 						<legend>진행상태</legend>
