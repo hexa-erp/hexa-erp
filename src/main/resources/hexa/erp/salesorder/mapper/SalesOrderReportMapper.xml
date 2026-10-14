@@ -118,4 +118,59 @@
 	ORDER BY h.business_date ASC, h.sales_order_id ASC, l.sales_order_line_id ASC 
 </select>
 
+<select id="getUnsoldRows" resultType="hexa.erp.salesorder.domain.SalesOrderReportRowVO">
+	SELECT remaining_row.*
+	FROM(
+		SELECT supply_row.*,
+			ROUND(supply_row.remaining_supply_amount * 0.1, 0) AS remaining_vat_amount
+		FROM(
+			SELECT quantity_row.*,
+				ROUND(quantity_row.remaining_quantity * quantity_row.unit_price, 0) AS remaining_supply_amount
+		FROM(
+			SELECT <include refid="reportColumns" />,
+				GREATEST(l.quantity - NVL(sold_line.sold_quantity, 0), 0) AS remaining_quantity
+			FROM SALES_ORDER h
+			JOIN SALES_ORDER_LINE l on l.sales_order_id = h.sales_order_id
+			LEFT JOIN ITEM i on i.item_id = l.item_id
+			LEFT JOIN(
+				SELECT sale_line.sales_order_line_id, SUM(sale_line.quantity) AS sold_quantity
+				FROM SALE_LINE sale_line
+				JOIN SALE sale_header ON sale_header.sale_id = sale_line.sale_id
+				WHERE sale_line.deleted_yn = 'N'
+				AND sale_header.deleted_yn = 'N'
+				<if test="cutoffDate != null and cutoffDate.trim() != ''">
+					AND sale_header.business_date &lt; TO_DATE(#{cutoffDate}, 'YYYY-MM-DD') + 1
+				</if>
+				GROUP BY sale_line.sales_order_line_id
+			) sold_line ON sold_line.sales_order_line_id = l.sales_order_line_id
+		  	<include refid="searchCondition" />
+		  	<if test="cutoffDate != null and cutoffDate.trim() != ''">
+				AND h.business_date &lt; TO_DATE(#{cutoffDate}, 'YYYY-MM-DD') + 1
+		  	</if>
+		  )	quantity_row 		
+	   ) supply_row 
+	) remaining_row
+	
+	WHERE remaining_row.remaining_quantity &gt; 0
+	<if test="minQuantity != null">
+		AND remaining_row.remaining_quantity &gt;= #{minQuantity}
+	</if>
+	<if test="maxQuantity != null">
+		AND remaining_row.remaining_quantity &lt;= #{maxQuantity}
+	</if>
+	<if test="minSupplyAmount != null">
+		AND remaining_row.remaining_supply_amount &gt;= #{minSupplyAmount}
+	</if>
+	<if test="maxSupplyAmount != null">
+		AND remaining_row.remaining_supply_amount &lt;= #{maxSupplyAmount}
+	</if>
+	<if test="minVatAmount != null">
+		AND remaining_row.remaining_vat_amount &gt;= #{minVatAmount}
+	</if>
+	<if test="maxVatAmount != null">
+		AND remaining_row.remaining_vat_amount &lt;= #{maxVatAmount}
+	</if>
+	ORDER BY remaining_row.business_date ASC, remaining_row.sales_order_id ASC,
+			 remaining_row.sales_order_line_id ASC
+</select>
 </mapper>
