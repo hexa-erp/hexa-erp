@@ -1,7 +1,9 @@
 package hexa.erp.salesorder.controller;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +24,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import hexa.erp.common.controller.PostRedirects;
 import hexa.erp.common.controller.ViewModels;
 import hexa.erp.common.service.FilterSelectionService;
+import hexa.erp.salesorder.domain.SalesOrderCriteria;
+import hexa.erp.salesorder.domain.SalesOrderLineVO;
 import hexa.erp.salesorder.domain.SalesOrderVO;
 import hexa.erp.salesorder.service.SalesOrderService;
 import lombok.Setter;
@@ -37,15 +41,34 @@ public class SalesOrderController {
 	@Setter(onMethod_ = @Autowired)
 	private SalesOrderService service;
 
+	//주문서 목록 조회 및 페이징
 	@GetMapping("/list")
-	public String list(@RequestParam Map<String, String> params, Model model) {
+	public String list(SalesOrderCriteria criteria, @RequestParam Map<String, String> params, Model model) {
 		log.info("주문서 목록 조회 요청");
-		model.addAttribute("orderList", Collections.emptyList());
-		model.addAttribute("search", ViewModels.search(params));
-		model.addAttribute("activeMenu", "order");
-		model.addAttribute("pageTitle", "주문서 조회");
-		ViewModels.emptyPage(model, 25, "/order/list");
-		return "order/list";
+		
+		//페이징 처리
+		int totalCount = service.getTotal(criteria);
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
+        criteria.setPage(Math.min(criteria.getPage(), totalPages));
+        
+        //검색 조건, 페이징 상태 유지
+        Map<String, String> search = ViewModels.search(params);
+        search.put("keyword", criteria.getKeyword());
+        search.put("progressStatus", criteria.getProgressStatus());
+        search.put("page", String.valueOf(criteria.getPage()));
+        search.put("pageSize", String.valueOf(criteria.getPageSize()));
+        
+        model.addAttribute("orderList", service.getList(criteria));
+        model.addAttribute("search", search);
+        model.addAttribute("page", criteria.getPage());
+        model.addAttribute("pageSize", criteria.getPageSize());
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalCount", totalCount);
+        model.addAttribute("basePath", "/order/list");
+        model.addAttribute("activeMenu", "order");
+        model.addAttribute("pageTitle", "주문서 조회");
+        
+        return "order/list";
 	}
 
 	//주문서 신규 입력 및 기존 주문서 조회
@@ -100,14 +123,36 @@ public class SalesOrderController {
 		return "order/status";
 	}
 
+	//주문서 전표 조회
 	@GetMapping("/statement")
-	public String statement(Model model) {
+	public String statement(@RequestParam(value = "id", required = false) Long id, HttpServletResponse response, Model model) {
 		log.info("주문서 전표 조회 요청");
-		model.addAttribute("form", Collections.singletonMap("lines", Collections.emptyList()));
-		model.addAttribute("statementTotals", Collections.emptyMap());
-		model.addAttribute("activeMenu", "order");
-		model.addAttribute("pageTitle", "주문서 전표");
-		return "order/statement";
+		
+		SalesOrderVO form = id == null ? null : service.get(id);
+        if (form == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            form = new SalesOrderVO();
+        }
+        
+        //주문서 품목별 금액을 더해서 전표 전체 합계 계산
+        Map<String, BigDecimal> totals = new LinkedHashMap<>();
+        totals.put("supplyAmount", BigDecimal.ZERO);
+        totals.put("vatAmount", BigDecimal.ZERO);
+        totals.put("totalAmount", BigDecimal.ZERO);
+        
+        for (SalesOrderLineVO line : form.getLines()) {
+            totals.put("supplyAmount", totals.get("supplyAmount").add(line.getSupplyAmount()));
+            totals.put("vatAmount", totals.get("vatAmount").add(line.getVatAmount()));
+            totals.put("totalAmount", totals.get("totalAmount").add(line.getTotalAmount()));
+        }
+        
+        model.addAttribute("form", form);
+        model.addAttribute("statementTotals", totals);
+        model.addAttribute("activeMenu", "order");
+        model.addAttribute("pageTitle", "주문서 전표");
+        
+        return "order/statement";
+
 	}
 
 	@GetMapping("/unsold")
@@ -158,16 +203,50 @@ public class SalesOrderController {
 	}
 	
 
+	//주문서 삭제
 	@PostMapping("/delete")
-	public String delete(HttpServletResponse response, Model model) {
+	public String delete(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds, 
+			HttpServletRequest request, RedirectAttributes rttr) {
 		log.info("주문서 삭제 요청");
-		return ViewModels.notImplemented(response, model);
+		
+		if (selectedIds == null || selectedIds.isEmpty()) {
+            rttr.addFlashAttribute("errorMessage", "삭제할 주문서를 선택해 주세요.");
+        } else {
+            try {
+                if (service.remove(selectedIds) == 0) {
+                    rttr.addFlashAttribute("errorMessage", "삭제할 주문서가 없습니다.");
+                }
+            } catch (DataAccessException e) {
+                log.error("주문서 삭제 실패", e);
+                rttr.addFlashAttribute("errorMessage", "주문서를 삭제하지 못했습니다.");
+            }
+        }
+		
+        return PostRedirects.toList("/order/list", request);
 	}
 
+	//주문서 상태 변경
 	@PostMapping("/change-status")
-	public String changeStatus(HttpServletResponse response, Model model) {
+	public String changeStatus(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds,
+			@RequestParam(value = "nextProgressStatus", defaultValue = "") String nextProgressStatus, 
+			HttpServletRequest request, RedirectAttributes rttr) {
 		log.info("주문서 진행 상태 변경 요청");
-		return ViewModels.notImplemented(response, model);
-	}
-
+		
+		if (selectedIds == null || selectedIds.isEmpty()) {
+            rttr.addFlashAttribute("errorMessage", "진행상태를 변경할 주문서를 선택해 주세요.");
+        } else {
+            try {
+                if (service.changeStatus(selectedIds, nextProgressStatus) == 0) {
+                    rttr.addFlashAttribute("errorMessage", "변경할 주문서가 없습니다.");
+                }
+            } catch (IllegalArgumentException e) {
+                rttr.addFlashAttribute("errorMessage", e.getMessage());
+            } catch (DataAccessException e) {
+                log.error("주문서 진행 상태 변경 실패", e);
+                rttr.addFlashAttribute("errorMessage", "주문서의 진행상태를 변경하지 못했습니다.");
+            }
+        }
+		
+        return PostRedirects.toList("/order/list", request);
+    }
 }

@@ -4,11 +4,16 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
 
+import hexa.erp.salesorder.domain.SalesOrderCriteria;
 import hexa.erp.salesorder.domain.SalesOrderLineVO;
 import hexa.erp.salesorder.domain.SalesOrderVO;
 
 public interface SalesOrderMapper {
 	
+	List<SalesOrderVO> getListWithPaging(SalesOrderCriteria criteria);
+	 
+    int getTotalCount(SalesOrderCriteria criteria);
+    
 	//주문서 기본 정보 조회
 	SalesOrderVO read(Long salesOrderId);
 	
@@ -31,8 +36,11 @@ public interface SalesOrderMapper {
 	int removeSelectedLines(@Param("salesOrderId") Long salesOrderId, @Param("lineIds") List<Long> lineIds);
 	
 	//주문서 삭제 - 기본 정보
-	int remove (Long salesOrderId);
+	int remove (@Param("ids") List<Long> ids);
 	
 	//주문서 삭제 - 품목 행
-	int removeLines(@Param("salesOrderId") Long salesOrderId, @Param("lineIds") List<Long> lineIds);
+	int removeLines(@Param("ids") List<Long> ids);
+	
+	//주문서 진행 상태 변경
+	int changeStatus(@Param("ids") List<Long> ids, @Param("progressStatus") String progressStatus);
 }
