@@ -24,9 +24,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import hexa.erp.common.controller.PostRedirects;
 import hexa.erp.common.controller.ViewModels;
 import hexa.erp.common.service.FilterSelectionService;
+import hexa.erp.quotation.domain.QuotationReportCriteria;
 import hexa.erp.salesorder.domain.SalesOrderCriteria;
 import hexa.erp.salesorder.domain.SalesOrderLineVO;
+import hexa.erp.salesorder.domain.SalesOrderReportCriteria;
+import hexa.erp.salesorder.domain.SalesOrderReportVO;
 import hexa.erp.salesorder.domain.SalesOrderVO;
+import hexa.erp.salesorder.service.SalesOrderReportService;
 import hexa.erp.salesorder.service.SalesOrderService;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j;
@@ -40,6 +44,9 @@ public class SalesOrderController {
 	
 	@Setter(onMethod_ = @Autowired)
 	private SalesOrderService service;
+	
+	@Setter(onMethod_ = @Autowired)
+	private SalesOrderReportService reportService;
 
 	//주문서 목록 조회 및 페이징
 	@GetMapping("/list")
@@ -105,19 +112,32 @@ public class SalesOrderController {
 		return "order/form";
 	}
 
+	//주문서 현황 조회
 	@GetMapping("/status")
-	public String status(@RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
+	public String status(SalesOrderReportCriteria criteria, BindingResult bindingResult, @RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
 		log.info("주문서 현황 조회 요청");
-		Map<String, String> search = ViewModels.search(params);
-		// 현황은 검색 결과 전체를 표시하며 페이지 분할하지 않는다.
-		search.remove("page");
-		search.remove("pageSize");
-		Map<String, List<String>> filterIds = ViewModels.filters(request, search, model, "warehouse", "partner", "item",
-				"assignee");
-		model.addAttribute("filterSelections", filterSelectionService.getSelections(filterIds));
-		model.addAttribute("search", search);
-		model.addAttribute("monthGroups", Collections.emptyList());
-		model.addAttribute("statusTotals", Collections.emptyMap());
+		
+		//검색 조건 및 필터 설정
+		prepareReportSearch(criteria, params, request, model);
+		
+		SalesOrderReportVO report = new SalesOrderReportVO();
+		
+		if ("results".equals(params.get("view"))) {
+			if (bindingResult.hasErrors()) {
+				model.addAttribute("errorMessage", "검색조건의 수량과 금액을 확인해 주세요.");
+			} else {
+				try {
+					report = reportService.getStatus(criteria);
+				} catch (DataAccessException e) {
+					log.error("주문서 현황 조회 실패", e);
+					
+					model.addAttribute("errorMessage", "현황을 조회하지 못했습니다. 검색조건을 확인해 주세요.");
+				}
+			}
+		}
+
+		model.addAttribute("monthGroups", report.getMonthGroups());
+		model.addAttribute("statusTotals", report.getTotals());
 		model.addAttribute("activeMenu", "order");
 		model.addAttribute("pageTitle", "주문서 현황");
 		return "order/status";
@@ -249,4 +269,20 @@ public class SalesOrderController {
 		
         return PostRedirects.toList("/order/list", request);
     }
+	
+	//검색 조건 및 필터 
+		private void prepareReportSearch(SalesOrderReportCriteria criteria, Map<String, String> params, HttpServletRequest request, Model model) {
+			Map<String, String> search = ViewModels.search(params);
+			search.remove("page");
+			search.remove("pageSize");
+			
+			Map<String, List<String>> filterIds = ViewModels.filters(request, search, model, "warehouse", "partner", "item", "assignee");
+			criteria.setWarehouseIds(filterIds.get("warehouseIds"));
+			criteria.setPartnerIds(filterIds.get("partnerIds"));
+			criteria.setItemIds(filterIds.get("itemIds"));
+			criteria.setAssigneeIds(filterIds.get("assigneeIds"));
+			
+			model.addAttribute("filterSelections", filterSelectionService.getSelections(filterIds));
+			model.addAttribute("search", search);
+		}
 }
