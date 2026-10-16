@@ -1,5 +1,6 @@
 package hexa.erp.sale.domain;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,8 +36,14 @@ public class SaleVO {
     private String updatedAt;
     private String deletedYn;
 
-    // 판매 상세 정보
-    private List<SaleLineVO> lines = new ArrayList<>();
+    // 판매 목록 표시 정보
+    private String itemSummary;
+    private BigDecimal totalAmount;
 
-    private List<Long> removedLineIds = new ArrayList<>();
+    // 판매 상세 정보
+    private List<SaleLineVO> lines =
+        new ArrayList<>();
+
+    private List<Long> removedLineIds =
+        new ArrayList<>();
 }

@@ -22,6 +22,7 @@ import hexa.erp.item.domain.ItemLookupVO;
 import hexa.erp.item.service.ItemLookupService;
 import hexa.erp.partner.domain.PartnerLookupVO;
 import hexa.erp.partner.service.PartnerLookupService;
+import hexa.erp.sale.domain.SaleCriteria;
 import hexa.erp.sale.domain.SaleLineVO;
 import hexa.erp.sale.domain.SaleVO;
 import hexa.erp.sale.mapper.SaleMapper;
@@ -35,14 +36,52 @@ import lombok.extern.log4j.Log4j;
 @Service
 @Log4j
 @RequiredArgsConstructor
-public class SaleServiceImpl implements SaleService {
+public class SaleServiceImpl
+        implements SaleService {
 
     private final SaleMapper mapper;
-    private final PartnerLookupService partnerLookupService;
-    private final WarehouseLookupService warehouseLookupService;
-    private final AssigneeLookupService assigneeLookupService;
-    private final ItemLookupService itemLookupService;
+
+    private final PartnerLookupService
+        partnerLookupService;
+
+    private final WarehouseLookupService
+        warehouseLookupService;
+
+    private final AssigneeLookupService
+        assigneeLookupService;
+
+    private final ItemLookupService
+        itemLookupService;
+
     private final StockService stockService;
+
+    // 판매 목록 조회
+    @Override
+    public List<SaleVO> getList(
+            SaleCriteria criteria) {
+
+        if (criteria == null) {
+            criteria = new SaleCriteria();
+        }
+
+        return mapper.getListWithPaging(
+            criteria
+        );
+    }
+
+    // 판매 전체 건수 조회
+    @Override
+    public int getTotal(
+            SaleCriteria criteria) {
+
+        if (criteria == null) {
+            criteria = new SaleCriteria();
+        }
+
+        return mapper.getTotalCount(
+            criteria
+        );
+    }
 
     // 판매 한 건 조회
     @Override
@@ -54,7 +93,9 @@ public class SaleServiceImpl implements SaleService {
         SaleVO sale = mapper.read(saleId);
 
         if (sale != null) {
-            sale.setLines(mapper.getLines(saleId));
+            sale.setLines(
+                mapper.getLines(saleId)
+            );
         }
 
         return sale;
@@ -64,7 +105,10 @@ public class SaleServiceImpl implements SaleService {
     @Override
     @Transactional
     public Long save(SaleVO sale) {
-        if (sale == null || isBlank(sale.getBusinessDate())) {
+        if (
+            sale == null
+            || isBlank(sale.getBusinessDate())
+        ) {
             throw new IllegalArgumentException(
                 "판매 일자를 입력해 주세요."
             );
@@ -89,11 +133,14 @@ public class SaleServiceImpl implements SaleService {
         }
 
         SaleVO existing = null;
+
         List<SaleLineVO> previousLines =
             Collections.emptyList();
 
         if (sale.getSaleId() != null) {
-            existing = mapper.read(sale.getSaleId());
+            existing = mapper.read(
+                sale.getSaleId()
+            );
 
             if (existing == null) {
                 throw new IllegalArgumentException(
@@ -101,47 +148,78 @@ public class SaleServiceImpl implements SaleService {
                 );
             }
 
-            sale.setSaleNo(existing.getSaleNo());
+            sale.setSaleNo(
+                existing.getSaleNo()
+            );
+
             sale.setProgressStatus(
                 existing.getProgressStatus()
             );
 
             previousLines =
-                mapper.getLines(sale.getSaleId());
+                mapper.getLines(
+                    sale.getSaleId()
+                );
         } else {
-            sale.setProgressStatus("CONFIRMED");
+            sale.setProgressStatus(
+                "CONFIRMED"
+            );
         }
 
-        fillHeaderNames(sale, existing);
+        fillHeaderNames(
+            sale,
+            existing
+        );
 
-        if (isBlank(sale.getWarehouseName())) {
+        if (isBlank(
+                sale.getWarehouseName())) {
+
             throw new IllegalArgumentException(
                 "선택한 출하창고를 찾을 수 없습니다."
             );
         }
 
         List<Long> removedLineIds =
-            cleanIds(sale.getRemovedLineIds());
+            cleanIds(
+                sale.getRemovedLineIds()
+            );
 
-        List<SaleLineVO> lines = new ArrayList<>();
-        Set<Long> lineIds = new HashSet<>();
+        List<SaleLineVO> lines =
+            new ArrayList<>();
+
+        Set<Long> lineIds =
+            new HashSet<>();
 
         if (sale.getLines() != null) {
-            for (SaleLineVO line : sale.getLines()) {
-                if (line == null || line.getItemId() == null) {
+            for (
+                SaleLineVO line
+                    : sale.getLines()
+            ) {
+                if (
+                    line == null
+                    || line.getItemId() == null
+                ) {
                     continue;
                 }
 
-                if (line.getSaleLineId() != null) {
+                if (
+                    line.getSaleLineId()
+                        != null
+                ) {
                     boolean duplicated =
-                        !lineIds.add(line.getSaleLineId());
+                        !lineIds.add(
+                            line.getSaleLineId()
+                        );
 
                     boolean removed =
                         removedLineIds.contains(
                             line.getSaleLineId()
                         );
 
-                    if (duplicated || removed) {
+                    if (
+                        duplicated
+                        || removed
+                    ) {
                         throw new IllegalArgumentException(
                             "중복되거나 삭제 표시된 품목 행을 확인해 주세요."
                         );
@@ -157,7 +235,9 @@ public class SaleServiceImpl implements SaleService {
 
         if (existing == null) {
             mapper.insertSelectKey(sale);
-        } else if (mapper.update(sale) != 1) {
+        } else if (
+            mapper.update(sale) != 1
+        ) {
             throw new IllegalArgumentException(
                 "수정할 판매 전표를 찾을 수 없습니다."
             );
@@ -171,11 +251,20 @@ public class SaleServiceImpl implements SaleService {
         }
 
         for (SaleLineVO line : lines) {
-            line.setSaleId(sale.getSaleId());
+            line.setSaleId(
+                sale.getSaleId()
+            );
 
-            if (line.getSaleLineId() == null) {
-                mapper.insertLineSelectKey(line);
-            } else if (mapper.updateLine(line) != 1) {
+            if (
+                line.getSaleLineId()
+                    == null
+            ) {
+                mapper.insertLineSelectKey(
+                    line
+                );
+            } else if (
+                mapper.updateLine(line) != 1
+            ) {
                 throw new IllegalArgumentException(
                     "판매 전표에 속하지 않거나 삭제된 품목 행입니다."
                 );
@@ -183,7 +272,9 @@ public class SaleServiceImpl implements SaleService {
         }
 
         List<SaleLineVO> savedLines =
-            mapper.getLines(sale.getSaleId());
+            mapper.getLines(
+                sale.getSaleId()
+            );
 
         if (savedLines.isEmpty()) {
             throw new IllegalArgumentException(
@@ -206,6 +297,104 @@ public class SaleServiceImpl implements SaleService {
         );
 
         return sale.getSaleId();
+    }
+
+    // 선택한 판매 삭제
+    @Override
+    @Transactional
+    public int remove(
+            List<Long> selectedIds) {
+
+        List<Long> ids =
+            cleanIds(selectedIds);
+
+        if (ids.isEmpty()) {
+            return 0;
+        }
+
+        int count = 0;
+
+        for (Long saleId : ids) {
+            SaleVO sale =
+                mapper.read(saleId);
+
+            if (sale == null) {
+                continue;
+            }
+
+            List<SaleLineVO> lines =
+                mapper.getLines(saleId);
+
+            List<Long> oneId =
+                Collections.singletonList(
+                    saleId
+                );
+
+            int removeCount =
+                mapper.remove(oneId);
+
+            if (removeCount != 1) {
+                continue;
+            }
+
+            mapper.removeLines(oneId);
+
+            for (SaleLineVO line : lines) {
+                applyStockDelta(
+                    saleId,
+                    line,
+                    sale.getWarehouseId(),
+                    line.getQuantity()
+                );
+            }
+
+            count++;
+        }
+
+        log.info(
+            "판매 전표 삭제: "
+                + count
+                + "건"
+        );
+
+        return count;
+    }
+
+    // 선택한 판매 진행상태 변경
+    @Override
+    public int changeStatus(
+            List<Long> selectedIds,
+            String progressStatus) {
+
+        List<Long> ids =
+            cleanIds(selectedIds);
+
+        if (ids.isEmpty()) {
+            return 0;
+        }
+
+        if (
+            !"UNCONFIRMED".equals(
+                progressStatus
+            )
+            && !"CONFIRMED".equals(
+                progressStatus
+            )
+        ) {
+            throw new IllegalArgumentException(
+                "진행상태는 미확인, 확인 중에서 선택해 주세요."
+            );
+        }
+
+        log.info(
+            "판매 전표 진행상태 변경: "
+                + progressStatus
+        );
+
+        return mapper.changeStatus(
+            ids,
+            progressStatus
+        );
     }
 
     // 판매 수정에 따른 재고 반영
@@ -236,23 +425,27 @@ public class SaleServiceImpl implements SaleService {
                     sale.getSaleId(),
                     line,
                     sale.getWarehouseId(),
-                    line.getQuantity().negate()
+                    line.getQuantity()
+                        .negate()
                 );
             } else if (
-                existing.getWarehouseId().equals(
-                    sale.getWarehouseId()
-                )
-                && previous.getItemId().equals(
-                    line.getItemId()
-                )
+                existing.getWarehouseId()
+                    .equals(
+                        sale.getWarehouseId()
+                    )
+                && previous.getItemId()
+                    .equals(
+                        line.getItemId()
+                    )
             ) {
                 applyStockDelta(
                     sale.getSaleId(),
                     line,
                     sale.getWarehouseId(),
-                    previous.getQuantity().subtract(
-                        line.getQuantity()
-                    )
+                    previous.getQuantity()
+                        .subtract(
+                            line.getQuantity()
+                        )
                 );
             } else {
                 applyStockDelta(
@@ -266,14 +459,16 @@ public class SaleServiceImpl implements SaleService {
                     sale.getSaleId(),
                     line,
                     sale.getWarehouseId(),
-                    line.getQuantity().negate()
+                    line.getQuantity()
+                        .negate()
                 );
             }
         }
 
-        for (SaleLineVO removed
-                : previousById.values()) {
-
+        for (
+            SaleLineVO removed
+                : previousById.values()
+        ) {
             applyStockDelta(
                 sale.getSaleId(),
                 removed,
@@ -290,9 +485,11 @@ public class SaleServiceImpl implements SaleService {
             Long warehouseId,
             BigDecimal quantityDelta) {
 
-        if (quantityDelta.compareTo(
-                BigDecimal.ZERO) == 0) {
-
+        if (
+            quantityDelta.compareTo(
+                BigDecimal.ZERO
+            ) == 0
+        ) {
             return;
         }
 
@@ -303,16 +500,28 @@ public class SaleServiceImpl implements SaleService {
         movement.setSaleLineId(
             line.getSaleLineId()
         );
-        movement.setWarehouseId(warehouseId);
-        movement.setItemId(line.getItemId());
-        movement.setQuantityDelta(quantityDelta);
+        movement.setWarehouseId(
+            warehouseId
+        );
+        movement.setItemId(
+            line.getItemId()
+        );
+        movement.setQuantityDelta(
+            quantityDelta
+        );
 
-        stockService.applySaleMovement(movement);
+        stockService.applySaleMovement(
+            movement
+        );
     }
 
     // 판매 상세 금액 계산
-    private void prepareLine(SaleLineVO line) {
-        if (isBlank(line.getItemName())) {
+    private void prepareLine(
+            SaleLineVO line) {
+
+        if (isBlank(
+                line.getItemName())) {
+
             ItemLookupVO item =
                 itemLookupService.get(
                     line.getItemId()
@@ -324,7 +533,9 @@ public class SaleServiceImpl implements SaleService {
                 );
             }
 
-            line.setItemName(item.getItemName());
+            line.setItemName(
+                item.getItemName()
+            );
         }
 
         BigDecimal quantity =
@@ -348,7 +559,9 @@ public class SaleServiceImpl implements SaleService {
         );
 
         BigDecimal supplyAmount =
-            quantity.multiply(unitPrice).setScale(
+            quantity.multiply(
+                unitPrice
+            ).setScale(
                 0,
                 RoundingMode.HALF_UP
             );
@@ -363,10 +576,14 @@ public class SaleServiceImpl implements SaleService {
 
         line.setQuantity(quantity);
         line.setUnitPrice(unitPrice);
-        line.setSupplyAmount(supplyAmount);
+        line.setSupplyAmount(
+            supplyAmount
+        );
         line.setVatAmount(vatAmount);
         line.setTotalAmount(
-            supplyAmount.add(vatAmount)
+            supplyAmount.add(
+                vatAmount
+            )
         );
     }
 
@@ -377,12 +594,15 @@ public class SaleServiceImpl implements SaleService {
 
         if (sale.getPartnerId() == null) {
             sale.setPartnerName(null);
-        } else if (isBlank(sale.getPartnerName())) {
+        } else if (
+            isBlank(sale.getPartnerName())
+        ) {
             if (
                 existing != null
-                && sale.getPartnerId().equals(
-                    existing.getPartnerId()
-                )
+                && sale.getPartnerId()
+                    .equals(
+                        existing.getPartnerId()
+                    )
                 && !isBlank(
                     existing.getPartnerName()
                 )
@@ -404,16 +624,22 @@ public class SaleServiceImpl implements SaleService {
             }
         }
 
-        if (sale.getWarehouseId() == null) {
+        if (
+            sale.getWarehouseId()
+                == null
+        ) {
             sale.setWarehouseName(null);
-        } else if (isBlank(
-                sale.getWarehouseName())) {
-
+        } else if (
+            isBlank(
+                sale.getWarehouseName()
+            )
+        ) {
             if (
                 existing != null
-                && sale.getWarehouseId().equals(
-                    existing.getWarehouseId()
-                )
+                && sale.getWarehouseId()
+                    .equals(
+                        existing.getWarehouseId()
+                    )
                 && !isBlank(
                     existing.getWarehouseName()
                 )
@@ -430,21 +656,28 @@ public class SaleServiceImpl implements SaleService {
                 sale.setWarehouseName(
                     warehouse == null
                         ? null
-                        : warehouse.getWarehouseName()
+                        : warehouse
+                            .getWarehouseName()
                 );
             }
         }
 
-        if (sale.getAssigneeId() == null) {
+        if (
+            sale.getAssigneeId()
+                == null
+        ) {
             sale.setAssigneeName(null);
-        } else if (isBlank(
-                sale.getAssigneeName())) {
-
+        } else if (
+            isBlank(
+                sale.getAssigneeName()
+            )
+        ) {
             if (
                 existing != null
-                && sale.getAssigneeId().equals(
-                    existing.getAssigneeId()
-                )
+                && sale.getAssigneeId()
+                    .equals(
+                        existing.getAssigneeId()
+                    )
                 && !isBlank(
                     existing.getAssigneeName()
                 )
@@ -461,7 +694,8 @@ public class SaleServiceImpl implements SaleService {
                 sale.setAssigneeName(
                     assignee == null
                         ? null
-                        : assignee.getAssigneeName()
+                        : assignee
+                            .getAssigneeName()
                 );
             }
         }
@@ -477,7 +711,8 @@ public class SaleServiceImpl implements SaleService {
     private List<Long> cleanIds(
             List<Long> values) {
 
-        Set<Long> ids = new LinkedHashSet<>();
+        Set<Long> ids =
+            new LinkedHashSet<>();
 
         if (values != null) {
             for (Long value : values) {
