@@ -4,10 +4,21 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
 
+import hexa.erp.sale.domain.SaleCriteria;
 import hexa.erp.sale.domain.SaleLineVO;
 import hexa.erp.sale.domain.SaleVO;
 
 public interface SaleMapper {
+
+    // 판매 목록 조회
+    List<SaleVO> getListWithPaging(
+        SaleCriteria criteria
+    );
+
+    // 판매 전체 건수 조회
+    int getTotalCount(
+        SaleCriteria criteria
+    );
 
     // 판매 기본정보 조회
     SaleVO read(Long saleId);
@@ -31,5 +42,22 @@ public interface SaleMapper {
     int removeSelectedLines(
         @Param("saleId") Long saleId,
         @Param("lineIds") List<Long> lineIds
+    );
+
+    // 선택한 판매 삭제 처리
+    int remove(
+        @Param("ids") List<Long> ids
+    );
+
+    // 선택한 판매 상세행 삭제 처리
+    int removeLines(
+        @Param("ids") List<Long> ids
+    );
+
+    // 선택한 판매 진행상태 변경
+    int changeStatus(
+        @Param("ids") List<Long> ids,
+        @Param("progressStatus")
+        String progressStatus
     );
 }
