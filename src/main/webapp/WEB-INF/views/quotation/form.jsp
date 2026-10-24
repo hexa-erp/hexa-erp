@@ -22,7 +22,9 @@
 		<a class="btn" href="<c:out value='${documentListUrl}'/>">목록</a>
 	</div>
 	<form id="document-form" data-document-form
-		method="post" action="${ctx}/quotation/save">
+		data-api-document="quotation" data-api-base="/api/quotations"
+		data-api-id-field="quotationId" data-api-view-base="/quotation"
+		method="post" action="${ctx}/api/quotations">
 		<%@ include file="../common/return-search.jspf"%>
 		<input type="hidden" name="quotationId"
 			value="<c:out value="${form.quotationId}"/>" /> <input type="hidden"

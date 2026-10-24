@@ -54,6 +54,141 @@
     });
   }
 
+  // 변경 요청은 JSON 응답을 받고, 서버의 오류 메시지를 호출한 화면에 전달한다.
+  function request(url, method, data, multipart) {
+    return new Promise(function(resolve, reject) {
+      $.ajax({
+        url: ctx + url,
+        type: method,
+        data: multipart ? data : JSON.stringify(data),
+        processData: false,
+        contentType: multipart ? false : 'application/json; charset=UTF-8',
+        dataType: 'json',
+        headers: { Accept: 'application/json' },
+        success: resolve,
+        error: function(xhr) {
+          var body = xhr.responseJSON;
+          reject(new Error(body && body.message ? body.message
+            : (xhr.status ? '요청을 처리하지 못했습니다. 입력 내용을 확인한 뒤 다시 시도해 주세요.'
+              : '서버에 연결할 수 없습니다. 연결 상태를 확인해 주세요.')));
+        }
+      });
+    });
+  }
+
+  // 폼의 lines[0].itemId 등을 JSON 배열로 바꾼다. 금액과 ID는 문자열로 보내 정밀도를 보존한다.
+  function formPayload(form) {
+    var payload = {};
+    $(form).serializeArray().forEach(function(entry) {
+      if (entry.name.indexOf('return.') === 0)
+        return;
+      var match = /^(lines|changes)\[(\d+)\]\.([A-Za-z][A-Za-z0-9]*)$/.exec(entry.name);
+      var name = match ? match[3] : entry.name;
+      var value = entry.value;
+      if (value === '' && (/(Id|Price)$/.test(name) || name === 'quantity'))
+        value = null;
+      if (name === 'selected')
+        value = value === 'true';
+      if (match) {
+        var rows = payload[match[1]] || (payload[match[1]] = []);
+        var row = rows[Number(match[2])] || (rows[Number(match[2])] = {});
+        row[name] = value;
+      } else if (name === 'removedLineIds') {
+        (payload.removedLineIds || (payload.removedLineIds = [])).push(value);
+      } else if (/^[A-Za-z][A-Za-z0-9]*$/.test(name)) {
+        payload[name] = value;
+      }
+    });
+    ['lines', 'changes'].forEach(function(name) {
+      if (payload[name])
+        payload[name] = payload[name].filter(function(row) { return !!row; });
+    });
+    return payload;
+  }
+
+  var returnKeys = ['keyword', 'progressStatus', 'includeInactive', 'page', 'pageSize',
+    'datePreset', 'startDate', 'endDate', 'view', 'warehouseIds', 'partnerIds', 'itemIds',
+    'assigneeIds', 'warehouseId', 'partnerId', 'itemId', 'assigneeId'];
+
+  function returnUrl(form, path, results) {
+    var params = new URLSearchParams();
+    $(form).serializeArray().forEach(function(entry) {
+      if (entry.name.indexOf('return.') !== 0)
+        return;
+      var key = entry.name.slice(7);
+      if (returnKeys.indexOf(key) !== -1)
+        params.append(key, entry.value);
+    });
+    if (!params.has('page'))
+      params.set('page', '1');
+    if (!params.has('pageSize'))
+      params.set('pageSize', '25');
+    if (results)
+      params.set('view', 'results');
+    return ctx + path + '?' + params.toString();
+  }
+
+  function sendForm(form, url, method, payload, success) {
+    var $form = $(form);
+    if ($form.data('apiPending'))
+      return;
+    $form.data('apiPending', true);
+    var $buttons = $form.find('button:not(:disabled), input[type="submit"]:not(:disabled)');
+    $buttons.prop('disabled', true);
+    request(url, method, payload, false).then(function(response) {
+      success(response);
+    }).catch(function(error) {
+      notice(error.message);
+    }).then(function() {
+      $form.removeData('apiPending');
+      $buttons.prop('disabled', false);
+    });
+  }
+
+  function submitApiForm(form, submitter) {
+    var $form = $(form);
+    if ($form.is('[data-api-document]')) {
+      var payload = formPayload(form);
+      var id = payload[$form.attr('data-api-id-field')];
+      var apiBase = $form.attr('data-api-base');
+      var viewBase = $form.attr('data-api-view-base');
+      payload.lines = payload.lines || [];
+      payload.removedLineIds = payload.removedLineIds || [];
+      sendForm(form, apiBase + (id ? '/' + encodeURIComponent(id) : ''), id ? 'PUT' : 'POST',
+        payload, function() {
+          window.location.assign(id ? returnUrl(form, viewBase + '/list') : ctx + viewBase + '/form');
+        });
+      return;
+    }
+    if ($form.is('[data-api-selection]')) {
+      var ids = $form.find('input[name="selectedIds"]:checked').map(function() {
+        return this.value;
+      }).get();
+      if (!ids.length) {
+        notice('처리할 전표를 먼저 선택해 주세요.');
+        return;
+      }
+      var deleting = $(submitter).is('[data-api-delete]');
+      var body = { ids: ids };
+      if (!deleting)
+        body.progressStatus = $(form.elements.nextProgressStatus).val();
+      sendForm(form, $form.attr('data-api-base') + (deleting ? '' : '/status'),
+        deleting ? 'DELETE' : 'PATCH', body, function() { window.location.reload(); });
+      return;
+    }
+    if ($form.is('[data-api-prices]')) {
+      var prices = formPayload(form);
+      prices.changes = (prices.changes || []).filter(function(row) { return row.selected; });
+      if (!prices.changes.length) {
+        notice('단가를 변경할 행을 선택해 주세요.');
+        return;
+      }
+      sendForm(form, '/api/sales/prices', 'PATCH', prices, function() {
+        window.location.assign(returnUrl(form, '/sale/bulk-price', true));
+      });
+    }
+  }
+
   function pages(el, data, callback) {
     var $el = $(el).empty();
     $el.append(node('span', '총 ' + data.totalCount + '건 · 25개씩', 'muted'));
@@ -294,6 +429,12 @@
     var event = e.originalEvent || e;
     var form = event.target;
     var $form = $(form);
+    if (e.isDefaultPrevented())
+      return;
+    if ($form.data('apiPending')) {
+      e.preventDefault();
+      return;
+    }
     if ($(event.submitter).is('[data-confirm-delete]')) {
       if (!$form.find('input[name="selectedIds"]:checked').length) {
         e.preventDefault();
@@ -321,6 +462,11 @@
         notice('필수 항목을 선택해 주세요: ' + ($button.length ? labels[$button.attr('data-pick')] : '선택값'));
         return;
       }
+    }
+    if ($form.is('[data-api-document], [data-api-selection], [data-api-prices]')) {
+      e.preventDefault();
+      submitApiForm(form, event.submitter);
+      return;
     }
     if ($form.is('[data-unimplemented-submit]')) {
       e.preventDefault();
@@ -370,6 +516,7 @@
     notice: notice,
     pick: pick,
     json: json,
+    request: request,
     node: node,
     pages: pages,
     number: function(v) {

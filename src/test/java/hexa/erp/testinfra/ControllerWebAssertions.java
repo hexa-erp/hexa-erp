@@ -56,12 +56,7 @@ public final class ControllerWebAssertions {
 			{ "/lookup/sources/sale", "hexa.erp.sale.controller.SaleLookupController" },
 			{ "/lookup/sources/shipping-instruction",
 					"hexa.erp.shipinstruction.controller.ShipInstructionLookupController" } };
-	private static final String[] WRITES = { "/master/partner/save", "/master/partner/active", "/master/warehouse/save",
-			"/master/warehouse/active", "/master/item/save", "/master/item/active", "/master/item/stock",
-			"/quotation/save", "/quotation/delete", "/quotation/change-status", "/order/save", "/order/delete",
-			"/order/change-status", "/sale/save", "/sale/delete", "/sale/change-status", "/shipping-instruction/save",
-			"/shipping-instruction/delete", "/shipping-instruction/change-status", "/shipment/save", "/shipment/delete",
-			"/shipment/change-status", "/sale/bulk-price/save" };
+	private static final String[] WRITES = { "/master/item/stock" };
 
 	public static void viewContracts(MockMvc mvc) throws Exception {
 		for (String[] route : VIEWS) {
@@ -272,7 +267,7 @@ public final class ControllerWebAssertions {
 			return "hexa.erp.salesorder.controller.SalesOrderController";
 		if (path.equals("/sale/status"))
 			return "hexa.erp.sale.controller.SaleStatusController";
-		if (path.equals("/sale/bulk-price") || path.equals("/sale/bulk-price/save"))
+		if (path.equals("/sale/bulk-price"))
 			return "hexa.erp.sale.controller.SalePriceController";
 		if (path.startsWith("/sale/"))
 			return "hexa.erp.sale.controller.SaleController";

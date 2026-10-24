@@ -3,18 +3,14 @@ package hexa.erp.sale.controller;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -163,83 +159,4 @@ public class SaleController {
 		return "sale/statement";
 	}
 
-	// 판매 저장
-	@PostMapping("/save")
-	public String save(SaleVO sale, BindingResult bindingResult, HttpServletRequest request, RedirectAttributes rttr) {
-
-		log.info("판매 저장 요청");
-
-		boolean editing = sale.getSaleId() != null;
-
-		if (bindingResult.hasErrors()) {
-			rttr.addFlashAttribute("errorMessage", "품목의 수량과 단가 등 입력값을 확인해 주세요.");
-		} else {
-			try {
-				service.save(sale);
-			} catch (IllegalArgumentException e) {
-				rttr.addFlashAttribute("errorMessage", e.getMessage());
-			} catch (DataAccessException e) {
-				log.error("판매 저장 실패", e);
-
-				rttr.addFlashAttribute("errorMessage", "판매를 저장하지 못했습니다. 입력 내용을 확인해 주세요.");
-			}
-		}
-
-		return PostRedirects.afterDocumentSave("/sale", editing, request);
-	}
-
-	// 선택한 판매 삭제
-	@PostMapping("/delete")
-	public String delete(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds,
-			HttpServletRequest request, RedirectAttributes rttr) {
-
-		log.info("판매 삭제 요청");
-
-		if (selectedIds == null || selectedIds.isEmpty()) {
-			rttr.addFlashAttribute("errorMessage", "삭제할 판매를 선택해 주세요.");
-		} else {
-			try {
-				int removeCount = service.remove(selectedIds);
-
-				if (removeCount == 0) {
-					rttr.addFlashAttribute("errorMessage", "삭제할 판매가 없습니다.");
-				}
-			} catch (DataAccessException e) {
-				log.error("판매 삭제 실패", e);
-
-				rttr.addFlashAttribute("errorMessage", "판매를 삭제하지 못했습니다.");
-			}
-		}
-
-		return PostRedirects.toList("/sale/list", request);
-	}
-
-	// 선택한 판매 진행상태 변경
-	@PostMapping("/change-status")
-	public String changeStatus(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds,
-			@RequestParam(value = "nextProgressStatus", defaultValue = "") String nextProgressStatus,
-			HttpServletRequest request, RedirectAttributes rttr) {
-
-		log.info("판매 진행 상태 변경 요청");
-
-		if (selectedIds == null || selectedIds.isEmpty()) {
-			rttr.addFlashAttribute("errorMessage", "진행상태를 변경할 판매를 선택해 주세요.");
-		} else {
-			try {
-				int updateCount = service.changeStatus(selectedIds, nextProgressStatus);
-
-				if (updateCount == 0) {
-					rttr.addFlashAttribute("errorMessage", "변경할 판매가 없습니다.");
-				}
-			} catch (IllegalArgumentException e) {
-				rttr.addFlashAttribute("errorMessage", e.getMessage());
-			} catch (DataAccessException e) {
-				log.error("판매 진행 상태 변경 실패", e);
-
-				rttr.addFlashAttribute("errorMessage", "판매의 진행상태를 변경하지 못했습니다.");
-			}
-		}
-
-		return PostRedirects.toList("/sale/list", request);
-	}
 }

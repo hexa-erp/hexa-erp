@@ -113,7 +113,7 @@
 					file="../common/pagination.jsp"%><span
 					class="workspace-hint">변경할 행을 선택한 뒤 단가를 입력하거나 [선택 행에 적용]을 누르세요.</span>
 			</div>
-			<form method="post" action="${ctx}/sale/bulk-price/save"
+			<form method="post" action="${ctx}/api/sales/prices" data-api-prices
 				id="bulk-price-form">
 				<%@ include file="../common/return-search.jspf"%>
 				<div class="table-wrap">

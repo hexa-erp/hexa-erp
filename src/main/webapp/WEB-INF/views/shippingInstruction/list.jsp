@@ -39,8 +39,8 @@
 		<%@ include file="../common/pagination.jsp"%>
 		<span class="workspace-hint">일자·번호순 · 품목명으로 검색할 수 있습니다.</span>
 	</div>
-	<form id="document-list-actions" method="post"
-		action="${ctx}/shipping-instruction/change-status">
+	<form id="document-list-actions" method="post" data-api-selection
+		data-api-base="/api/shipping-instructions" action="${ctx}/api/shipping-instructions/status">
 		<%@ include file="../common/return-search.jspf"%>
 		<div class="table-wrap">
 			<table class="data-table workspace-table document-table">
@@ -112,7 +112,7 @@
 				data-status-submit hidden>상태 적용</button>
 			<button class="btn btn-danger" type="submit" name="operation"
 				value="delete" data-confirm-delete
-				formaction="${ctx}/shipping-instruction/delete">선택 삭제</button>
+				formaction="${ctx}/api/shipping-instructions" data-api-delete>선택 삭제</button>
 		</div>
 	</form>
 </section>

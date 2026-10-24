@@ -43,9 +43,10 @@
         <span class="workspace-hint">코드순 · 품목 등록 정보를 조회하고 등록합니다.</span>
     </div>
 
-    <form id="item-selection"
+    <form id="item-selection" data-master-active-form
+        data-master-api="/api/items/active"
         method="post"
-        action="<c:url value='/master/item/active'/>">
+        action="<c:url value='/api/items/active'/>">
 
         <%@ include file="../common/return-search.jspf"%>
 
@@ -210,8 +211,9 @@
             aria-label="닫기">×</button>
     </div>
 
-    <form id="item-form"
-        action="<c:url value='/master/item/save'/>"
+    <form id="item-form" data-master-api="/api/items"
+        data-master-kind="item"
+        action="<c:url value='/api/items'/>"
         method="post"
         enctype="multipart/form-data">
 

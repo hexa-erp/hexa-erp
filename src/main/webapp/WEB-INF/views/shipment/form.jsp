@@ -22,8 +22,10 @@
 		</div>
 		<a class="btn" href="<c:out value='${documentListUrl}'/>">목록</a>
 	</div>
-	<form id="document-form" data-document-form method="post"
-		action="${ctx}/shipment/save">
+	<form id="document-form" data-document-form
+		data-api-document="shipment" data-api-base="/api/shipments"
+		data-api-id-field="shipmentId" data-api-view-base="/shipment"
+		method="post" action="${ctx}/api/shipments">
 		<%@ include file="../common/return-search.jspf"%>
 		<input type="hidden" name="shipmentId"
 			value="<c:out value="${form.shipmentId}"/>" /> <input type="hidden"

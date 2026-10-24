@@ -16,7 +16,6 @@ import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -211,78 +210,6 @@ public class QuotationController {
 		model.addAttribute("activeMenu", "quotation");
 		model.addAttribute("pageTitle", "미주문 현황");
 		return "quotation/unordered";
-	}
-
-	// 견적서 신규 등록 및 수정
-	@PostMapping("/save")
-	public String save(QuotationVO quotation, BindingResult bindingResult, HttpServletRequest request,
-			RedirectAttributes rttr) {
-		log.info("견적서 저장 요청");
-
-		// 신규 등록 및 수정 구분
-		boolean editing = quotation.getQuotationId() != null;
-
-		if (bindingResult.hasErrors()) {
-			rttr.addFlashAttribute("errorMessage", "품목의 수량량과 단가 등을 입력해 주세요.");
-		} else {
-			try {
-				// 견적서 저장
-				service.save(quotation);
-			} catch (IllegalArgumentException e) {
-				rttr.addFlashAttribute("errorMessage", e.getMessage());
-			} catch (DataAccessException e) {
-				log.error("견적서 저장 실패", e);
-				rttr.addFlashAttribute("errorMessage", "견적서를 저장하지 못했습니다.");
-			}
-		}
-
-		return PostRedirects.afterDocumentSave("/quotation", editing, request);
-	}
-
-	// 선택한 견적서 삭제
-	@PostMapping("/delete")
-	public String delete(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds,
-			HttpServletRequest request, RedirectAttributes rttr) {
-		log.info("견적서 삭제 요청");
-
-		if (selectedIds == null || selectedIds.isEmpty()) {
-			rttr.addFlashAttribute("errorMessage", "삭제할 견적서를 선택해 주세요.");
-		} else {
-			try {
-				if (service.remove(selectedIds) == 0) {
-					rttr.addFlashAttribute("errorMessage", "삭제할 견적서가 없습니다.");
-				}
-			} catch (DataAccessException e) {
-				log.error("견적서 삭제 실패", e);
-				rttr.addFlashAttribute("errorMessage", "견적서를 삭제하지 못했습니다.");
-			}
-		}
-
-		return PostRedirects.toList("/quotation/list", request);
-	}
-
-	// 선택한 견적서 진행 상태 변경
-	@PostMapping("/change-status")
-	public String changeStatus(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds,
-			@RequestParam(value = "nextProgressStatus", required = false) String nextProgressStatus,
-			HttpServletRequest request, RedirectAttributes rttr) {
-		log.info("견적서 진행 상태 변경 요청");
-
-		if (selectedIds == null || selectedIds.isEmpty()) {
-			rttr.addFlashAttribute("errorMessage", "진행 상태를 변경할 견적서를 선택해 주세요.");
-		} else {
-			try {
-				if (service.changeStatus(selectedIds, nextProgressStatus) == 0) {
-					rttr.addFlashAttribute("errorMessage", "진행상태를 변경할 견적서가 없습니다.");
-				}
-			} catch (IllegalArgumentException e) {
-				rttr.addFlashAttribute("errorMessage", e.getMessage());
-			} catch (DataAccessException e) {
-				rttr.addFlashAttribute("errorMessage", "견적서의 진행상를 변경하지 못했습니다.");
-			}
-		}
-
-		return PostRedirects.toList("/quotation/list", request);
 	}
 
 	// 검색 조건 및 필터

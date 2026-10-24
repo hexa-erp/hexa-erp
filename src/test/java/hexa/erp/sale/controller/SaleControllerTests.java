@@ -2,8 +2,6 @@ package hexa.erp.sale.controller;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -83,35 +81,6 @@ public class SaleControllerTests {
 		assertEquals("create", mode);
 	}
 
-	// 신규 판매 저장 요청 확인
-	@Test
-	public void testSave() throws Exception {
-		ItemVO item = createItem();
-		itemMapper.insertSelectKey(item);
-
-		WarehouseLookupVO warehouse = stockMapper.getWarehouseList().get(0);
-
-		MvcResult result = mockMvc
-				.perform(MockMvcRequestBuilders.post("/sale/save").param("businessDate", LocalDate.now().toString())
-						.param("warehouseId", String.valueOf(warehouse.getWarehouseId()))
-						.param("lines[0].itemId", String.valueOf(item.getItemId())).param("lines[0].quantity", "3")
-						.param("lines[0].unitPrice", "10000").param("lines[0].note", "Controller 테스트"))
-				.andReturn();
-
-		String viewName = result.getModelAndView().getViewName();
-
-		Object errorMessage = result.getFlashMap().get("errorMessage");
-
-		log.info("========== SALE SAVE TEST ==========");
-		log.info("HTTP STATUS: " + result.getResponse().getStatus());
-		log.info("VIEW NAME: " + viewName);
-		log.info("ERROR MESSAGE: " + errorMessage);
-
-		assertEquals(302, result.getResponse().getStatus());
-		assertEquals("redirect:/sale/form", viewName);
-		assertNull(errorMessage);
-	}
-
 	// 기존 판매 입력 화면 확인
 	@Test
 	public void testEditForm() throws Exception {
@@ -143,24 +112,6 @@ public class SaleControllerTests {
 		assertNotNull(form);
 		assertEquals(saleId, form.getSaleId());
 		assertEquals("edit", mode);
-	}
-
-	// 판매 필수값 검증 확인
-	@Test
-	public void testSaveValidation() throws Exception {
-
-		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/sale/save").param("businessDate", ""))
-				.andReturn();
-
-		Object errorMessage = result.getFlashMap().get("errorMessage");
-
-		log.info("========== SALE VALIDATION TEST ==========");
-		log.info("HTTP STATUS: " + result.getResponse().getStatus());
-		log.info("ERROR MESSAGE: " + errorMessage);
-
-		assertEquals(302, result.getResponse().getStatus());
-		assertTrue(result.getModelAndView().getViewName().startsWith("redirect:/sale/form"));
-		assertEquals("판매 일자를 입력해 주세요.", errorMessage);
 	}
 
 	// 테스트 판매 생성

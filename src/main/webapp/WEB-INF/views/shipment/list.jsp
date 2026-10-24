@@ -41,8 +41,8 @@
 		<%@ include file="../common/pagination.jsp"%>
 		<span class="workspace-hint">일자·번호순 · 품목명으로 검색할 수 있습니다.</span>
 	</div>
-	<form id="document-list-actions" method="post"
-		action="${ctx}/shipment/change-status">
+	<form id="document-list-actions" method="post" data-api-selection
+		data-api-base="/api/shipments" action="${ctx}/api/shipments/status">
 		<%-- 처리 후 같은 검색조건의 목록으로 돌아가도록 현재 검색조건을 return.* 로 함께 보낸다. --%>
 		<%@ include file="../common/return-search.jspf"%>
 		<div class="table-wrap">
@@ -112,10 +112,10 @@
 			<input type="hidden" name="nextProgressStatus" value="" />
 			<button type="submit" name="operation" value="status"
 				data-status-submit hidden>상태 적용</button>
-			<%-- 삭제는 formaction으로 전송 주소만 /shipment/delete로 바꾼다. --%>
+			<%-- 삭제 버튼은 공통 스크립트에서 DELETE 요청으로 전송한다. --%>
 			<button class="btn btn-danger" type="submit" name="operation"
 				value="delete" data-confirm-delete
-				formaction="${ctx}/shipment/delete">선택 삭제</button>
+				formaction="${ctx}/api/shipments" data-api-delete>선택 삭제</button>
 		</div>
 	</form>
 </section>

@@ -28,6 +28,34 @@
 		return result == null ? '' : result;
 	}
 
+	function sendMaster(form, url, method, data, multipart) {
+		if (form._masterPending)
+			return;
+		form._masterPending = true;
+		var $buttons = $(form).find('button:enabled, input[type="submit"]:enabled');
+		$buttons.prop('disabled', true);
+		Promise.resolve().then(function() {
+			return window.Hexa.request(url, method, data, multipart);
+		}).then(function() {
+			// 현재 검색 조건과 페이지를 유지하여 목록을 다시 조회한다.
+			window.location.reload();
+		}, function(error) {
+			notify(error.message || '요청을 처리하지 못했습니다.');
+		}).then(function() {
+			form._masterPending = false;
+			$buttons.prop('disabled', false);
+		});
+	}
+
+	function masterPayload(form) {
+		var data = {};
+		$(form).serializeArray().forEach(function(entry) {
+			if (entry.name.indexOf('return.') !== 0)
+				data[entry.name] = entry.value === '' ? null : entry.value;
+		});
+		return data;
+	}
+
 	function releasePhoto() {
 		if (photoObjectUrl) {
 			URL.revokeObjectURL(photoObjectUrl);
@@ -251,6 +279,44 @@
 	});
 
 	[ 'partner', 'warehouse', 'item' ].forEach(function(kind) {
+		$('#' + kind + '-form').on('submit.hexaMaster', function(event) {
+			event.preventDefault();
+			if (this._masterPending)
+				return;
+			var idName = kind + 'Id';
+			var id = value(this, idName);
+			var url = $(this).attr('data-master-api');
+			var multipart = kind === 'item';
+			var data;
+			if (multipart) {
+				data = new FormData(this);
+				$(this).find('[name^="return."]').each(function() {
+					data.delete(this.name);
+				});
+				data.delete(idName);
+				data.delete('imagePath');
+				data.delete('imageUrl');
+			} else {
+				data = masterPayload(this);
+			}
+			if (id)
+				url += '/' + encodeURIComponent(id);
+			sendMaster(this, url, id ? 'PUT' : 'POST', data, multipart);
+		});
+
+		$('#' + kind + '-selection').on('submit.hexaMaster', function(event) {
+			event.preventDefault();
+			var ids = $(this).find('input[name="ids"]:checked').map(function() {
+				return this.value;
+			}).get();
+			if (!ids.length)
+				return notify('처리할 행을 선택해 주세요.');
+			sendMaster(this, $(this).attr('data-master-api'), 'PATCH', {
+				ids : ids,
+				activeFlag : value(this, 'activeFlag')
+			}, false);
+		});
+
 		$('#' + kind + '-form').on('reset.hexaMaster', function() {
 			var form = this;
 			// '다시 작성'을 누르면 팝업을 열었을 때의 값으로 되돌린다.

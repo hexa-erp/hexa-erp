@@ -2,8 +2,6 @@ package hexa.erp.sale.controller;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -124,52 +122,6 @@ public class SaleListControllerTests {
 		assertNotNull(totals);
 
 		assertEquals(0, new BigDecimal("33000").compareTo(totals.get("totalAmount")));
-	}
-
-	// 진행상태 변경 요청 확인
-	@Test
-	public void testChangeStatus() throws Exception {
-
-		SaleVO sale = saveSale(createToken());
-
-		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/sale/change-status")
-				.param("selectedIds", String.valueOf(sale.getSaleId())).param("nextProgressStatus", "UNCONFIRMED"))
-				.andReturn();
-
-		SaleVO changedSale = saleService.get(sale.getSaleId());
-
-		String viewName = result.getModelAndView().getViewName();
-
-		log.info("========== STATUS CONTROLLER TEST ==========");
-		log.info("VIEW NAME: " + viewName);
-		log.info("CHANGED STATUS: " + changedSale.getProgressStatus());
-
-		assertTrue(viewName.startsWith("redirect:/sale/list"));
-
-		assertEquals("UNCONFIRMED", changedSale.getProgressStatus());
-	}
-
-	// 판매 삭제 요청 확인
-	@Test
-	public void testDelete() throws Exception {
-
-		SaleVO sale = saveSale(createToken());
-
-		MvcResult result = mockMvc.perform(
-				MockMvcRequestBuilders.post("/sale/delete").param("selectedIds", String.valueOf(sale.getSaleId())))
-				.andReturn();
-
-		SaleVO removedSale = saleService.get(sale.getSaleId());
-
-		String viewName = result.getModelAndView().getViewName();
-
-		log.info("========== DELETE CONTROLLER TEST ==========");
-		log.info("VIEW NAME: " + viewName);
-		log.info("REMOVED SALE: " + removedSale);
-
-		assertTrue(viewName.startsWith("redirect:/sale/list"));
-
-		assertNull(removedSale);
 	}
 
 	// 테스트 판매 저장

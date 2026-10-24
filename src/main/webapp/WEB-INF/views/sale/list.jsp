@@ -61,8 +61,9 @@
         <span class="workspace-hint">일자·번호순 · 거래처명 또는 품목명으로 검색할 수 있습니다.</span>
     </div>
 
-    <form id="document-list-actions" method="post"
-        action="${ctx}/sale/change-status">
+    <form id="document-list-actions" method="post" data-api-selection
+        data-api-base="/api/sales"
+        action="${ctx}/api/sales/status">
 
         <%@ include file="../common/return-search.jspf"%>
 
@@ -182,7 +183,7 @@
                 name="operation"
                 value="delete"
                 data-confirm-delete
-                formaction="${ctx}/sale/delete">선택 삭제</button>
+                formaction="${ctx}/api/sales" data-api-delete>선택 삭제</button>
         </div>
     </form>
 </section>
