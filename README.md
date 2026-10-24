@@ -14,20 +14,9 @@ Spring MVCを基盤とした売上・在庫管理ERPのチーム開発プロジ�
 
 ### 業務の流れ
 
-```mermaid
-flowchart TB
-    subgraph master[マスター登録]
-        direction LR
-        partner[取引先登録]
-        warehouse[倉庫登録]
-        item[品目登録]
-    end
-    subgraph documents[伝票の流れ]
-        direction LR
-        quotation[見積書] --> order[受注伝票] --> sale[売上<br/>在庫減算] --> instruction[出荷指示書] --> shipment[出荷]
-    end
-    master -->|伝票作成時に選択| documents
-```
+<p align="center">
+  <img src="docs/images/flow-ja.png" alt="業務の流れ：取引先・倉庫・品目を基本情報として登録し、伝票作成時に選択。見積書、受注書、売上（在庫減算）、出荷指示書、出荷の順に連携。" width="820">
+</p>
 
 <br>
 
