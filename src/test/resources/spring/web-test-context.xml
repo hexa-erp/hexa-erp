@@ -19,7 +19,7 @@
 		class="hexa.erp.testinfra.StubSaleLookupService" />
 	<bean id="shipInstructionLookupService"
 		class="hexa.erp.testinfra.StubShipInstructionLookupService" />
-	<!-- 실제 MVC/API Controller를 유지하면서 업무 Service를 조회 전용 Stub으로 대체한다. -->
+	<!-- 実際のMVC/API Controllerを維持し、業務Serviceを照会専用Stubに置き換える。 -->
 	<bean id="partnerService"
 		class="hexa.erp.testinfra.StubBusinessServices$Partner" />
 	<bean id="warehouseService"
