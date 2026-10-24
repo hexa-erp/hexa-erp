@@ -60,7 +60,6 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   height: var(--header-height);
   display: flex;
   align-items: center;
-  border-top: 2px solid var(--blue);
   border-bottom: 1px solid var(--line);
   background: #fff;
 }
