@@ -2,7 +2,6 @@ package hexa.erp.salesorder.controller;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +24,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import hexa.erp.common.controller.PostRedirects;
 import hexa.erp.common.controller.ViewModels;
 import hexa.erp.common.service.FilterSelectionService;
-import hexa.erp.quotation.domain.QuotationReportCriteria;
 import hexa.erp.salesorder.domain.SalesOrderCriteria;
 import hexa.erp.salesorder.domain.SalesOrderLineVO;
 import hexa.erp.salesorder.domain.SalesOrderReportCriteria;
