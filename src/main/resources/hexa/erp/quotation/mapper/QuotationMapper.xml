@@ -4,31 +4,40 @@
 
 	<sql id="headerColumns">
 		h.quotation_id, h.quotation_no,
-		TO_CHAR(h.business_date, 'YYYY-MM-DD') as business_date, h.business_date as
+		TO_CHAR(h.business_date,
+		'YYYY-MM-DD') as business_date, h.business_date as
 		sort_business_date,
 		h.partner_id, p.partner_code, h.partner_name,
-		h.warehouse_id, w.warehouse_code, h.warehouse_name,
-		h.assignee_id, a.assignee_code, h.assignee_name,
+		h.warehouse_id,
+		w.warehouse_code, h.warehouse_name,
+		h.assignee_id, a.assignee_code,
+		h.assignee_name,
 		h.note,
 		h.progress_status,
 		h.deleted_yn,
 		TO_CHAR(h.updated_at, 'YYYY-MM-DD HH24:MI:SS') as updated_at,
 
 		(
-		select MIN(l.item_name) keep (DENSE_RANK first order by
-		l.quotation_line_id) ||
+		select
+		MIN(l.item_name) keep (DENSE_RANK first order by
+		l.quotation_line_id)
+		||
 		case when count(*) &gt; 1
-		then ' 외 ' || TO_CHAR(count(*) - 1) || '건' else
+		then ' 외 ' || TO_CHAR(count(*) - 1) || '건'
+		else
 		'' end
 		from quotation_line l
-		where l.quotation_id = h.quotation_id and
+		where l.quotation_id = h.quotation_id
+		and
 		l.deleted_yn = 'N'
 		) as item_summary,
 		(
-		select NVL(sum(l.total_amount),0)
+		select
+		NVL(sum(l.total_amount),0)
 		from quotation_line l
 		where
-		l.quotation_id = h.quotation_id and l.deleted_yn = 'N'
+		l.quotation_id =
+		h.quotation_id and l.deleted_yn = 'N'
 
 		) as total_amount
 
@@ -37,7 +46,8 @@
 	<sql id="headerTables">
 		from QUOTATION h
 
-		left join BIZ_PARTNER p on h.partner_id = p.partner_id
+		left join BIZ_PARTNER p on h.partner_id =
+		p.partner_id
 
 		left join WAREHOUSE w on h.warehouse_id = w.warehouse_id
 
@@ -52,25 +62,17 @@
 
 		<if test="keyword != null and keyword != ''">
 			and (
-			h.quotation_no LIKE '%' || UPPER(#{keyword}) || '%'
-			or
-			TO_CHAR(h.business_date, 'YYYY/MM/DD') LIKE '%' || UPPER(#{keyword})
+			UPPER(h.partner_name) LIKE '%' || UPPER(#{keyword})
 			|| '%'
-			or UPPER(h.partner_name) LIKE '%' || UPPER(#{keyword}) || '%'
 			or UPPER(h.assignee_name) LIKE '%' || UPPER(#{keyword}) || '%'
-			or
-			UPPER(h.warehouse_name) LIKE '%' || UPPER(#{keyword}) || '%'
-			or
-			UPPER(h.note) LIKE '%' || UPPER(#{keyword}) || '%'
-			or EXISTS(
+			or EXISTS (
 			select 1 from QUOTATION_LINE search_line
-			left join ITEM search_item on search_item.item_id = search_line.item_id
-			where search_line.quotation_id = h.quotation_id
-			and search_line.deleted_yn = 'N'
-			and (
-			search_item.item_code LIKE '%' || UPPER(#{keyword}) || '%'
-			or UPPER(search_line.item_name) LIKE '%' || UPPER(#{keyword}) || '%'
-			)
+			where
+			search_line.quotation_id = h.quotation_id
+			and search_line.deleted_yn =
+			'N'
+			and UPPER(search_line.item_name) LIKE '%' || UPPER(#{keyword}) ||
+			'%'
 			)
 			)
 		</if>
@@ -88,14 +90,16 @@
 		partner_code, partner_name, assignee_id, assignee_code, assignee_name,
 		warehouse_id, warehouse_code, warehouse_name, note, updated_at,
 		deleted_yn, progress_status, item_summary, total_amount
-		from (select ROWNUM rn, ordered_quotation.*
+		from (select
+		ROWNUM rn, ordered_quotation.*
 		from (select
 		<include refid="headerColumns" />
 		<include refid="headerTables" />
 		<include refid="searchCondition" />
 		order by h.business_date DESC, h.quotation_id DESC) ordered_quotation
 		where ROWNUM &lt;= #{page} * #{pageSize})
-		where rn &gt; (#{page} - 1) * #{pageSize}
+		where rn &gt; (#{page} - 1) *
+		#{pageSize}
 		order by sort_business_date DESC, quotation_id DESC
 	</select>
 
@@ -109,15 +113,21 @@
 
 	<select id="getLines"
 		resultType="hexa.erp.quotation.domain.QuotationLineVO">
-		select l.quotation_line_id, l.quotation_id, l.item_id, i.item_code,
+		select l.quotation_line_id, l.quotation_id, l.item_id,
+		i.item_code,
 		l.item_name, l.specification,
-		l.unit, l.quantity, l.unit_price, l.supply_amount, l.vat_amount,
-		l.total_amount, l.note, l.deleted_yn
+		l.unit, l.quantity,
+		l.unit_price, l.supply_amount, l.vat_amount,
+		l.total_amount, l.note,
+		l.deleted_yn
 		from QUOTATION_LINE l
-		join quotation h on h.quotation_id = l.quotation_id
+		join quotation h on h.quotation_id =
+		l.quotation_id
 		left join item i on i.item_id = l.item_id
-		where l.quotation_id = #{quotationId}
-		and l.deleted_yn = 'N' and h.deleted_yn = 'N'
+		where
+		l.quotation_id = #{quotationId}
+		and l.deleted_yn = 'N' and h.deleted_yn
+		= 'N'
 		order by l.quotation_line_id ASC
 	</select>
 
@@ -130,11 +140,14 @@
 
 		insert into QUOTATION (quotation_id, quotation_no, business_date,
 		partner_id, partner_name,
-		warehouse_id, warehouse_name, assignee_id, assignee_name, note)
-		values (#{quotationId}, LPAD(TO_CHAR(#{quotationId}), GREATEST(5,
+		warehouse_id, warehouse_name, assignee_id,
+		assignee_name, note)
+		values (#{quotationId},
+		LPAD(TO_CHAR(#{quotationId}), GREATEST(5,
 		LENGTH(TO_CHAR(#{quotationId}))), '0'), TO_DATE(#{businessDate},
 		'YYYY-MM-DD'), #{partnerId}, #{partnerName},
-		#{warehouseId}, #{warehouseName}, #{assigneeId}, #{assigneeName}, #{note})
+		#{warehouseId},
+		#{warehouseName}, #{assigneeId}, #{assigneeName}, #{note})
 	</insert>
 
 	<insert id="insertLineSelectKey">
@@ -146,30 +159,43 @@
 
 		insert into QUOTATION_LINE (quotation_line_id, quotation_id, item_id,
 		item_name, specification,
-		unit, quantity, unit_price, supply_amount, vat_amount, note, total_amount)
-		values (#{quotationLineId}, #{quotationId}, #{itemId}, #{itemName},
+		unit, quantity, unit_price, supply_amount,
+		vat_amount, note, total_amount)
+		values (#{quotationLineId},
+		#{quotationId}, #{itemId}, #{itemName},
 		#{specification},
-		#{unit}, #{quantity}, #{unitPrice}, #{supplyAmount}, #{vatAmount}, #{note},
+		#{unit},
+		#{quantity}, #{unitPrice}, #{supplyAmount}, #{vatAmount}, #{note},
 		#{totalAmount})
 	</insert>
 
 	<update id="update">
-		update QUOTATION set business_date = TO_DATE(#{businessDate}, 'YYYY-MM-DD'),
-		partner_id = #{partnerId}, partner_name = #{partnerName},
-		warehouse_id = #{warehouseId}, warehouse_name = #{warehouseName}, assignee_id =
-		#{assigneeId}, assignee_name = #{assigneeName},
-		note = #{note}, updated_at = LOCALTIMESTAMP
+		update QUOTATION set business_date =
+		TO_DATE(#{businessDate}, 'YYYY-MM-DD'),
+		partner_id = #{partnerId},
+		partner_name = #{partnerName},
+		warehouse_id = #{warehouseId},
+		warehouse_name = #{warehouseName}, assignee_id =
+		#{assigneeId},
+		assignee_name = #{assigneeName},
+		note = #{note}, updated_at =
+		LOCALTIMESTAMP
 		where quotation_id = #{quotationId} and deleted_yn = 'N'
 	</update>
 
 	<update id="updateLine">
-		update QUOTATION_LINE set item_id = #{itemId}, item_name = #{itemName},
+		update QUOTATION_LINE set item_id = #{itemId},
+		item_name = #{itemName},
 		specification = #{specification},
-		unit = #{unit}, quantity = #{quantity}, unit_price = #{unitPrice},
+		unit =
+		#{unit}, quantity = #{quantity}, unit_price = #{unitPrice},
 		supply_amount = #{supplyAmount},
-		vat_amount = #{vatAmount}, note = #{note}, total_amount = #{totalAmount}
-		where quotation_line_id = #{quotationLineId} and quotation_id =
-		#{quotationId} and deleted_yn = 'N'
+		vat_amount = #{vatAmount}, note =
+		#{note}, total_amount = #{totalAmount}
+		where quotation_line_id =
+		#{quotationLineId} and quotation_id =
+		#{quotationId} and deleted_yn =
+		'N'
 	</update>
 
 	<update id="remove">
@@ -195,7 +221,8 @@
 
 	<update id="removeSelectedLines">
 		update QUOTATION_LINE set deleted_yn = 'Y'
-		where quotation_id = #{quotationId} AND deleted_yn = 'N'
+		where quotation_id =
+		#{quotationId} AND deleted_yn = 'N'
 		and quotation_line_id in
 		<foreach collection="lineIds" item="lineId" open="("
 			separator="," close=")">

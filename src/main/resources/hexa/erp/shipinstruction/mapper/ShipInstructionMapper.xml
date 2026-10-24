@@ -53,43 +53,14 @@
 			AND h.PROGRESS_STATUS = #{progressStatus}
 		</if>
 		<if test="keyword != null and keyword != ''">
-			AND (
-			UPPER(h.SHIP_INSTRUCTION_NO) LIKE '%' ||
-			UPPER(#{keyword}) || '%'
-			OR TO_CHAR(h.BUSINESS_DATE, 'YYYY/MM/DD')
-			LIKE '%' || #{keyword} || '%'
-			OR TO_CHAR(h.PLANNED_DATE, 'YYYY/MM/DD')
-			LIKE '%' || #{keyword} ||
-			'%'
-			OR UPPER(h.PARTNER_NAME) LIKE '%' ||
-			UPPER(#{keyword}) || '%'
-			OR UPPER(h.ASSIGNEE_NAME) LIKE '%' ||
-			UPPER(#{keyword}) || '%'
-			OR UPPER(h.WAREHOUSE_NAME) LIKE '%' ||
-			UPPER(#{keyword}) || '%'
-			OR UPPER(h.NOTE) LIKE '%' ||
-			UPPER(#{keyword}) || '%'
-			OR UPPER(h.DELIVERY_CONTACT) LIKE '%' ||
-			UPPER(#{keyword}) || '%'
-			OR UPPER(h.DELIVERY_POSTAL_CODE) LIKE '%' ||
-			UPPER(#{keyword}) || '%'
-			OR UPPER(h.DELIVERY_ADDRESS) LIKE '%' ||
-			UPPER(#{keyword}) || '%'
-			OR EXISTS (
+			AND EXISTS (
 			SELECT 1
-			FROM SHIP_INSTRUCTION_LINE
-			search_line
-			LEFT JOIN ITEM search_item ON search_item.ITEM_ID =
-			search_line.ITEM_ID
-			WHERE search_line.SHIP_INSTRUCTION_ID =
-			h.SHIP_INSTRUCTION_ID
-			AND search_line.DELETED_YN = 'N'
-			AND (
-			UPPER(search_item.ITEM_CODE) LIKE '%' || UPPER(#{keyword}) || '%'
-			OR
-			UPPER(search_line.ITEM_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
-			)
-			)
+			FROM SHIP_INSTRUCTION_LINE search_line
+			WHERE search_line.SHIP_INSTRUCTION_ID = h.SHIP_INSTRUCTION_ID
+			AND
+			search_line.DELETED_YN = 'N'
+			AND UPPER(search_line.ITEM_NAME) LIKE '%'
+			|| UPPER(#{keyword}) || '%'
 			)
 		</if>
 	</sql>

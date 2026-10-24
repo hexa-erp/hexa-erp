@@ -12,7 +12,7 @@
 	href="<c:url value='/resources/images/hexa-erp-favicon.png' />">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title><c:out value="${pageTitle}" /></title>
-<link rel="stylesheet" href="${ctx}/resources/css/common.css?v=1">
+<link rel="stylesheet" href="${ctx}/resources/css/common.css?v=3">
 <link rel="stylesheet" href="${ctx}/resources/css/editor.css?v=1">
 <c:if test="${not empty pageStyle}">
 	<link rel="stylesheet" href="${ctx}/resources/css/${pageStyle}?v=1">
@@ -54,10 +54,3 @@
 	</header>
 	<%@ include file="sidebar.jspf"%>
 	<main id="main" class="page-shell" tabindex="-1">
-		<%-- 개발 안내 표시용. 저장 기능을 구현하면 해당 form의 data-unimplemented-submit을 제거한다. --%>
-		<c:if test="${developmentMode}">
-			<div class="development-banner">
-				<span class="development-dot" aria-hidden="true"></span> <strong>개발
-					중</strong><span>일부 백엔드 기능은 아직 구현되지 않았습니다.</span>
-			</div>
-		</c:if>

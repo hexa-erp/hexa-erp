@@ -88,34 +88,12 @@
 		<if test="maxVatAmount != null">
 			AND l.VAT_AMOUNT &lt;= #{maxVatAmount}
 		</if>
-		<!-- 검색어는 전표번호·일자·품목·거래처·창고·담당자·비고 중 하나라도 포함하면 찾는다. -->
+		<!-- 검색어는 거래처명·품목명 중 하나라도 포함하면 찾는다. -->
 		<if test="keyword != null and keyword.trim() != ''">
 			AND (
-			UPPER(h.SALE_NO) LIKE '%' || UPPER(TRIM(#{keyword}))
-			|| '%'
-			OR TO_CHAR(h.BUSINESS_DATE, 'YYYY-MM-DD') LIKE '%' ||
-			TRIM(#{keyword})
-			|| '%'
-			OR TO_CHAR(h.BUSINESS_DATE, 'YYYY/MM/DD') LIKE
-			'%' || TRIM(#{keyword})
-			|| '%'
-			OR UPPER(i.ITEM_CODE) LIKE '%' ||
+			UPPER(h.PARTNER_NAME) LIKE '%' ||
 			UPPER(TRIM(#{keyword})) || '%'
 			OR UPPER(l.ITEM_NAME) LIKE '%' ||
-			UPPER(TRIM(#{keyword})) || '%'
-			OR UPPER(l.SPECIFICATION) LIKE '%' ||
-			UPPER(TRIM(#{keyword})) || '%'
-			OR UPPER(l.UNIT) LIKE '%' ||
-			UPPER(TRIM(#{keyword})) || '%'
-			OR UPPER(h.PARTNER_NAME) LIKE '%' ||
-			UPPER(TRIM(#{keyword})) || '%'
-			OR UPPER(h.WAREHOUSE_NAME) LIKE '%' ||
-			UPPER(TRIM(#{keyword})) || '%'
-			OR UPPER(h.ASSIGNEE_NAME) LIKE '%' ||
-			UPPER(TRIM(#{keyword})) || '%'
-			OR UPPER(h.NOTE) LIKE '%' ||
-			UPPER(TRIM(#{keyword})) || '%'
-			OR UPPER(l.NOTE) LIKE '%' ||
 			UPPER(TRIM(#{keyword})) || '%'
 			)
 		</if>

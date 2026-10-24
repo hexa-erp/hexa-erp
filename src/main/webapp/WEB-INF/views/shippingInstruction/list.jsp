@@ -37,7 +37,7 @@
 	<div class="workspace-meta">
 		<c:set var="basePath" value="/shipping-instruction/list" />
 		<%@ include file="../common/pagination.jsp"%>
-		<span class="workspace-hint">일자·번호순 · 품목명으로 검색할 수 있습니다.</span>
+		<span class="workspace-hint">품목명으로 검색할 수 있습니다.</span>
 	</div>
 	<form id="document-list-actions" method="post" data-api-selection
 		data-api-base="/api/shipping-instructions" action="${ctx}/api/shipping-instructions/status">

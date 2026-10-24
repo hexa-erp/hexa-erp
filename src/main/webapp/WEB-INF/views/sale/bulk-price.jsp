@@ -111,7 +111,7 @@
 				</div>
 				<c:set var="basePath" value="/sale/bulk-price" /><%@ include
 					file="../common/pagination.jsp"%><span
-					class="workspace-hint">변경할 행을 선택한 뒤 단가를 입력하거나 [선택 행에 적용]을 누르세요.</span>
+					class="workspace-hint">변경할 행을 선택해 단가를 입력하거나 [선택 행에 적용]한 뒤, [선택한 단가 저장]을 누르세요.</span>
 			</div>
 			<form method="post" action="${ctx}/api/sales/prices" data-api-prices
 				id="bulk-price-form">
@@ -226,7 +226,7 @@
 						<button class="btn" type="button" data-bulk-apply>선택 행에 적용</button>
 					</div>
 					<button class="btn btn-primary" type="submit">선택한 단가 저장</button>
-					<span class="muted">단가 변경 시 금액이 자동으로 계산됩니다.</span>
+					<span class="muted">단가 변경 시 공급가액과 부가세가 자동으로 다시 계산됩니다.</span>
 				</div>
 			</form>
 			<c:set var="pageScript" value="sale.js" />
