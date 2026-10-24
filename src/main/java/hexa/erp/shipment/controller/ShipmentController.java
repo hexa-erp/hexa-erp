@@ -1,18 +1,14 @@
 package hexa.erp.shipment.controller;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -81,66 +77,5 @@ public class ShipmentController {
 		model.addAttribute("activeMenu", "shipment");
 		model.addAttribute("pageTitle", "출하 입력");
 		return "shipment/form";
-	}
-
-	@PostMapping("/save")
-	public String save(ShipmentVO shipment, BindingResult bindingResult, HttpServletRequest request,
-			RedirectAttributes rttr) {
-		log.info("출하 저장 요청");
-		boolean editing = shipment.getShipmentId() != null;
-		if (bindingResult.hasErrors()) {
-			rttr.addFlashAttribute("errorMessage", "품목의 수량 등 입력값을 확인해 주세요.");
-		} else {
-			try {
-				service.save(shipment);
-			} catch (IllegalArgumentException e) {
-				rttr.addFlashAttribute("errorMessage", e.getMessage());
-			} catch (DataAccessException e) {
-				log.error("출하 저장 실패", e);
-				rttr.addFlashAttribute("errorMessage", "출하를 저장하지 못했습니다. 입력 내용을 확인해 주세요.");
-			}
-		}
-		return PostRedirects.afterDocumentSave("/shipment", editing, request);
-	}
-
-	@PostMapping("/delete")
-	public String delete(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds,
-			HttpServletRequest request, RedirectAttributes rttr) {
-		log.info("출하 삭제 요청");
-		if (selectedIds == null || selectedIds.isEmpty()) {
-			rttr.addFlashAttribute("errorMessage", "삭제할 출하를 선택해 주세요.");
-		} else {
-			try {
-				if (service.remove(selectedIds) == 0) {
-					rttr.addFlashAttribute("errorMessage", "삭제할 출하가 없습니다.");
-				}
-			} catch (DataAccessException e) {
-				log.error("출하 삭제 실패", e);
-				rttr.addFlashAttribute("errorMessage", "출하를 삭제하지 못했습니다.");
-			}
-		}
-		return PostRedirects.toList("/shipment/list", request);
-	}
-
-	@PostMapping("/change-status")
-	public String changeStatus(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds,
-			@RequestParam(value = "nextProgressStatus", defaultValue = "") String nextProgressStatus,
-			HttpServletRequest request, RedirectAttributes rttr) {
-		log.info("출하 진행 상태 변경 요청");
-		if (selectedIds == null || selectedIds.isEmpty()) {
-			rttr.addFlashAttribute("errorMessage", "진행상태를 변경할 출하를 선택해 주세요.");
-		} else {
-			try {
-				if (service.changeStatus(selectedIds, nextProgressStatus) == 0) {
-					rttr.addFlashAttribute("errorMessage", "변경할 출하가 없습니다.");
-				}
-			} catch (IllegalArgumentException e) {
-				rttr.addFlashAttribute("errorMessage", e.getMessage());
-			} catch (DataAccessException e) {
-				log.error("출하 진행 상태 변경 실패", e);
-				rttr.addFlashAttribute("errorMessage", "출하의 진행상태를 변경하지 못했습니다.");
-			}
-		}
-		return PostRedirects.toList("/shipment/list", request);
 	}
 }

@@ -40,8 +40,9 @@
         <span class="workspace-hint">코드순 · 창고 등록 정보를 조회하고 등록합니다.</span>
     </div>
 
-    <form id="warehouse-selection" method="post"
-        action="<c:url value='/master/warehouse/active'/>">
+    <form id="warehouse-selection" data-master-active-form
+        data-master-api="/api/warehouses/active" method="post"
+        action="<c:url value='/api/warehouses/active'/>">
 
         <%@ include file="../common/return-search.jspf"%>
 
@@ -135,8 +136,9 @@
             aria-label="닫기">×</button>
     </div>
 
-    <form id="warehouse-form"
-        action="<c:url value='/master/warehouse/save'/>" method="post">
+    <form id="warehouse-form" data-master-api="/api/warehouses"
+        data-master-kind="warehouse"
+        action="<c:url value='/api/warehouses'/>" method="post">
 
         <%@ include file="../common/return-search.jspf"%>
 

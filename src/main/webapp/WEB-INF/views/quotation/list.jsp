@@ -44,8 +44,8 @@
 		<span class="workspace-hint">일자·번호순 · 거래처명, 담당자명 또는 품목명으로 검색할 수
 			있습니다.</span>
 	</div>
-	<form id="document-list-actions" method="post"
-		action="${ctx}/quotation/change-status">
+	<form id="document-list-actions" method="post" data-api-selection
+		data-api-base="/api/quotations" action="${ctx}/api/quotations/status">
 		<%@ include file="../common/return-search.jspf"%>
 		<div class="table-wrap">
 			<table class="data-table workspace-table document-table">
@@ -124,7 +124,7 @@
 				data-status-submit hidden>상태 적용</button>
 			<button class="btn btn-danger" type="submit" name="operation"
 				value="delete" data-confirm-delete
-				formaction="${ctx}/quotation/delete">선택 삭제</button>
+				formaction="${ctx}/api/quotations" data-api-delete>선택 삭제</button>
 		</div>
 	</form>
 </section>

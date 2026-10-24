@@ -31,8 +31,10 @@
 
     <form id="document-form"
         data-document-form
+        data-api-document="sale" data-api-base="/api/sales"
+        data-api-id-field="saleId" data-api-view-base="/sale"
         method="post"
-        action="${ctx}/sale/save">
+        action="${ctx}/api/sales">
 
         <%@ include file="../common/return-search.jspf"%>
 

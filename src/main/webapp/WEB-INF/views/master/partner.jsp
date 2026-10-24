@@ -40,8 +40,9 @@
         <span class="workspace-hint">코드순 · 거래처 등록 정보를 조회하고 등록합니다.</span>
     </div>
 
-    <form id="partner-selection" method="post"
-        action="<c:url value='/master/partner/active'/>">
+    <form id="partner-selection" data-master-active-form
+        data-master-api="/api/partners/active" method="post"
+        action="<c:url value='/api/partners/active'/>">
 
         <%@ include file="../common/return-search.jspf"%>
 
@@ -166,8 +167,9 @@
             aria-label="닫기">×</button>
     </div>
 
-    <form id="partner-form"
-        action="<c:url value='/master/partner/save'/>" method="post">
+    <form id="partner-form" data-master-api="/api/partners"
+        data-master-kind="partner"
+        action="<c:url value='/api/partners'/>" method="post">
 
         <%@ include file="../common/return-search.jspf"%>
 
