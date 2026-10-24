@@ -12,7 +12,7 @@
 	href="<c:url value='/resources/images/hexa-erp-favicon.png' />">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title><c:out value="${pageTitle}" /></title>
-<link rel="stylesheet" href="${ctx}/resources/css/common.css?v=1">
+<link rel="stylesheet" href="${ctx}/resources/css/common.css?v=3">
 <link rel="stylesheet" href="${ctx}/resources/css/editor.css?v=1">
 <c:if test="${not empty pageStyle}">
 	<link rel="stylesheet" href="${ctx}/resources/css/${pageStyle}?v=1">

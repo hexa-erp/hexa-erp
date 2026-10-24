@@ -37,7 +37,7 @@
     <div class="workspace-meta">
         <%@ include file="../common/pagination.jsp"%>
 
-        <span class="workspace-hint">코드순 · 창고 등록 정보를 조회하고 등록합니다.</span>
+        <span class="workspace-hint">창고 등록 정보를 조회하고 등록합니다.</span>
     </div>
 
     <form id="warehouse-selection" data-master-active-form

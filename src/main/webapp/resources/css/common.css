@@ -6,7 +6,7 @@
   --line: #d6dce5;
   --surface: #f6f7f9;
   --red: #b63c49;
-  --header-height: 48px;
+  --header-height: 56px;
   --sidebar-width: 192px;
   --radius: 3px;
 }
@@ -80,7 +80,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 .brand img {
   display: block;
   width: auto;
-  height: 30px;
+  height: 34px;
   max-width: 100%;
   object-fit: contain;
   transform: translateX(-6px);
@@ -99,13 +99,13 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 28px;
-  padding: 3px 10px;
+  min-height: 32px;
+  padding: 4px 12px;
   border: 1px solid #d1d9e5;
   border-radius: var(--radius);
   background: #fff;
   color: #354967;
-  font-size: 13px;
+  font-size: 14px;
   white-space: nowrap;
 }
 .quick-link::before { content: "+"; font-size: 14px; line-height: 1; color: #7187ab; }
@@ -131,11 +131,27 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   height: 37px;
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  border-bottom: 1px solid #e5e9ef;
-  color: #69758a;
-  font-size: 13px;
+  gap: 8px;
+  padding: 0 14px;
+  border-bottom: 1px solid #dbe3ef;
+  background: #f0f4fb;
+  color: #344b6b;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -.2px;
 }
+.sidebar-heading-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: #e2eafd;
+  color: var(--blue);
+}
+.sidebar-heading-icon svg { display: block; width: 14px; height: 14px; }
 .sidebar-scroll {
   flex: 1 1 auto;
   min-height: 0;
