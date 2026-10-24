@@ -54,10 +54,3 @@
 	</header>
 	<%@ include file="sidebar.jspf"%>
 	<main id="main" class="page-shell" tabindex="-1">
-		<%-- 개발 안내 표시용. 저장 기능을 구현하면 해당 form의 data-unimplemented-submit을 제거한다. --%>
-		<c:if test="${developmentMode}">
-			<div class="development-banner">
-				<span class="development-dot" aria-hidden="true"></span> <strong>개발
-					중</strong><span>일부 백엔드 기능은 아직 구현되지 않았습니다.</span>
-			</div>
-		</c:if>
