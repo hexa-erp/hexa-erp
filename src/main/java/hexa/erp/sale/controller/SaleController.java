@@ -34,450 +34,212 @@ import lombok.extern.log4j.Log4j;
 @RequiredArgsConstructor
 public class SaleController {
 
-    private final SaleService service;
-
-    // 판매 목록 화면
-    @GetMapping("/list")
-    public String list(
-            SaleCriteria criteria,
-            @RequestParam
-            Map<String, String> params,
-            Model model) {
-
-        log.info("판매 목록 조회 요청");
-
-        int totalCount =
-            service.getTotal(criteria);
-
-        int totalPages = Math.max(
-            1,
-            (int) Math.ceil(
-                (double) totalCount
-                    / criteria.getPageSize()
-            )
-        );
-
-        criteria.setPage(
-            Math.min(
-                criteria.getPage(),
-                totalPages
-            )
-        );
-
-        Map<String, String> search =
-            ViewModels.search(params);
-
-        search.put(
-            "keyword",
-            criteria.getKeyword()
-        );
-
-        search.put(
-            "progressStatus",
-            criteria.getProgressStatus()
-        );
-
-        search.put(
-            "page",
-            String.valueOf(
-                criteria.getPage()
-            )
-        );
-
-        search.put(
-            "pageSize",
-            String.valueOf(
-                criteria.getPageSize()
-            )
-        );
-
-        model.addAttribute(
-            "saleList",
-            service.getList(criteria)
-        );
-
-        model.addAttribute(
-            "search",
-            search
-        );
-
-        model.addAttribute(
-            "page",
-            criteria.getPage()
-        );
-
-        model.addAttribute(
-            "pageSize",
-            criteria.getPageSize()
-        );
-
-        model.addAttribute(
-            "totalPages",
-            totalPages
-        );
-
-        model.addAttribute(
-            "totalCount",
-            totalCount
-        );
-
-        model.addAttribute(
-            "basePath",
-            "/sale/list"
-        );
-
-        model.addAttribute(
-            "activeMenu",
-            "sale"
-        );
-
-        model.addAttribute(
-            "pageTitle",
-            "판매 조회"
-        );
-
-        return "sale/list";
-    }
-
-    // 판매 입력 화면
-    @GetMapping("/form")
-    public String form(
-            @RequestParam(
-                value = "id",
-                required = false
-            ) Long id,
-            @RequestParam(
-                value = "saleId",
-                required = false
-            ) Long saleId,
-            HttpServletRequest request,
-            Model model,
-            RedirectAttributes rttr) {
-
-        log.info("판매 입력 화면 요청");
-
-        Long documentId =
-            id == null ? saleId : id;
-
-        SaleVO form;
-
-        if (documentId == null) {
-            form = new SaleVO();
-
-            form.setBusinessDate(
-                LocalDate.now().toString()
-            );
-
-            form.setProgressStatus(
-                "CONFIRMED"
-            );
-        } else {
-            form = service.get(documentId);
-
-            if (form == null) {
-                rttr.addFlashAttribute(
-                    "errorMessage",
-                    "조회할 판매가 없습니다."
-                );
-
-                return PostRedirects.toList(
-                    "/sale/list",
-                    request
-                );
-            }
-        }
-
-        model.addAttribute("form", form);
-
-        model.addAttribute(
-            "mode",
-            documentId == null
-                ? "create"
-                : "edit"
-        );
-
-        model.addAttribute(
-            "isEdit",
-            documentId != null
-        );
-
-        model.addAttribute(
-            "activeMenu",
-            "sale"
-        );
-
-        model.addAttribute(
-            "pageTitle",
-            "판매 입력"
-        );
-
-        return "sale/form";
-    }
-
-    // 거래명세서 화면
-    @GetMapping("/statement")
-    public String statement(
-            @RequestParam(
-                value = "id",
-                required = false
-            ) Long id,
-            HttpServletResponse response,
-            Model model) {
-
-        log.info("거래명세서 조회 요청");
-
-        SaleVO form =
-            id == null
-                ? null
-                : service.get(id);
-
-        if (form == null) {
-            response.setStatus(
-                HttpServletResponse.SC_NOT_FOUND
-            );
-
-            form = new SaleVO();
-        }
-
-        Map<String, BigDecimal> totals =
-            new LinkedHashMap<>();
-
-        totals.put(
-            "supplyAmount",
-            BigDecimal.ZERO
-        );
-
-        totals.put(
-            "vatAmount",
-            BigDecimal.ZERO
-        );
-
-        totals.put(
-            "totalAmount",
-            BigDecimal.ZERO
-        );
-
-        for (SaleLineVO line
-                : form.getLines()) {
-
-            totals.put(
-                "supplyAmount",
-                totals.get("supplyAmount")
-                    .add(
-                        line.getSupplyAmount()
-                    )
-            );
-
-            totals.put(
-                "vatAmount",
-                totals.get("vatAmount")
-                    .add(
-                        line.getVatAmount()
-                    )
-            );
-
-            totals.put(
-                "totalAmount",
-                totals.get("totalAmount")
-                    .add(
-                        line.getTotalAmount()
-                    )
-            );
-        }
-
-        model.addAttribute(
-            "form",
-            form
-        );
-
-        model.addAttribute(
-            "statementTotals",
-            totals
-        );
-
-        model.addAttribute(
-            "activeMenu",
-            "sale"
-        );
-
-        model.addAttribute(
-            "pageTitle",
-            "거래명세서"
-        );
-
-        return "sale/statement";
-    }
-
-    // 판매 저장
-    @PostMapping("/save")
-    public String save(
-            SaleVO sale,
-            BindingResult bindingResult,
-            HttpServletRequest request,
-            RedirectAttributes rttr) {
-
-        log.info("판매 저장 요청");
-
-        boolean editing =
-            sale.getSaleId() != null;
-
-        if (bindingResult.hasErrors()) {
-            rttr.addFlashAttribute(
-                "errorMessage",
-                "품목의 수량과 단가 등 입력값을 확인해 주세요."
-            );
-        } else {
-            try {
-                service.save(sale);
-            } catch (
-                IllegalArgumentException e
-            ) {
-                rttr.addFlashAttribute(
-                    "errorMessage",
-                    e.getMessage()
-                );
-            } catch (
-                DataAccessException e
-            ) {
-                log.error(
-                    "판매 저장 실패",
-                    e
-                );
-
-                rttr.addFlashAttribute(
-                    "errorMessage",
-                    "판매를 저장하지 못했습니다. 입력 내용을 확인해 주세요."
-                );
-            }
-        }
-
-        return PostRedirects
-            .afterDocumentSave(
-                "/sale",
-                editing,
-                request
-            );
-    }
-
-    // 선택한 판매 삭제
-    @PostMapping("/delete")
-    public String delete(
-            @RequestParam(
-                value = "selectedIds",
-                required = false
-            ) List<Long> selectedIds,
-            HttpServletRequest request,
-            RedirectAttributes rttr) {
-
-        log.info("판매 삭제 요청");
-
-        if (
-            selectedIds == null
-            || selectedIds.isEmpty()
-        ) {
-            rttr.addFlashAttribute(
-                "errorMessage",
-                "삭제할 판매를 선택해 주세요."
-            );
-        } else {
-            try {
-                int removeCount =
-                    service.remove(
-                        selectedIds
-                    );
-
-                if (removeCount == 0) {
-                    rttr.addFlashAttribute(
-                        "errorMessage",
-                        "삭제할 판매가 없습니다."
-                    );
-                }
-            } catch (
-                DataAccessException e
-            ) {
-                log.error(
-                    "판매 삭제 실패",
-                    e
-                );
-
-                rttr.addFlashAttribute(
-                    "errorMessage",
-                    "판매를 삭제하지 못했습니다."
-                );
-            }
-        }
-
-        return PostRedirects.toList(
-            "/sale/list",
-            request
-        );
-    }
-
-    // 선택한 판매 진행상태 변경
-    @PostMapping("/change-status")
-    public String changeStatus(
-            @RequestParam(
-                value = "selectedIds",
-                required = false
-            ) List<Long> selectedIds,
-            @RequestParam(
-                value = "nextProgressStatus",
-                defaultValue = ""
-            ) String nextProgressStatus,
-            HttpServletRequest request,
-            RedirectAttributes rttr) {
-
-        log.info(
-            "판매 진행 상태 변경 요청"
-        );
-
-        if (
-            selectedIds == null
-            || selectedIds.isEmpty()
-        ) {
-            rttr.addFlashAttribute(
-                "errorMessage",
-                "진행상태를 변경할 판매를 선택해 주세요."
-            );
-        } else {
-            try {
-                int updateCount =
-                    service.changeStatus(
-                        selectedIds,
-                        nextProgressStatus
-                    );
-
-                if (updateCount == 0) {
-                    rttr.addFlashAttribute(
-                        "errorMessage",
-                        "변경할 판매가 없습니다."
-                    );
-                }
-            } catch (
-                IllegalArgumentException e
-            ) {
-                rttr.addFlashAttribute(
-                    "errorMessage",
-                    e.getMessage()
-                );
-            } catch (
-                DataAccessException e
-            ) {
-                log.error(
-                    "판매 진행 상태 변경 실패",
-                    e
-                );
-
-                rttr.addFlashAttribute(
-                    "errorMessage",
-                    "판매의 진행상태를 변경하지 못했습니다."
-                );
-            }
-        }
-
-        return PostRedirects.toList(
-            "/sale/list",
-            request
-        );
-    }
+	private final SaleService service;
+
+	// 판매 목록 화면
+	@GetMapping("/list")
+	public String list(SaleCriteria criteria, @RequestParam Map<String, String> params, Model model) {
+
+		log.info("판매 목록 조회 요청");
+
+		int totalCount = service.getTotal(criteria);
+
+		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
+
+		criteria.setPage(Math.min(criteria.getPage(), totalPages));
+
+		Map<String, String> search = ViewModels.search(params);
+
+		search.put("keyword", criteria.getKeyword());
+
+		search.put("progressStatus", criteria.getProgressStatus());
+
+		search.put("page", String.valueOf(criteria.getPage()));
+
+		search.put("pageSize", String.valueOf(criteria.getPageSize()));
+
+		model.addAttribute("saleList", service.getList(criteria));
+
+		model.addAttribute("search", search);
+
+		model.addAttribute("page", criteria.getPage());
+
+		model.addAttribute("pageSize", criteria.getPageSize());
+
+		model.addAttribute("totalPages", totalPages);
+
+		model.addAttribute("totalCount", totalCount);
+
+		model.addAttribute("basePath", "/sale/list");
+
+		model.addAttribute("activeMenu", "sale");
+
+		model.addAttribute("pageTitle", "판매 조회");
+
+		return "sale/list";
+	}
+
+	// 판매 입력 화면
+	@GetMapping("/form")
+	public String form(@RequestParam(value = "id", required = false) Long id,
+			@RequestParam(value = "saleId", required = false) Long saleId, HttpServletRequest request, Model model,
+			RedirectAttributes rttr) {
+
+		log.info("판매 입력 화면 요청");
+
+		Long documentId = id == null ? saleId : id;
+
+		SaleVO form;
+
+		if (documentId == null) {
+			form = new SaleVO();
+
+			form.setBusinessDate(LocalDate.now().toString());
+
+			form.setProgressStatus("CONFIRMED");
+		} else {
+			form = service.get(documentId);
+
+			if (form == null) {
+				rttr.addFlashAttribute("errorMessage", "조회할 판매가 없습니다.");
+
+				return PostRedirects.toList("/sale/list", request);
+			}
+		}
+
+		model.addAttribute("form", form);
+
+		model.addAttribute("mode", documentId == null ? "create" : "edit");
+
+		model.addAttribute("isEdit", documentId != null);
+
+		model.addAttribute("activeMenu", "sale");
+
+		model.addAttribute("pageTitle", "판매 입력");
+
+		return "sale/form";
+	}
+
+	// 거래명세서 화면
+	@GetMapping("/statement")
+	public String statement(@RequestParam(value = "id", required = false) Long id, HttpServletResponse response,
+			Model model) {
+
+		log.info("거래명세서 조회 요청");
+
+		SaleVO form = id == null ? null : service.get(id);
+
+		if (form == null) {
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+
+			form = new SaleVO();
+		}
+
+		Map<String, BigDecimal> totals = new LinkedHashMap<>();
+
+		totals.put("supplyAmount", BigDecimal.ZERO);
+
+		totals.put("vatAmount", BigDecimal.ZERO);
+
+		totals.put("totalAmount", BigDecimal.ZERO);
+
+		for (SaleLineVO line : form.getLines()) {
+
+			totals.put("supplyAmount", totals.get("supplyAmount").add(line.getSupplyAmount()));
+
+			totals.put("vatAmount", totals.get("vatAmount").add(line.getVatAmount()));
+
+			totals.put("totalAmount", totals.get("totalAmount").add(line.getTotalAmount()));
+		}
+
+		model.addAttribute("form", form);
+
+		model.addAttribute("statementTotals", totals);
+
+		model.addAttribute("activeMenu", "sale");
+
+		model.addAttribute("pageTitle", "거래명세서");
+
+		return "sale/statement";
+	}
+
+	// 판매 저장
+	@PostMapping("/save")
+	public String save(SaleVO sale, BindingResult bindingResult, HttpServletRequest request, RedirectAttributes rttr) {
+
+		log.info("판매 저장 요청");
+
+		boolean editing = sale.getSaleId() != null;
+
+		if (bindingResult.hasErrors()) {
+			rttr.addFlashAttribute("errorMessage", "품목의 수량과 단가 등 입력값을 확인해 주세요.");
+		} else {
+			try {
+				service.save(sale);
+			} catch (IllegalArgumentException e) {
+				rttr.addFlashAttribute("errorMessage", e.getMessage());
+			} catch (DataAccessException e) {
+				log.error("판매 저장 실패", e);
+
+				rttr.addFlashAttribute("errorMessage", "판매를 저장하지 못했습니다. 입력 내용을 확인해 주세요.");
+			}
+		}
+
+		return PostRedirects.afterDocumentSave("/sale", editing, request);
+	}
+
+	// 선택한 판매 삭제
+	@PostMapping("/delete")
+	public String delete(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds,
+			HttpServletRequest request, RedirectAttributes rttr) {
+
+		log.info("판매 삭제 요청");
+
+		if (selectedIds == null || selectedIds.isEmpty()) {
+			rttr.addFlashAttribute("errorMessage", "삭제할 판매를 선택해 주세요.");
+		} else {
+			try {
+				int removeCount = service.remove(selectedIds);
+
+				if (removeCount == 0) {
+					rttr.addFlashAttribute("errorMessage", "삭제할 판매가 없습니다.");
+				}
+			} catch (DataAccessException e) {
+				log.error("판매 삭제 실패", e);
+
+				rttr.addFlashAttribute("errorMessage", "판매를 삭제하지 못했습니다.");
+			}
+		}
+
+		return PostRedirects.toList("/sale/list", request);
+	}
+
+	// 선택한 판매 진행상태 변경
+	@PostMapping("/change-status")
+	public String changeStatus(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds,
+			@RequestParam(value = "nextProgressStatus", defaultValue = "") String nextProgressStatus,
+			HttpServletRequest request, RedirectAttributes rttr) {
+
+		log.info("판매 진행 상태 변경 요청");
+
+		if (selectedIds == null || selectedIds.isEmpty()) {
+			rttr.addFlashAttribute("errorMessage", "진행상태를 변경할 판매를 선택해 주세요.");
+		} else {
+			try {
+				int updateCount = service.changeStatus(selectedIds, nextProgressStatus);
+
+				if (updateCount == 0) {
+					rttr.addFlashAttribute("errorMessage", "변경할 판매가 없습니다.");
+				}
+			} catch (IllegalArgumentException e) {
+				rttr.addFlashAttribute("errorMessage", e.getMessage());
+			} catch (DataAccessException e) {
+				log.error("판매 진행 상태 변경 실패", e);
+
+				rttr.addFlashAttribute("errorMessage", "판매의 진행상태를 변경하지 못했습니다.");
+			}
+		}
+
+		return PostRedirects.toList("/sale/list", request);
+	}
 }

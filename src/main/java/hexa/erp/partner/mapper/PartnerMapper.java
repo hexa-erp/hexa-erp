@@ -9,16 +9,13 @@ import hexa.erp.partner.domain.PartnerVO;
 
 public interface PartnerMapper {
 
-    List<PartnerVO> getListWithPaging(PartnerCriteria criteria);
+	List<PartnerVO> getListWithPaging(PartnerCriteria criteria);
 
-    int getTotalCount(PartnerCriteria criteria);
+	int getTotalCount(PartnerCriteria criteria);
 
-    void insertSelectKey(PartnerVO partner);
+	void insertSelectKey(PartnerVO partner);
 
-    int update(PartnerVO partner);
+	int update(PartnerVO partner);
 
-    int changeActive(
-        @Param("ids") List<Long> ids,
-        @Param("activeFlag") String activeFlag
-    );
+	int changeActive(@Param("ids") List<Long> ids, @Param("activeFlag") String activeFlag);
 }

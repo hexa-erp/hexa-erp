@@ -15,8 +15,8 @@ public interface SalePriceService {
 	int getTotal(SalePriceCriteria criteria);
 
 	/**
-	 * 선택한 품목 행의 단가를 바꾸고 공급가액·부가세·합계를 다시 계산해 저장한다.
-	 * 한 건이라도 실패하면 전부 취소하고 IllegalArgumentException을 던진다. 변경한 건수를 반환한다.
+	 * 선택한 품목 행의 단가를 바꾸고 공급가액·부가세·합계를 다시 계산해 저장한다. 한 건이라도 실패하면 전부 취소하고
+	 * IllegalArgumentException을 던진다. 변경한 건수를 반환한다.
 	 */
 	int savePrices(List<SalePriceChangeVO> changes);
 

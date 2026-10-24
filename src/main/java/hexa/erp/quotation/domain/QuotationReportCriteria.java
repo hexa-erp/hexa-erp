@@ -16,10 +16,10 @@ public class QuotationReportCriteria {
 	private String keyword;
 	private String progressStatus;
 	private String specification;
-	
-	//미주문 현황: 주문 여부 및 잔여 수량 계산 기준일
+
+	// 미주문 현황: 주문 여부 및 잔여 수량 계산 기준일
 	private String cutoffDate;
-	
+
 	private BigDecimal minQuantity;
 	private BigDecimal maxQuantity;
 	private BigDecimal minUnitPrice;
@@ -28,7 +28,7 @@ public class QuotationReportCriteria {
 	private BigDecimal maxSupplyAmount;
 	private BigDecimal minVatAmount;
 	private BigDecimal maxVatAmount;
-	
+
 	private List<String> warehouseIds = new ArrayList<>();
 	private List<String> partnerIds = new ArrayList<>();
 	private List<String> itemIds = new ArrayList<>();

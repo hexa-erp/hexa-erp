@@ -11,16 +11,16 @@ import hexa.erp.sale.domain.SalePriceVO;
 public interface SalePriceMapper {
 	/** 검색 조건에 맞는 품목 행을 최신 일자순으로 한 페이지만 조회한다. */
 	List<SalePriceVO> getListWithPaging(SalePriceCriteria criteria);
-	
+
 	/** 페이지 계산용. 검색 조건에 맞는 품목 행 전체 개수를 센다. */
 	int getTotalCount(SalePriceCriteria criteria);
-	
+
 	/** 금액 재계산에 필요한 수량만 읽는다. 품목 행이 해당 전표에 속하지 않거나 삭제됐으면 null이다. */
-	SalePriceVO read(@Param("saleId") Long saleId, @Param("saleLineId")Long saleLineId);
-	
+	SalePriceVO read(@Param("saleId") Long saleId, @Param("saleLineId") Long saleLineId);
+
 	/** 단가와 금액을 함께 바꾼다. 금액은 Service에서 계산해서 넘긴다. 바뀐 행 수를 돌려준다. */
 	int updatePrice(SalePriceVO row);
-	
+
 	/** 품목 행에는 수정 시각이 없어서 전표의 수정 시각을 갱신한다. */
 	int updateSaleTimestamp(Long saleId);
 

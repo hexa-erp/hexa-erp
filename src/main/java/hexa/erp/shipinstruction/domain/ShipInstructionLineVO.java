@@ -17,5 +17,5 @@ public class ShipInstructionLineVO {
 	private BigDecimal quantity;
 	private String note;
 	private String deletedYn;
-	
+
 }

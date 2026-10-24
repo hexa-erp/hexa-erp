@@ -43,18 +43,17 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 	private AssigneeLookupService assigneeLookupService;
 	@Setter(onMethod_ = @Autowired)
 	private ItemLookupService itemLookupService;
-	
+
 	@Override
 	public List<ShipInstructionVO> getList(ShipInstructionCriteria criteria) {
 		return mapper.getListWithPaging(criteria);
 	}
-	
+
 	@Override
 	public int getTotal(ShipInstructionCriteria criteria) {
 		return mapper.getTotalCount(criteria);
 	}
-	
-	
+
 	@Override
 	public ShipInstructionVO get(Long shipInstructionId) {
 		if (shipInstructionId == null) {
@@ -152,7 +151,7 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 		log.info("출하지시서 저장: " + shipInstruction.getShipInstructionId());
 		return shipInstruction.getShipInstructionId();
 	}
-	
+
 	@Override
 	@Transactional
 	public int remove(List<Long> seletedIds) {
@@ -165,7 +164,7 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 		log.info("출하지시서 삭제: " + count + "건");
 		return count;
 	}
-	
+
 	@Override
 	public int changeStatus(List<Long> seletedIds, String progressStatus) {
 		List<Long> ids = cleanIds(seletedIds);
@@ -178,8 +177,7 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 		log.info("출하지시서 진행상태 변경: " + progressStatus);
 		return mapper.changeStatus(ids, progressStatus);
 	}
-	
-	
+
 	private void prepareLine(ShipInstructionLineVO line) {
 		if (isBlank(line.getItemName())) {
 			ItemLookupVO item = itemLookupService.get(line.getItemId());
