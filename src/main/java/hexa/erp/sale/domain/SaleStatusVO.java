@@ -8,12 +8,12 @@ import java.util.Map;
 
 import lombok.Data;
 
-/** 판매 현황 화면에 넘기는 결과. */
+/** 売上集計画面に渡す結果。 */
 @Data
 public class SaleStatusVO {
-	// 월별로 묶은 행 목록
+	// 月別にまとめた行の一覧
 	private List<Map<String, Object>> monthGroups = new ArrayList<>();
-	// 검색 결과 전체의 수량·금액 합계 (항목 이름 → 합계)
+	// 検索結果全体の数量・金額合計（項目名 → 合計）
 	private Map<String, BigDecimal> totals = new LinkedHashMap<>();
 
 }

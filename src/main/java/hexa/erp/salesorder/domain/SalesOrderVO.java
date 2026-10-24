@@ -6,7 +6,7 @@ import java.util.List;
 
 import lombok.Data;
 
-//주문서 기본 정보
+//受注伝票のヘッダー情報
 @Data
 public class SalesOrderVO {
 	private Long salesOrderId;

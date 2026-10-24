@@ -31,7 +31,7 @@ public class PartnerMapperTests {
 	@Autowired
 	private PartnerMapper mapper;
 
-	// Mapper 객체 주입 확인
+	// Mapperオブジェクトの注入を確認
 	@Test
 	public void testMapperExist() {
 		log.info("========== MAPPER INJECTION TEST ==========");
@@ -40,7 +40,7 @@ public class PartnerMapperTests {
 		assertNotNull(mapper);
 	}
 
-	// 거래처 등록과 조회 확인
+	// 取引先の登録と取得を確認
 	@Test
 	public void testInsertAndSelect() {
 		PartnerVO partner = createPartner();
@@ -72,14 +72,14 @@ public class PartnerMapperTests {
 		assertEquals(partner.getPartnerName(), savedPartner.getPartnerName());
 	}
 
-	// 거래처 정보 수정 확인
+	// 取引先情報の更新を確認
 	@Test
 	public void testUpdate() {
 		PartnerVO partner = createPartner();
 		mapper.insertSelectKey(partner);
 
 		String originalCode = partner.getPartnerCode();
-		String changedName = "수정 거래처 " + createToken();
+		String changedName = "更新取引先 " + createToken();
 
 		partner.setPartnerName(changedName);
 		partner.setPhone("02-9999-9999");
@@ -105,7 +105,7 @@ public class PartnerMapperTests {
 		assertEquals("02-9999-9999", changedPartner.getPhone());
 	}
 
-	// 거래처 사용중단 처리 확인
+	// 取引先の利用停止を確認
 	@Test
 	public void testChangeActive() {
 		PartnerVO partner = createPartner();
@@ -136,7 +136,7 @@ public class PartnerMapperTests {
 		assertTrue(activeList.isEmpty());
 	}
 
-	// 코드·거래처명·대표자명 검색 확인
+	// コード・取引先名・代表者名の検索を確認
 	@Test
 	public void testSearch() {
 		PartnerVO partner = createPartner();
@@ -193,17 +193,17 @@ public class PartnerMapperTests {
 
 		PartnerVO partner = new PartnerVO();
 		partner.setPartnerCode("TEST" + token);
-		partner.setPartnerName("테스트 거래처 " + token);
+		partner.setPartnerName("テスト取引先 " + token);
 		partner.setBusinessNo("BN" + token);
-		partner.setRepresentative("테스트 대표자 " + token);
-		partner.setBusinessType("서비스업");
-		partner.setBusinessItem("소프트웨어");
+		partner.setRepresentative("テスト代表者 " + token);
+		partner.setBusinessType("サービス業");
+		partner.setBusinessItem("ソフトウェア");
 		partner.setPhone("PHONE" + token);
 		partner.setMobile("MOBILE" + token);
 		partner.setEmail("test" + token + "@hexa.test");
 		partner.setPostalCode("12345");
-		partner.setAddress("테스트 주소 " + token);
-		partner.setNote("테스트 적요 " + token);
+		partner.setAddress("テスト住所 " + token);
+		partner.setNote("テスト摘要 " + token);
 
 		return partner;
 	}

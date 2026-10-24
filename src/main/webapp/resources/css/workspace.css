@@ -1,4 +1,4 @@
-/* workspacePage인 화면의 .erp-workspace에만 적용해 입력·모달 스타일과 분리한다. */
+/* workspacePageの.erp-workspaceだけに適用し、入力・モーダルのスタイルと分離する。 */
 .erp-workspace {
   min-width: 0;
   width: 100%;
@@ -77,13 +77,13 @@
   background: #fafbfc;
 }
 .erp-workspace .workspace-actions .muted { font-size: 13px; margin-left: 4px; }
-/* 판매 단가 일괄 변경의 [선택 행에 적용] 컨트롤. 저장 버튼과 간격을 둔다. */
+/* 売上単価一括変更の［選択行に適用］コントロール。保存ボタンとの間隔を空ける。 */
 .erp-workspace .workspace-actions .bulk-apply { margin-right: 8px; }
 .erp-workspace .workspace-actions .bulk-apply input { width: 150px; }
 .erp-workspace .workspace-actions .status-options { top: auto; bottom: calc(100% + 5px); }
 .erp-workspace .status-option { font-size: 13px; padding: 6px 10px; }
 
-/* 넓은 표는 내부에서 스크롤하고 열 제목을 고정해 값을 잘리지 않게 표시한다. */
+/* 幅の広い表は内部でスクロールし、列見出しを固定して値が欠けないよう表示する。 */
 .erp-workspace .table-wrap { border-radius: 2px 2px 0 0; scrollbar-width: thin; scrollbar-color: #c6ceda #f4f6f9; }
 .erp-workspace .workspace-table { font-size: 13px; line-height: 18px; }
 .erp-workspace .workspace-table th,
@@ -172,7 +172,7 @@
 .erp-workspace .result-controls .pagination { margin-right: auto; }
 .report-workspace > .table-wrap { max-height: calc(100vh - 238px); }
 .erp-workspace .report-table { min-width: 860px; }
-/* 월계·총합계 행은 선택 가능한 상세행과 시각적으로 구분한다. */
+/* 月計・総合計行は選択可能な明細行と視覚的に区別する。 */
 .report-workspace .report-table tbody tr.report-subtotal > th,
 .report-workspace .report-table tbody tr.report-subtotal > td {
   height: 30px;
@@ -196,7 +196,7 @@
   white-space: nowrap;
 }
 
-/* 금액을 자르지 않도록 표 너비를 확보하고 열이 많으면 표 내부에서 스크롤한다. */
+/* 金額が欠けないよう表幅を確保し、列が多い場合は表内をスクロールする。 */
 .erp-workspace .bulk-table { width: 1813px; min-width: 1813px; table-layout: auto; }
 .erp-workspace .bulk-table col.bulk-select { width: 32px; }
 .erp-workspace .bulk-table col.bulk-date { width: 124px; }
@@ -239,7 +239,7 @@
   .erp-workspace .report-fields { grid-template-columns: minmax(0, 1fr); }
 }
 @media print {
-  /* 총합계가 인쇄 페이지마다 반복되지 않도록 tfoot을 일반 행 그룹으로 처리한다. */
+  /* 総合計が印刷ページごとに繰り返されないよう、tfootを通常の行グループとして扱う。 */
   .report-workspace .report-table tfoot { display: table-row-group; }
   .report-workspace .report-table .report-subtotal,
   .report-workspace .report-table .report-grand-total { break-inside: avoid; }

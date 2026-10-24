@@ -16,28 +16,28 @@
             value="${search.includeInactive eq 'Y' ? 'Y' : 'N'}">
 
         <div class="list-title-status">
-            <h1>거래처 등록</h1>
+            <h1>取引先 登録</h1>
 
             <button
                 class="btn ${search.includeInactive eq 'Y' ? 'btn-primary' : ''}"
                 type="button" data-master-inactive-toggle
-                aria-pressed="${search.includeInactive eq 'Y'}">사용중단 포함</button>
+                aria-pressed="${search.includeInactive eq 'Y'}">利用停止を含む</button>
         </div>
 
         <div class="input-group list-keyword">
             <input type="search" name="keyword"
-                aria-label="거래처 등록 검색"
-                placeholder="입력 후 [Enter]"
+                aria-label="取引先登録検索"
+                placeholder="入力後に［Enter］"
                 value="<c:out value='${search.keyword}'/>">
 
-            <button class="btn btn-primary" type="submit">검색</button>
+            <button class="btn btn-primary" type="submit">検索</button>
         </div>
     </form>
 
     <div class="workspace-meta">
         <%@ include file="../common/pagination.jsp"%>
 
-        <span class="workspace-hint">거래처 등록 정보를 조회하고 등록합니다.</span>
+        <span class="workspace-hint">取引先マスターの照会・登録を行います。</span>
     </div>
 
     <form id="partner-selection" data-master-active-form
@@ -57,16 +57,16 @@
                         <th class="col-select">
                             <input type="checkbox"
                                 data-check-all="#partner-selection input[name=ids]"
-                                aria-label="전체 선택">
+                                aria-label="すべて選択">
                         </th>
-                        <th class="col-code">거래처 코드</th>
-                        <th>거래처명</th>
-                        <th class="col-person">대표자명</th>
-                        <th>전화번호</th>
+                        <th class="col-code">取引先 コード</th>
+                        <th>取引先名</th>
+                        <th class="col-person">代表者名</th>
+                        <th>電話番号</th>
                         <th>Email</th>
-                        <th class="note-cell">주소</th>
-                        <th class="note-cell">적요</th>
-                        <th class="col-active text-center">사용</th>
+                        <th class="note-cell">住所</th>
+                        <th class="note-cell">摘要</th>
+                        <th class="col-active text-center">利用中</th>
                     </tr>
                 </thead>
 
@@ -93,7 +93,7 @@
                             <td class="col-select">
                                 <input type="checkbox" name="ids"
                                     value="<c:out value='${row.partnerId}'/>"
-                                    aria-label="<c:out value='${row.partnerName}'/> 선택">
+                                    aria-label="<c:out value='${row.partnerName}'/> 選択">
                             </td>
 
                             <td class="col-code">
@@ -129,14 +129,14 @@
                             </td>
 
                             <td class="col-active text-center">
-                                <span class="badge">${row.activeFlag eq 'N' ? '중단' : '사용'}</span>
+                                <span class="badge">${row.activeFlag eq 'N' ? '停止' : '利用中'}</span>
                             </td>
                         </tr>
                     </c:forEach>
 
                     <c:if test="${empty partnerList}">
                         <tr>
-                            <td class="empty-state" colspan="9">조회된 거래처가 없습니다.</td>
+                            <td class="empty-state" colspan="9">取引先が見つかりません。</td>
                         </tr>
                     </c:if>
                 </tbody>
@@ -145,13 +145,13 @@
 
         <div class="workspace-actions">
             <button class="btn btn-primary" type="button"
-                data-master-new="partner">신규</button>
+                data-master-new="partner">新規</button>
 
             <button class="btn" type="button" data-master-active="N"
-                data-selection-form="partner-selection">사용중단</button>
+                data-selection-form="partner-selection">利用停止</button>
 
             <button class="btn" type="button" data-master-active="Y"
-                data-selection-form="partner-selection">재사용</button>
+                data-selection-form="partner-selection">利用再開</button>
         </div>
     </form>
 </section>
@@ -161,10 +161,10 @@
 
     <div class="modal-header">
         <h2 id="partner-form-title"
-            data-master-title="partner">거래처 등록</h2>
+            data-master-title="partner">取引先 登録</h2>
 
         <button class="btn btn-sm" type="button" data-modal-close
-            aria-label="닫기">×</button>
+            aria-label="閉じる">×</button>
     </div>
 
     <form id="partner-form" data-master-api="/api/partners"
@@ -179,74 +179,74 @@
                 <input type="hidden" name="activeFlag">
 
                 <label class="field">
-                    <span>거래처 코드</span>
+                    <span>取引先 コード</span>
                     <input type="text" name="partnerCode" maxlength="30"
                         required
                         value="<c:out value='${newPartnerCode}'/>"
-                        placeholder="코드 입력"
-                        title="신규 등록 시에만 코드를 입력하거나 수정할 수 있습니다.">
+                        placeholder="コード入力"
+                        title="コードの入力・変更は新規登録時のみ可能です。">
                 </label>
 
                 <label class="field">
-                    <span>상호(이름)</span>
+                    <span>商号（名称）</span>
                     <input type="text" name="partnerName" maxlength="100"
                         required>
                 </label>
 
                 <label class="field">
-                    <span>사업자등록번호</span>
+                    <span>法人番号</span>
                     <input type="text" name="businessNo" maxlength="20">
                 </label>
 
                 <label class="field">
-                    <span>대표자명</span>
+                    <span>代表者名</span>
                     <input type="text" name="representative"
                         maxlength="100">
                 </label>
 
                 <label class="field">
-                    <span>업태</span>
+                    <span>業種</span>
                     <input type="text" name="businessType"
                         maxlength="100">
                 </label>
 
                 <label class="field">
-                    <span>종목</span>
+                    <span>取扱品目</span>
                     <input type="text" name="businessItem"
                         maxlength="100">
                 </label>
 
                 <label class="field">
-                    <span>전화</span>
+                    <span>電話</span>
                     <input type="text" name="phone" maxlength="30">
                 </label>
 
                 <label class="field">
-                    <span>모바일</span>
+                    <span>携帯電話</span>
                     <input type="text" name="mobile" maxlength="30">
                 </label>
 
                 <label class="field">
-                    <span>우편번호</span>
+                    <span>郵便番号</span>
                     <input type="text" name="postalCode" maxlength="20">
                 </label>
 
                 <label class="field field-wide">
-                    <span>주소</span>
+                    <span>住所</span>
                     <input type="text" name="address" maxlength="300">
                 </label>
 
                 <div class="field">
-                    <span>담당자</span>
+                    <span>担当者</span>
 
                     <div class="input-group">
                         <input type="hidden" name="assigneeId">
 
                         <input type="text" name="assigneeName"
-                            maxlength="100" aria-label="담당자 이름">
+                            maxlength="100" aria-label="担当者名">
 
                         <button class="btn" type="button"
-                            data-master-pick="assignee">선택</button>
+                            data-master-pick="assignee">選択</button>
                     </div>
                 </div>
 
@@ -256,7 +256,7 @@
                 </label>
 
                 <label class="field field-wide">
-                    <span>적요</span>
+                    <span>摘要</span>
                     <textarea name="note" rows="3"
                         maxlength="500"></textarea>
                 </label>
@@ -264,9 +264,9 @@
         </div>
 
         <div class="modal-footer">
-            <button class="btn btn-primary" type="submit">저장</button>
-            <button class="btn" type="reset">다시 작성</button>
-            <button class="btn" type="button" data-modal-close>닫기</button>
+            <button class="btn btn-primary" type="submit">保存</button>
+            <button class="btn" type="reset">リセット</button>
+            <button class="btn" type="button" data-modal-close>閉じる</button>
         </div>
     </form>
 </dialog>

@@ -4,15 +4,15 @@ import java.math.BigDecimal;
 
 import lombok.Data;
 
-/** 출하 전표의 품목 행. */
+/** 出荷伝票の品目行。 */
 @Data
 public class ShipmentLineVO {
 	private Long shipmentLineId;
 	private Long shipmentId;
-	// 출하지시서에서 불러온 행이면 원전표 상세행 ID를 가진다.
+	// 出荷指示書から読み込んだ行には、元伝票の明細行IDを保持する。
 	private Long shipInstructionLineId;
 	private Long itemId;
-	// 품목코드는 조회 시 ITEM에서 가져오며, 품목명은 저장 시점 이름을 행에 보관한다.
+	// 品目コードは取得時にITEMから読み込み、品目名は保存時の名前を明細行に保持する。
 	private String itemCode;
 	private String itemName;
 	private String specification;

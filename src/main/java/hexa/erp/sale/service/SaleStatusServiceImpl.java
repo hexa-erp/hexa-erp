@@ -16,7 +16,7 @@ import hexa.erp.sale.mapper.SaleStatusMapper;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j;
 
-/** 판매 현황 조회 결과를 월별로 묶고, 월별 소계와 전체 합계를 계산한다. */
+/** 売上集計の検索結果を月別にまとめ、月別小計と総合計を計算する。 */
 @Service
 @Log4j
 public class SaleStatusServiceImpl implements SaleStatusService {
@@ -25,7 +25,7 @@ public class SaleStatusServiceImpl implements SaleStatusService {
 
 	@Override
 	public SaleStatusVO getStatus(SaleStatusCriteria criteria) {
-		log.info("판매 현황 상세행 조회");
+		log.info("売上集計の明細行を取得");
 		List<SaleStatusRowVO> rows = mapper.getStatusRows(criteria);
 		SaleStatusVO report = new SaleStatusVO();
 		report.setTotals(makeTotals());
@@ -33,14 +33,14 @@ public class SaleStatusServiceImpl implements SaleStatusService {
 		List<SaleStatusRowVO> monthRows = null;
 		Map<String, BigDecimal> monthTotals = null;
 
-		// 조회 결과가 날짜순이므로 행이 있는 월만 묶는다.
+		// 検索結果は日付順のため、データが存在する月のみグループ化する。
 		for (SaleStatusRowVO row : rows) {
 			String monthLabel = row.getBusinessDate().substring(0, 7);
 			if (!monthLabel.equals(currentMonth)) {
 				currentMonth = monthLabel;
 				monthRows = new ArrayList<>();
 				monthTotals = makeTotals();
-				// 화면에서 monthLabel(YYYY-MM), rows(그 달의 행), totals(그 달의 소계)로 꺼내 쓴다.
+				// 画面ではmonthLabel（YYYY-MM）、rows（当月の行）、totals（当月の小計）として参照する。
 				Map<String, Object> monthGroup = new LinkedHashMap<>();
 				monthGroup.put("monthLabel", monthLabel);
 				monthGroup.put("rows", monthRows);
@@ -54,7 +54,7 @@ public class SaleStatusServiceImpl implements SaleStatusService {
 		return report;
 	}
 
-	/** 합계 항목을 화면 표시 순서대로 0으로 채워 만든다. */
+	/** 画面の表示順に合計項目を作成し、初期値を0にする。 */
 	private Map<String, BigDecimal> makeTotals() {
 		Map<String, BigDecimal> totals = new LinkedHashMap<>();
 		totals.put("quantity", BigDecimal.ZERO);
@@ -67,7 +67,7 @@ public class SaleStatusServiceImpl implements SaleStatusService {
 
 	private void addTotals(Map<String, BigDecimal> totals, SaleStatusRowVO row) {
 		addValue(totals, "quantity", row.getQuantity());
-		// 판매 현황의 단가는 평균이 아니라 표시한 상세행 단가의 합계다.
+		// 売上集計の単価は平均値ではなく、表示する明細行の単価の合計とする。
 		addValue(totals, "unitPrice", row.getUnitPrice());
 		addValue(totals, "supplyAmount", row.getSupplyAmount());
 		addValue(totals, "vatAmount", row.getVatAmount());
@@ -75,7 +75,7 @@ public class SaleStatusServiceImpl implements SaleStatusService {
 	}
 
 	private void addValue(Map<String, BigDecimal> totals, String key, BigDecimal value) {
-		// 값이 비어 있는 행은 합계에서 제외한다.
+		// 値がない行は集計対象から除外する。
 		if (value != null) {
 			totals.put(key, totals.get(key).add(value));
 		}

@@ -1,4 +1,4 @@
-/* 선택값은 '적용'을 누를 때 검색조건에 반영한다. */
+/* 選択値は［適用］を押したときに検索条件へ反映する。 */
 (function($) {
 	'use strict';
 	var $dialog = $('#multi-filter-modal');
@@ -9,22 +9,22 @@
 		return;
 	var kinds = {
 		warehouse : {
-			label : '창고',
-			columns : [ [ 'warehouseCode', '창고코드' ],
-					[ 'warehouseName', '창고명' ], [ 'warehouseType', '구분' ] ]
+			label : '倉庫',
+			columns : [ [ 'warehouseCode', '倉庫コード' ],
+					[ 'warehouseName', '倉庫名' ], [ 'warehouseType', '区分' ] ]
 		},
 		partner : {
-			label : '거래처',
-			columns : [ [ 'partnerCode', '거래처코드' ], [ 'partnerName', '거래처명' ] ]
+			label : '取引先',
+			columns : [ [ 'partnerCode', '取引先コード' ], [ 'partnerName', '取引先名' ] ]
 		},
 		item : {
-			label : '품목',
-			columns : [ [ 'itemCode', '품목코드' ], [ 'itemName', '품목명' ],
-					[ 'specification', '규격' ] ]
+			label : '品目',
+			columns : [ [ 'itemCode', '品目コード' ], [ 'itemName', '品目名' ],
+					[ 'specification', '規格' ] ]
 		},
 		assignee : {
-			label : '담당자',
-			columns : [ [ 'assigneeCode', '담당자코드' ], [ 'assigneeName', '담당자명' ] ]
+			label : '担当者',
+			columns : [ [ 'assigneeCode', '担当者コード' ], [ 'assigneeName', '担当者名' ] ]
 		}
 	};
 	var $head = $('#multi-filter-head');
@@ -88,9 +88,9 @@
 		$chip.append(Hexa.node('span', value.name, 'multi-chip-label'));
 		$chip.append($(Hexa.node('button', '×')).prop('type', 'button').attr({
 			'data-multi-remove' : '',
-			'aria-label' : value.name + ' 선택 해제'
+			'aria-label' : value.name + ' 選択解除'
 		}));
-		// 각 ID를 같은 이름의 파라미터로 전송한다.
+		// 各IDを同じ名前のパラメーターとして送る。
 		$chip.append($(Hexa.node('input')).prop('type', 'hidden').attr('name',
 				fieldName).val(value.id));
 		return $chip;
@@ -105,13 +105,13 @@
 		if (announce) {
 			$box.find('[data-multi-live]').text(
 					kinds[$box.attr('data-multi-filter')].label + ' '
-							+ list.length + '개 선택');
+							+ list.length + '件選択');
 		}
 	}
 	function syncDraft() {
 		if (!active)
 			return;
-		// 검색·페이지 이동 중에도 적용 전 선택을 유지한다.
+		// 検索やページ移動中も適用前の選択を維持する。
 		var checked = 0;
 		$body.find('[data-multi-row-id]')
 				.each(
@@ -149,7 +149,7 @@
 		$body.empty().append($(Hexa.node('tr')).append($cell));
 	}
 	function cancelRequest() {
-		// 이전 검색을 취소하고 가장 최근 응답만 사용한다.
+		// 前の検索を中止し、最新の応答だけを使う。
 		requestNumber += 1;
 		var previous = pendingRequest;
 		pendingRequest = null;
@@ -162,8 +162,8 @@
 	}
 	function showLoadError() {
 		active.rows = [];
-		tableMessage('목록을 불러오지 못했습니다.');
-		$errorBox.text('조회 API 연결을 확인한 뒤 검색을 다시 실행하세요. 기존 선택은 유지됩니다.').prop(
+		tableMessage('一覧を取得できませんでした。');
+		$errorBox.text('照会APIの接続を確認して再度検索してください。選択済みの項目は保持されます。').prop(
 				'hidden', false);
 		syncDraft();
 	}
@@ -177,7 +177,7 @@
 		$errorBox.prop('hidden', true);
 		$body.attr('aria-busy', 'true');
 		$pages.empty();
-		tableMessage('조회 중…');
+		tableMessage('照会中…');
 		syncDraft();
 		var request = $.ajax({
 			url : Hexa.ctx + '/lookup/options/' + state.kind + '?keyword='
@@ -217,7 +217,7 @@
 											var $check = $(Hexa.node('input'))
 													.prop('type', 'checkbox')
 													.attr('aria-label',
-															value.name + ' 선택');
+															value.name + ' 選択');
 											$row.append($(Hexa.node('td'))
 													.append($check));
 											kinds[state.kind].columns
@@ -246,7 +246,7 @@
 											$body.append($row);
 										});
 								if (!state.rows.length)
-									tableMessage('검색 결과가 없습니다.');
+									tableMessage('検索結果がありません。');
 								Hexa.pages($pages[0], data, load);
 								syncDraft();
 							} catch (error) {
@@ -256,7 +256,7 @@
 					if (!currentRequest(state, token))
 						return;
 					if (textStatus === 'abort' || textStatus === 'canceled') {
-						tableMessage('조회가 취소되었습니다. 다시 검색해 주세요.');
+						tableMessage('照会がキャンセルされました。再度検索してください。');
 						syncDraft();
 						return;
 					}
@@ -281,12 +281,12 @@
 			rows : [],
 			keyword : $box.find('[data-multi-query]').val().trim()
 		};
-		$('#multi-filter-title').text(kinds[kind].label + ' 선택');
+		$('#multi-filter-title').text(kinds[kind].label + ' 選択');
 		$searchForm.find('[name=keyword]').val(active.keyword);
 		var $row = $(Hexa.node('tr'));
 		var $all = $(Hexa.node('input')).prop('type', 'checkbox').attr({
 			id : 'multi-filter-page-all',
-			'aria-label' : '현재 페이지 전체 선택'
+			'aria-label' : '現在のページをすべて選択'
 		});
 		$row.append($(Hexa.node('th')).append($all));
 		kinds[kind].columns.forEach(function(column) {
@@ -370,7 +370,7 @@
 				var form = this;
 				var original = event.originalEvent;
 				setTimeout(function() {
-					// '다시 작성'을 누르면 처음 검색조건으로 되돌린다.
+					// リセットを押すと初期の検索条件に戻す。
 					if (event.isDefaultPrevented()
 							|| (original && original.defaultPrevented))
 						return;
@@ -382,7 +382,7 @@
 					});
 				}, 0);
 			});
-	// 입력 중인 검색어가 있으면 선택창을 먼저 연다.
+	// 入力中の検索語があれば先に選択ダイアログを開く。
 	$('form.report-search').on('submit.hexaMultiFilter', function(event) {
 		var $pending = $(this).find('[data-multi-query]').filter(function() {
 			return $(this).val().trim();
@@ -408,7 +408,7 @@
 		Hexa.closeModal($dialog[0]);
 	});
 	$dialog.on('close.hexaMultiFilter', function() {
-		// 선택창이 다시 열렸다면 이전 닫기 이벤트는 무시한다.
+		// 選択ダイアログが再び開かれた場合、前回の閉じるイベントは無視する。
 		if ($dialog.prop('open'))
 			return;
 		var opener = active && active.opener;

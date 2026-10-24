@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-/** 선택창에서 사용하는 검색·페이지 조건. */
+/** 選択画面で使用する検索条件とページ情報。 */
 @Getter
 @Setter
 @ToString

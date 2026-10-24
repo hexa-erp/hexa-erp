@@ -31,7 +31,7 @@ public class PartnerServiceTests {
 	@Autowired
 	private PartnerService service;
 
-	// Service 객체 주입 확인
+	// Serviceオブジェクトの注入を確認
 	@Test
 	public void testServiceExist() {
 		log.info("========== SERVICE INJECTION TEST ==========");
@@ -40,7 +40,7 @@ public class PartnerServiceTests {
 		assertNotNull(service);
 	}
 
-	// Service 거래처 등록과 조회 확인
+	// Serviceによる取引先登録と取得を確認
 	@Test
 	public void testRegisterAndGetList() {
 		PartnerVO partner = createPartner();
@@ -70,13 +70,13 @@ public class PartnerServiceTests {
 		assertEquals(1, totalCount);
 	}
 
-	// Service 거래처 수정 확인
+	// Serviceによる取引先更新を確認
 	@Test
 	public void testModify() {
 		PartnerVO partner = createPartner();
 		service.register(partner);
 
-		String changedName = "서비스 수정 거래처 " + createToken();
+		String changedName = "Service更新テスト取引先 " + createToken();
 		partner.setPartnerName(changedName);
 
 		log.info("========== SERVICE MODIFY TEST ==========");
@@ -97,7 +97,7 @@ public class PartnerServiceTests {
 		assertEquals(changedName, changedPartner.getPartnerName());
 	}
 
-	// Service 사용중단과 재사용 처리 확인
+	// Serviceによる利用停止と利用再開を確認
 	@Test
 	public void testChangeActive() {
 		PartnerVO partner = createPartner();
@@ -153,17 +153,17 @@ public class PartnerServiceTests {
 
 		PartnerVO partner = new PartnerVO();
 		partner.setPartnerCode("TEST" + token);
-		partner.setPartnerName("서비스 테스트 거래처 " + token);
+		partner.setPartnerName("Serviceテスト取引先 " + token);
 		partner.setBusinessNo("BN" + token);
-		partner.setRepresentative("서비스 테스트 대표자 " + token);
-		partner.setBusinessType("서비스업");
-		partner.setBusinessItem("소프트웨어");
+		partner.setRepresentative("Serviceテスト代表者 " + token);
+		partner.setBusinessType("サービス業");
+		partner.setBusinessItem("ソフトウェア");
 		partner.setPhone("PHONE" + token);
 		partner.setMobile("MOBILE" + token);
 		partner.setEmail("service" + token + "@hexa.test");
 		partner.setPostalCode("12345");
-		partner.setAddress("서비스 테스트 주소 " + token);
-		partner.setNote("서비스 테스트 적요 " + token);
+		partner.setAddress("Serviceテスト住所 " + token);
+		partner.setNote("Serviceテスト摘要 " + token);
 
 		return partner;
 	}

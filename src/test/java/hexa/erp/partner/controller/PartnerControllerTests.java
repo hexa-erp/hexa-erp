@@ -47,7 +47,7 @@ public class PartnerControllerTests {
 		mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 	}
 
-	// 거래처 목록 요청과 Model 데이터 확인
+	// 取引先一覧のリクエストとModelデータを確認
 	@Test
 	public void testList() throws Exception {
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/master/partner").param("page", "1")
@@ -67,7 +67,7 @@ public class PartnerControllerTests {
 		assertNotNull(partnerList);
 	}
 
-	// 대표자명 검색 요청 결과 확인
+	// 代表者名による検索リクエストの結果を確認
 	@Test
 	public void testSearch() throws Exception {
 		PartnerVO partner = createPartner();
@@ -104,17 +104,17 @@ public class PartnerControllerTests {
 
 		PartnerVO partner = new PartnerVO();
 		partner.setPartnerCode("TEST" + token);
-		partner.setPartnerName("컨트롤러 테스트 거래처 " + token);
+		partner.setPartnerName("Controllerテスト取引先 " + token);
 		partner.setBusinessNo("BN" + token);
-		partner.setRepresentative("컨트롤러 테스트 대표자 " + token);
-		partner.setBusinessType("서비스업");
-		partner.setBusinessItem("소프트웨어");
+		partner.setRepresentative("Controllerテスト代表者 " + token);
+		partner.setBusinessType("サービス業");
+		partner.setBusinessItem("ソフトウェア");
 		partner.setPhone("PHONE" + token);
 		partner.setMobile("MOBILE" + token);
 		partner.setEmail("controller" + token + "@hexa.test");
 		partner.setPostalCode("12345");
-		partner.setAddress("컨트롤러 테스트 주소 " + token);
-		partner.setNote("컨트롤러 테스트 적요 " + token);
+		partner.setAddress("Controllerテスト住所 " + token);
+		partner.setNote("Controllerテスト摘要 " + token);
 
 		return partner;
 	}

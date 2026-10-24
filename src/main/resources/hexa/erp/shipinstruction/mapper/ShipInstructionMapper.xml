@@ -21,7 +21,7 @@
 		FIRST ORDER BY
 		l.SHIP_INSTRUCTION_LINE_ID)
 		|| CASE WHEN COUNT(*) &gt; 1
-		THEN ' 외 ' || TO_CHAR(COUNT(*) - 1) || '건'
+		THEN ' ほか ' || TO_CHAR(COUNT(*) - 1) || '件'
 		ELSE '' END
 		FROM
 		SHIP_INSTRUCTION_LINE l

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="hexa.erp.shipment.mapper.ShipmentMapper">
-	<!-- 목록과 단건 조회가 같은 컬럼을 쓰도록 공유한다. 품목 요약·수량 합계는 삭제되지 않은 행만 계산한다. -->
+	<!-- 一覧と1件取得で同じ列を使用できるよう共有する。品目の要約と数量合計は削除されていない行のみで計算する。 -->
 	<sql id="headerColumns">
 		h.SHIPMENT_ID, h.SHIPMENT_NO,
 		TO_CHAR(h.BUSINESS_DATE,
@@ -20,7 +20,7 @@
 		SELECT
 		MIN(l.ITEM_NAME) KEEP (DENSE_RANK FIRST ORDER BY l.SHIPMENT_LINE_ID)
 		|| CASE WHEN COUNT(*) &gt; 1
-		THEN ' 외 ' || TO_CHAR(COUNT(*) - 1) || '건'
+		THEN ' ほか ' || TO_CHAR(COUNT(*) - 1) || '件'
 		ELSE '' END
 		FROM SHIPMENT_LINE l
 		WHERE l.SHIPMENT_ID = h.SHIPMENT_ID AND
@@ -42,7 +42,7 @@
 		LEFT JOIN ASSIGNEE a ON a.ASSIGNEE_ID = h.ASSIGNEE_ID
 	</sql>
 
-	<!-- 목록과 건수의 검색조건이 달라지지 않도록 공유한다. -->
+	<!-- 一覧と件数で検索条件が一致するように共有する。 -->
 	<sql id="searchCondition">
 		WHERE h.DELETED_YN = 'N'
 		<if test="progressStatus != null and progressStatus != ''">
@@ -62,7 +62,7 @@
 		</if>
 	</sql>
 
-	<!-- Oracle 11g는 정렬 후 ROWNUM 상·하한으로 페이지를 나눈다. -->
+	<!-- Oracle 11gではソート後にROWNUMの上限・下限でページ分割する。 -->
 	<select id="getListWithPaging"
 		parameterType="hexa.erp.shipment.domain.ShipmentCriteria"
 		resultType="hexa.erp.shipment.domain.ShipmentVO">
@@ -132,7 +132,7 @@
 			order="BEFORE">
 			SELECT SEQ_SHIPMENT.NEXTVAL FROM DUAL
 		</selectKey>
-		<!-- 전표번호는 시퀀스 ID를 최소 5자리로 0 채움한다. -->
+		<!-- 伝票番号はシーケンスIDを最低5桁のゼロ埋めで作成する。 -->
 		INSERT INTO SHIPMENT (
 		SHIPMENT_ID, SHIPMENT_NO, BUSINESS_DATE,
 		PARTNER_ID, PARTNER_NAME, WAREHOUSE_ID, WAREHOUSE_NAME,
@@ -155,7 +155,7 @@
 		)
 	</insert>
 
-	<!-- 전표번호와 진행상태는 수정하지 않는다. -->
+	<!-- 伝票番号と進行状態は更新しない。 -->
 	<update id="update"
 		parameterType="hexa.erp.shipment.domain.ShipmentVO">
 		UPDATE SHIPMENT
@@ -208,7 +208,7 @@
 		WHERE SHIPMENT_LINE_ID = #{shipmentLineId}
 		AND SHIPMENT_ID = #{shipmentId} AND DELETED_YN = 'N'
 	</update>
-	<!-- 수정 화면에서 지운 행만 삭제 표시한다. 다른 전표의 행은 바뀌지 않는다. -->
+	<!-- 更新画面で削除指定した行のみ論理削除する。他の伝票の行は変更しない。 -->
 	<update id="removeSelectedLines">
 		UPDATE SHIPMENT_LINE
 		SET DELETED_YN = 'Y'
@@ -221,7 +221,7 @@
 		</foreach>
 	</update>
 
-	<!-- 전표 삭제는 DELETED_YN만 변경하며, 품목 행은 removeLines로 함께 표시한다. -->
+	<!-- 伝票の削除時はDELETED_YNのみ変更し、品目行もremoveLinesで論理削除する。 -->
 	<update id="remove">
 		UPDATE SHIPMENT
 		SET DELETED_YN = 'Y', UPDATED_AT = LOCALTIMESTAMP

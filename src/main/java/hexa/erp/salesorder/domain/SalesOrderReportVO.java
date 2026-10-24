@@ -8,13 +8,13 @@ import java.util.Map;
 
 import lombok.Data;
 
-//주문서 현황 조회 월별 결과
+//受注集計の月別結果
 @Data
 public class SalesOrderReportVO {
 
 	private List<Map<String, Object>> monthGroups = new ArrayList<>();
 
-	// 모든 달을 더한 총 합계
+	// 全月の総合計
 	private Map<String, BigDecimal> totals = new LinkedHashMap<>();
 
 }

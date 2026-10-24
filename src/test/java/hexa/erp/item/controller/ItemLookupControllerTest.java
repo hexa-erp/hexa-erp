@@ -31,7 +31,7 @@ import hexa.erp.item.domain.ItemLookupVO;
 import hexa.erp.item.service.ItemLookupService;
 import hexa.erp.common.domain.LookupCriteria;
 
-/** 테스트 Service를 사용하며 실제 Oracle에는 연결하지 않는다. */
+/** テストServiceを使用し、実際のOracleには接続しない。 */
 public class ItemLookupControllerTest {
 	private ItemLookupController controller;
 	private StubItemLookupService service;
@@ -53,7 +53,7 @@ public class ItemLookupControllerTest {
 			context.registerBeanDefinition("itemLookupController", new RootBeanDefinition(ItemLookupController.class));
 			try {
 				context.refresh();
-				fail("ItemLookupService 없이 Controller가 등록되면 안 된다.");
+				fail("ItemLookupServiceなしでControllerを登録してはならない。");
 			} catch (UnsatisfiedDependencyException expected) {
 				assertTrue(expected.getMessage().contains("ItemLookupService"));
 			}
@@ -64,13 +64,13 @@ public class ItemLookupControllerTest {
 	public void trimsKeywordBindsPageAndIgnoresRequestedAmount() throws Exception {
 		service.total = 26;
 		service.rows = Collections.singletonList(row());
-		JsonNode body = body(mvc.perform(get("/lookup/options/item").param("keyword", "  김 품목  ").param("page", "2")
+		JsonNode body = body(mvc.perform(get("/lookup/options/item").param("keyword", "  佐藤 品目  ").param("page", "2")
 				.param("warehouseId", "201").param("amount", "1000").param("pageSize", "1000")).andReturn());
 		assertEnvelope(body, 2, 2, 26);
 		assertEquals(1, body.get("rows").size());
 		assertEquals(2, service.calls.size());
 		for (LookupCriteria criteria : service.calls) {
-			assertEquals("김 품목", criteria.getKeyword());
+			assertEquals("佐藤 品目", criteria.getKeyword());
 			assertEquals(2, criteria.getPageNum());
 			assertEquals(25, criteria.getAmount());
 		}
@@ -81,8 +81,8 @@ public class ItemLookupControllerTest {
 		assertEquals(42L, selected.get("itemId").asLong());
 		assertTrue(selected.get("itemCode").isTextual());
 		assertEquals("00001", selected.get("itemCode").asText());
-		assertEquals("김 품목", selected.get("itemName").asText());
-		assertEquals("선택 규격", selected.get("specification").asText());
+		assertEquals("佐藤 品目", selected.get("itemName").asText());
+		assertEquals("選択規格", selected.get("specification").asText());
 		assertEquals("EA", selected.get("unit").asText());
 		assertTrue(selected.get("outboundPrice").isNumber());
 		assertEquals(0, new BigDecimal("9999999999999999.99").compareTo(selected.get("outboundPrice").decimalValue()));
@@ -163,7 +163,7 @@ public class ItemLookupControllerTest {
 				mvc.perform(get("/lookup/options/item").param("page", "99").param("warehouseId", "201")).andReturn()),
 				2, 2, 26);
 		assertEquals(Collections.singletonList(201L), service.warehouseIds);
-		assertEquals(99, service.calls.get(0).getPageNum()); // count는 페이지를 사용하지 않는다.
+		assertEquals(99, service.calls.get(0).getPageNum()); // countではページを使用しない。
 		assertEquals(2, service.calls.get(1).getPageNum());
 	}
 
@@ -192,11 +192,11 @@ public class ItemLookupControllerTest {
 
 	@Test
 	public void countAndListFailuresAreNeverReportedAsEmptySuccess() {
-		RuntimeException failure = new IllegalStateException("테스트용 SQL 오류");
+		RuntimeException failure = new IllegalStateException("テスト用SQLエラー");
 		service.countFailure = failure;
 		try {
 			controller.itemOptions("", 1, 201L);
-			fail("DB 오류를 빈 성공 응답으로 바꾸면 안 된다.");
+			fail("DBエラーを空の成功レスポンスに置き換えてはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
@@ -204,7 +204,7 @@ public class ItemLookupControllerTest {
 		service.listFailure = failure;
 		try {
 			controller.itemOptions("", 1, 201L);
-			fail("목록 조회 오류도 숨기면 안 된다.");
+			fail("一覧取得のエラーも隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
@@ -228,8 +228,8 @@ public class ItemLookupControllerTest {
 		ItemLookupVO row = new ItemLookupVO();
 		row.setItemId(42L);
 		row.setItemCode("00001");
-		row.setItemName("김 품목");
-		row.setSpecification("선택 규격");
+		row.setItemName("佐藤 品目");
+		row.setSpecification("選択規格");
 		row.setUnit("EA");
 		row.setOutboundPrice(new BigDecimal("9999999999999999.99"));
 		row.setStockQuantity(new BigDecimal("12.375"));

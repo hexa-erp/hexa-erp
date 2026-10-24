@@ -20,14 +20,14 @@ import lombok.extern.log4j.Log4j;
 @RequestMapping("/master/warehouse")
 public class WarehouseController {
 
-	// 창고 Service 연결
+	// 倉庫Serviceの参照
 	private final WarehouseService service;
 
-	// 창고 목록 조회
+	// 倉庫一覧を取得する。
 	@GetMapping
 	public String list(WarehouseCriteria criteria, @RequestParam Map<String, String> params, Model model) {
 
-		log.info("창고 목록 조회 요청");
+		log.info("倉庫一覧の取得リクエスト");
 
 		int totalCount = service.getTotal(criteria);
 		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
@@ -49,7 +49,7 @@ public class WarehouseController {
 		model.addAttribute("totalCount", totalCount);
 		model.addAttribute("basePath", "/master/warehouse");
 		model.addAttribute("activeMenu", "master");
-		model.addAttribute("pageTitle", "창고 등록");
+		model.addAttribute("pageTitle", "倉庫登録");
 		model.addAttribute("pageScript", "master.js");
 		model.addAttribute("pageStyle", "master.css");
 

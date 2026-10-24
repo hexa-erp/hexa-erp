@@ -22,7 +22,7 @@ import hexa.erp.sale.service.SaleStatusService;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j;
 
-/** 판매 현황 화면. 검색 화면과 결과 화면을 view 파라미터로 구분한다. */
+/** 売上集計画面。検索条件画面と結果画面をviewパラメーターで切り替える。 */
 @Log4j
 @Controller
 @RequestMapping("/sale/status")
@@ -35,40 +35,40 @@ public class SaleStatusController {
 	@GetMapping
 	public String status(SaleStatusCriteria criteria, BindingResult bindingResult,
 			@RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
-		log.info("판매 현황 조회 요청");
+		log.info("売上集計の取得リクエスト");
 		Map<String, String> search = ViewModels.search(params);
-		// 현황은 검색 결과 전체를 표시하며 페이지 분할하지 않는다.
+		// 集計画面には検索結果をすべて表示し、ページ分割は行わない。
 		search.remove("page");
 		search.remove("pageSize");
 		Map<String, List<String>> filterIds = ViewModels.filters(request, search, model, "warehouse", "partner", "item",
 				"assignee");
-		// 필터 선택창의 ID는 정리된 filterIds 값으로 덮어쓴다.
+		// フィルター選択画面のIDを、正規化したfilterIdsの値で上書きする。
 		criteria.setWarehouseIds(filterIds.get("warehouseIds"));
 		criteria.setPartnerIds(filterIds.get("partnerIds"));
 		criteria.setItemIds(filterIds.get("itemIds"));
 		criteria.setAssigneeIds(filterIds.get("assigneeIds"));
 		model.addAttribute("filterSelections", filterSelectionService.getSelections(filterIds));
 		model.addAttribute("search", search);
-		// 조회하지 않거나 실패하면 빈 결과를 화면에 넘긴다.
+		// 検索を実行しない場合や失敗した場合は、空の結果を画面に渡す。
 		SaleStatusVO report = new SaleStatusVO();
-		// 검색 화면(view=search)에서는 조회하지 않고, 결과 화면에서만 조회한다.
+		// 検索条件画面（view=search）では検索を実行せず、結果画面でのみ取得する。
 		if ("results".equals(params.get("view"))) {
-			// 수량·금액 칸에 숫자가 아닌 값이 들어오면 조회하지 않는다.
+			// 数量・金額欄に数値以外が入力された場合は検索を実行しない。
 			if (bindingResult.hasErrors()) {
-				model.addAttribute("errorMessage", "검색조건의 수량과 금액을 확인해 주세요.");
+				model.addAttribute("errorMessage", "検索条件の数量と金額を確認してください。");
 			} else {
 				try {
 					report = statusService.getStatus(criteria);
 				} catch (DataAccessException e) {
-					log.error("판매 현황 조회 실패", e);
-					model.addAttribute("errorMessage", "현황을 조회하지 못했습니다. 검색조건을 확인해 주세요.");
+					log.error("売上集計の取得に失敗しました", e);
+					model.addAttribute("errorMessage", "集計を取得できませんでした。検索条件を確認してください。");
 				}
 			}
 		}
 		model.addAttribute("monthGroups", report.getMonthGroups());
 		model.addAttribute("statusTotals", report.getTotals());
 		model.addAttribute("activeMenu", "sale");
-		model.addAttribute("pageTitle", "판매 현황");
+		model.addAttribute("pageTitle", "売上集計");
 		return "sale/status";
 	}
 }

@@ -5,15 +5,15 @@ import lombok.Data;
 @Data
 public class WarehouseVO {
 
-	// 창고 식별 정보
+	// 倉庫の識別情報
 	private Long warehouseId;
 	private String warehouseCode;
 
-	// 창고 기본 정보
+	// 倉庫の基本情報
 	private String warehouseName;
 	private String warehouseType;
 
-	// 사용 여부와 변경 시각
+	// 利用状態と更新日時
 	private String activeFlag;
 	private String updatedAt;
 }

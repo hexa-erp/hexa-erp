@@ -8,15 +8,15 @@ import hexa.erp.warehouse.domain.WarehouseLookupVO;
 
 public interface StockService {
 
-	// 전체 현재고 조회
+	// 現在庫の全件取得
 	List<StockVO> getList();
 
-	// 사용 중인 창고 조회
+	// 利用中の倉庫を取得する。
 	List<WarehouseLookupVO> getWarehouseList();
 
-	// 품목 현재고 조정
+	// 品目の現在庫を調整する。
 	void adjust(StockVO stock);
 
-	// 판매 재고 증감
+	// 売上による在庫増減
 	void applySaleMovement(StockMovementVO movement);
 }

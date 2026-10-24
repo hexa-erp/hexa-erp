@@ -28,16 +28,16 @@ public class ItemImageServiceImpl implements ItemImageService {
 	@Value("${item.image-directory}")
 	private String imageDirectory;
 
-	// 품목 이미지와 썸네일 저장
+	// 品目画像とサムネイルを保存する。
 	@Override
 	public String store(MultipartFile imageFile) throws IOException {
 
 		if (imageFile == null || imageFile.isEmpty()) {
-			throw new IOException("사진 파일을 선택해 주세요.");
+			throw new IOException("画像ファイルを選択してください。");
 		}
 
 		if (imageFile.getSize() > MAX_FILE_SIZE) {
-			throw new IOException("사진은 5MB 이하만 등록할 수 있습니다.");
+			throw new IOException("登録できる画像は5MB以下です。");
 		}
 
 		String originalName = imageFile.getOriginalFilename();
@@ -49,7 +49,7 @@ public class ItemImageServiceImpl implements ItemImageService {
 		if (!"jpg".equals(extension) && !"jpeg".equals(extension) && !"png".equals(extension)
 				&& !"gif".equals(extension)) {
 
-			throw new IOException("JPG, JPEG, PNG, GIF 사진만 등록할 수 있습니다.");
+			throw new IOException("登録できる画像形式はJPG、JPEG、PNG、GIFのみです。");
 		}
 
 		BufferedImage image;
@@ -59,14 +59,14 @@ public class ItemImageServiceImpl implements ItemImageService {
 		}
 
 		if (image == null) {
-			throw new IOException("읽을 수 없는 사진 파일입니다.");
+			throw new IOException("画像ファイルを読み込めません。");
 		}
 
 		File directory = new File(imageDirectory).getCanonicalFile();
 
 		if (!directory.isDirectory() && !directory.mkdirs() && !directory.isDirectory()) {
 
-			throw new IOException("사진 저장 폴더를 만들 수 없습니다.");
+			throw new IOException("画像の保存フォルダーを作成できません。");
 		}
 
 		String imagePath = UUID.randomUUID().toString() + "." + extension;
@@ -84,11 +84,11 @@ public class ItemImageServiceImpl implements ItemImageService {
 		} catch (IOException | RuntimeException e) {
 			delete(imagePath);
 
-			throw new IOException("사진 파일을 저장하지 못했습니다.", e);
+			throw new IOException("画像ファイルを保存できませんでした。", e);
 		}
 	}
 
-	// 원본 또는 썸네일 조회
+	// 元画像またはサムネイルを取得する。
 	@Override
 	public File getFile(String imagePath, boolean thumbnail) throws IOException {
 
@@ -103,13 +103,13 @@ public class ItemImageServiceImpl implements ItemImageService {
 		}
 
 		if (!original.isFile()) {
-			throw new FileNotFoundException("사진 파일을 찾을 수 없습니다.");
+			throw new FileNotFoundException("画像ファイルが見つかりません。");
 		}
 
 		return original;
 	}
 
-	// 원본과 썸네일 삭제
+	// 元画像とサムネイルを削除する。
 	@Override
 	public void delete(String imagePath) {
 		if (imagePath == null || imagePath.trim().isEmpty()) {
@@ -120,7 +120,7 @@ public class ItemImageServiceImpl implements ItemImageService {
 		deleteFile(thumbnailName(imagePath));
 	}
 
-	// 단일 이미지 파일 삭제
+	// 画像ファイル1件を削除する。
 	private void deleteFile(String fileName) {
 		try {
 			File file = resolveFile(fileName);
@@ -131,17 +131,17 @@ public class ItemImageServiceImpl implements ItemImageService {
 			}
 
 		} catch (IOException | RuntimeException e) {
-			log.warn("품목 사진 파일을 삭제하지 못했습니다: " + fileName, e);
+			log.warn("品目画像ファイルを削除できませんでした: " + fileName, e);
 		}
 	}
 
-	// 안전한 이미지 경로 확인
+	// 画像パスの安全性を確認する。
 	private File resolveFile(String fileName) throws IOException {
 
 		if (fileName == null || fileName.trim().isEmpty() || fileName.contains("/") || fileName.contains("\\")
 				|| fileName.contains(":") || ".".equals(fileName) || "..".equals(fileName)) {
 
-			throw new FileNotFoundException("올바르지 않은 사진 경로입니다.");
+			throw new FileNotFoundException("画像のパスが正しくありません。");
 		}
 
 		File directory = new File(imageDirectory).getCanonicalFile();
@@ -150,13 +150,13 @@ public class ItemImageServiceImpl implements ItemImageService {
 
 		if (!directory.equals(file.getCanonicalFile().getParentFile())) {
 
-			throw new FileNotFoundException("올바르지 않은 사진 경로입니다.");
+			throw new FileNotFoundException("画像のパスが正しくありません。");
 		}
 
 		return file;
 	}
 
-	// 썸네일 파일명 생성
+	// サムネイルのファイル名を生成する。
 	private String thumbnailName(String imagePath) {
 		int extensionIndex = imagePath.lastIndexOf('.');
 

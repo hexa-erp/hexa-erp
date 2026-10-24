@@ -15,36 +15,36 @@ import lombok.extern.log4j.Log4j;
 @RequiredArgsConstructor
 public class WarehouseServiceImpl implements WarehouseService {
 
-	// 창고 Mapper 연결
+	// 倉庫Mapperの参照
 	private final WarehouseMapper mapper;
 
-	// 창고 목록 조회
+	// 倉庫一覧を取得する。
 	@Override
 	public List<WarehouseVO> getList(WarehouseCriteria criteria) {
 		return mapper.getListWithPaging(criteria);
 	}
 
-	// 검색 조건 전체 건수 조회
+	// 検索条件に一致する総件数を取得する。
 	@Override
 	public int getTotal(WarehouseCriteria criteria) {
 		return mapper.getTotalCount(criteria);
 	}
 
-	// 신규 창고 등록
+	// 新規倉庫を登録する。
 	@Override
 	public void register(WarehouseVO warehouse) {
-		log.info("창고 등록 처리");
+		log.info("倉庫の登録処理");
 		mapper.insertSelectKey(warehouse);
 	}
 
-	// 기존 창고 정보 수정
+	// 既存の倉庫情報を更新する。
 	@Override
 	public boolean modify(WarehouseVO warehouse) {
-		log.info("창고 수정: " + warehouse.getWarehouseId());
+		log.info("倉庫の更新: " + warehouse.getWarehouseId());
 		return mapper.update(warehouse) == 1;
 	}
 
-	// 창고 사용 여부 변경
+	// 倉庫の利用状態を変更する。
 	@Override
 	public int changeActive(List<Long> ids, String activeFlag) {
 		if (ids == null || ids.isEmpty()) {
@@ -52,10 +52,10 @@ public class WarehouseServiceImpl implements WarehouseService {
 		}
 
 		if (!"Y".equals(activeFlag) && !"N".equals(activeFlag)) {
-			throw new IllegalArgumentException("사용 여부는 Y 또는 N이어야 합니다.");
+			throw new IllegalArgumentException("利用状態にはYまたはNを指定してください。");
 		}
 
-		log.info("창고 사용 여부 변경: " + activeFlag);
+		log.info("倉庫の利用状態変更: " + activeFlag);
 		return mapper.changeActive(ids, activeFlag);
 	}
 }

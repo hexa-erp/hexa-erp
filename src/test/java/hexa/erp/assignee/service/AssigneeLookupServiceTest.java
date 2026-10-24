@@ -22,7 +22,7 @@ public class AssigneeLookupServiceTest {
 		AssigneeLookupVO row = new AssigneeLookupVO();
 		row.setAssigneeId(42L);
 		row.setAssigneeCode("00001");
-		row.setAssigneeName("테스트 담당자");
+		row.setAssigneeName("テスト担当者");
 		row.setActiveFlag("Y");
 		final List<AssigneeLookupVO> rows = Collections.singletonList(row);
 		AssigneeLookupServiceImpl service = new AssigneeLookupServiceImpl();
@@ -54,7 +54,7 @@ public class AssigneeLookupServiceTest {
 
 	@Test
 	public void mapperFailureIsNotReplacedWithEmptyResults() {
-		final RuntimeException failure = new IllegalStateException("테스트용 조회 실패");
+		final RuntimeException failure = new IllegalStateException("テスト用取得失敗");
 		AssigneeLookupServiceImpl service = new AssigneeLookupServiceImpl();
 		service.setMapper(new AssigneeLookupMapper() {
 			@Override
@@ -74,19 +74,19 @@ public class AssigneeLookupServiceTest {
 		});
 		try {
 			service.get(42L);
-			fail("단건 조회 오류를 숨기면 안 된다.");
+			fail("1件取得のエラーを隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
 		try {
 			service.getTotal(new LookupCriteria());
-			fail("건수 오류를 숨기면 안 된다.");
+			fail("件数取得エラーを隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
 		try {
 			service.getList(new LookupCriteria());
-			fail("목록 오류를 숨기면 안 된다.");
+			fail("一覧取得エラーを隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}

@@ -7,28 +7,28 @@ import lombok.Data;
 @Data
 public class ItemVO {
 
-	// 품목 식별 정보
+	// 品目の識別情報
 	private Long itemId;
 	private String itemCode;
 
-	// 품목 기본 정보
+	// 品目の基本情報
 	private String itemName;
 	private String specification;
 	private String unit;
 	private String itemType;
 
-	// 품목 단가 정보
+	// 品目の単価情報
 	private BigDecimal inboundPrice;
 	private BigDecimal outboundPrice;
 
-	// 품목 이미지와 적요
+	// 品目画像と摘要
 	private String imagePath;
 	private String note;
 
-	// 사용 여부와 변경 시각
+	// 利用状態と更新日時
 	private String activeFlag;
 	private String updatedAt;
 
-	// 화면 표시용 이미지 주소
+	// 画面表示用の画像URL
 	private String imageUrl;
 }

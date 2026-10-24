@@ -51,7 +51,7 @@ public class SalesOrderServiceTests {
 	@Autowired
 	private QuotationLookupMapper quotationLookupMapper;
 
-	// 주문서 저장·조회·수정과 금액 재계산 확인
+	// 受注伝票の保存・取得・更新と金額再計算を確認
 	@Test
 	public void testSaveAndUpdate() {
 		ItemVO item = createItem();
@@ -60,7 +60,7 @@ public class SalesOrderServiceTests {
 		WarehouseVO warehouse = createWarehouse();
 		warehouseMapper.insertSelectKey(warehouse);
 
-		// 신규 저장: 수량 3, 단가 1000
+		// 新規保存：数量3、単価1000
 		SalesOrderVO order = createOrder(item, warehouse, "3", "1000");
 
 		Long orderId = service.save(order);
@@ -82,11 +82,11 @@ public class SalesOrderServiceTests {
 		assertEquals(0, new BigDecimal("300").compareTo(savedLine.getVatAmount()));
 		assertEquals(0, new BigDecimal("3300").compareTo(saved.getTotalAmount()));
 
-		// 같은 주문서·상세행 수정: 수량 5, 단가 2000
+		// 同じ受注伝票・明細行を更新：数量5、単価2000
 		SalesOrderVO update = createOrder(item, warehouse, "5", "2000");
 
 		update.setSalesOrderId(orderId);
-		update.setNote("주문서 수정 테스트");
+		update.setNote("受注伝票の更新テスト");
 		update.getLines().get(0).setSalesOrderLineId(lineId);
 
 		Long updatedId = service.save(update);
@@ -95,7 +95,7 @@ public class SalesOrderServiceTests {
 		assertEquals(orderId, updatedId);
 		assertNotNull(changed);
 		assertEquals(saved.getSalesOrderNo(), changed.getSalesOrderNo());
-		assertEquals("주문서 수정 테스트", changed.getNote());
+		assertEquals("受注伝票の更新テスト", changed.getNote());
 		assertEquals(1, changed.getLines().size());
 
 		SalesOrderLineVO changedLine = changed.getLines().get(0);
@@ -109,7 +109,7 @@ public class SalesOrderServiceTests {
 		assertEquals(0, new BigDecimal("11000").compareTo(changed.getTotalAmount()));
 	}
 
-	// 주문서 상태 변경·수정 시 상태 유지·삭제 확인
+	// 受注伝票の状態変更・更新時の状態保持・削除を確認
 	@Test
 	public void testChangeStatusAndRemove() {
 		ItemVO item = createItem();
@@ -123,7 +123,7 @@ public class SalesOrderServiceTests {
 		Long orderId = service.save(order);
 		List<Long> selectedIds = Collections.singletonList(orderId);
 
-		// 진행상태를 완료로 변경
+		// 進行状況を完了に変更
 		int changeCount = service.changeStatus(selectedIds, "COMPLETED");
 
 		SalesOrderVO completed = service.get(orderId);
@@ -133,12 +133,12 @@ public class SalesOrderServiceTests {
 		assertEquals("COMPLETED", completed.getProgressStatus());
 		assertEquals(1, completed.getLines().size());
 
-		// 일반 수정 요청의 상태값으로 기존 완료 상태가 바뀌지 않는지 확인
+		// 通常の更新リクエストの状態値で既存の完了状態が変わらないことを確認
 		SalesOrderVO update = createOrder(item, warehouse, "3", "1000");
 
 		update.setSalesOrderId(orderId);
 		update.setProgressStatus("IN_PROGRESS");
-		update.setNote("완료 상태 유지 테스트");
+		update.setNote("完了状態の保持テスト");
 		update.getLines().get(0).setSalesOrderLineId(completed.getLines().get(0).getSalesOrderLineId());
 
 		service.save(update);
@@ -146,21 +146,21 @@ public class SalesOrderServiceTests {
 		SalesOrderVO changed = service.get(orderId);
 
 		assertNotNull(changed);
-		assertEquals("완료 상태 유지 테스트", changed.getNote());
+		assertEquals("完了状態の保持テスト", changed.getNote());
 		assertEquals("COMPLETED", changed.getProgressStatus());
 
-		// 전표 삭제 후 일반 조회에서 제외
+		// 伝票削除後は通常の取得から除外
 		int removeCount = service.remove(selectedIds);
 
 		assertEquals(1, removeCount);
 		assertNull(service.get(orderId));
 
-		// 이미 삭제된 전표는 다시 삭제하거나 상태를 변경할 수 없음
+		// 削除済み伝票は再削除や状態変更ができない
 		assertEquals(0, service.remove(selectedIds));
 		assertEquals(0, service.changeStatus(selectedIds, "IN_PROGRESS"));
 	}
 
-	// 원견적 연결과 주문 수정·삭제에 따른 잔량 확인
+	// 元見積との紐付けと受注更新・削除後の残数を確認
 	@Test
 	public void testQuotationLinkAndRemainingQuantity() {
 		ItemVO item = createItem();
@@ -171,7 +171,7 @@ public class SalesOrderServiceTests {
 
 		String businessDate = LocalDate.now().toString();
 
-		// 원견적 수량 10개 저장
+		// 元見積数量10個を保存
 		QuotationVO quotation = new QuotationVO();
 		quotation.setBusinessDate(businessDate);
 		quotation.setWarehouseId(warehouse.getWarehouseId());
@@ -193,7 +193,7 @@ public class SalesOrderServiceTests {
 		assertNotNull(quotationLineId);
 		assertRemainingQuantity(quotationId, "10");
 
-		// 원견적 상세행을 연결해서 주문 3개 저장
+		// 元見積明細行に紐付けて受注3個を保存
 		SalesOrderVO order = createOrder(item, warehouse, "3", "1000");
 
 		order.setBusinessDate(businessDate);
@@ -207,7 +207,7 @@ public class SalesOrderServiceTests {
 		assertEquals(quotationLineId, saved.getLines().get(0).getQuotationLineId());
 		assertRemainingQuantity(quotationId, "7");
 
-		// 같은 주문 상세행의 수량을 5개로 수정
+		// 同じ受注明細行の数量を5個に変更
 		saved.getLines().get(0).setQuantity(new BigDecimal("5"));
 		service.save(saved);
 
@@ -218,13 +218,13 @@ public class SalesOrderServiceTests {
 		assertEquals(quotationLineId, changed.getLines().get(0).getQuotationLineId());
 		assertRemainingQuantity(quotationId, "5");
 
-		// 주문 삭제 후 원견적 잔량이 10개로 복원
+		// 受注削除後に元見積の残数が10個へ復元
 		assertEquals(1, service.remove(Collections.singletonList(orderId)));
 		assertNull(service.get(orderId));
 		assertRemainingQuantity(quotationId, "10");
 	}
 
-	// 원본 전표 선택 조회에서 사용하는 잔량 확인
+	// 元伝票選択で使用する残数を確認
 	private void assertRemainingQuantity(Long quotationId, String expectedQuantity) {
 
 		List<QuotationLookupLineVO> lines = quotationLookupMapper.getLines(quotationId);
@@ -233,13 +233,13 @@ public class SalesOrderServiceTests {
 		assertEquals(0, new BigDecimal(expectedQuantity).compareTo(lines.get(0).getRemainingQuantity()));
 	}
 
-	// 테스트 주문서 생성
+	// テスト受注伝票を生成
 	private SalesOrderVO createOrder(ItemVO item, WarehouseVO warehouse, String quantity, String unitPrice) {
 
 		SalesOrderVO order = new SalesOrderVO();
 		order.setBusinessDate(LocalDate.now().toString());
 		order.setWarehouseId(warehouse.getWarehouseId());
-		order.setNote("주문서 Service 테스트");
+		order.setNote("受注伝票Serviceテスト");
 
 		SalesOrderLineVO line = new SalesOrderLineVO();
 		line.setItemId(item.getItemId());
@@ -254,30 +254,30 @@ public class SalesOrderServiceTests {
 		return order;
 	}
 
-	// 테스트 품목 생성
+	// テスト品目を生成
 	private ItemVO createItem() {
 		String token = createToken();
 
 		ItemVO item = new ItemVO();
 		item.setItemCode("OTEST" + token);
-		item.setItemName("주문 테스트 품목 " + token);
+		item.setItemName("受注テスト品目 " + token);
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 		item.setInboundPrice(BigDecimal.ZERO);
 		item.setOutboundPrice(new BigDecimal("1000"));
 
 		return item;
 	}
 
-	// 테스트 창고 생성
+	// テスト倉庫を生成
 	private WarehouseVO createWarehouse() {
 		String token = createToken();
 
 		WarehouseVO warehouse = new WarehouseVO();
 		warehouse.setWarehouseCode("OWTEST" + token);
-		warehouse.setWarehouseName("주문 테스트 창고 " + token);
-		warehouse.setWarehouseType("창고");
+		warehouse.setWarehouseName("受注テスト倉庫 " + token);
+		warehouse.setWarehouseType("倉庫");
 
 		return warehouse;
 	}

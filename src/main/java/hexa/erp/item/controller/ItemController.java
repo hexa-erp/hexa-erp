@@ -42,21 +42,21 @@ import lombok.extern.log4j.Log4j;
 @RequestMapping("/master/item")
 public class ItemController {
 
-	// 품목 Service 연결
+	// 品目Serviceの参照
 	private final ItemService service;
 
-	// 재고 Service 연결
+	// 在庫Serviceの参照
 	private final StockService stockService;
 
-	// 품목 이미지 Service 연결
+	// 品目画像Serviceの参照
 	private final ItemImageService imageService;
 
-	// 품목 목록 조회
+	// 品目一覧を取得する。
 	@GetMapping
 	public String list(ItemCriteria criteria, @RequestParam Map<String, String> params, HttpServletRequest request,
 			Model model) {
 
-		log.info("품목 목록 조회 요청");
+		log.info("品目一覧の取得リクエスト");
 
 		int totalCount = service.getTotal(criteria);
 		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
@@ -87,7 +87,7 @@ public class ItemController {
 		model.addAttribute("totalCount", totalCount);
 		model.addAttribute("basePath", "/master/item");
 		model.addAttribute("activeMenu", "master");
-		model.addAttribute("pageTitle", "품목 등록");
+		model.addAttribute("pageTitle", "品目登録");
 		model.addAttribute("pageScript", "master.js");
 		model.addAttribute("pageStyle", "master.css");
 		model.addAttribute("warehouseOptions", stockService.getWarehouseList());
@@ -96,33 +96,33 @@ public class ItemController {
 		return "master/item";
 	}
 
-	// 품목 현재고 조정
+	// 品目の現在庫を調整する。
 	@PostMapping("/stock")
 	public String saveStock(StockVO stock, BindingResult bindingResult, HttpServletRequest request,
 			RedirectAttributes rttr) {
 
-		log.info("품목 재고 저장 요청");
+		log.info("品目在庫の保存リクエスト");
 
 		if (bindingResult.hasErrors() || stock.getItemId() == null || stock.getWarehouseId() == null
 				|| stock.getQuantity() == null) {
 
-			rttr.addFlashAttribute("errorMessage", "품목·창고·입력 수량을 확인해 주세요.");
+			rttr.addFlashAttribute("errorMessage", "品目・倉庫・入力数量を確認してください。");
 
 		} else {
 			try {
 				stockService.adjust(stock);
 
 			} catch (DataAccessException e) {
-				log.error("품목 재고 저장 실패", e);
+				log.error("品目在庫の保存に失敗しました", e);
 
-				rttr.addFlashAttribute("errorMessage", "재고를 저장하지 못했습니다. 품목과 창고를 확인해 주세요.");
+				rttr.addFlashAttribute("errorMessage", "在庫を保存できませんでした。品目と倉庫を確認してください。");
 			}
 		}
 
 		return PostRedirects.toList("/master/item", request);
 	}
 
-	// 품목 이미지 응답
+	// 品目画像のレスポンス
 	@GetMapping("/image")
 	@ResponseBody
 	public ResponseEntity<byte[]> image(@RequestParam("itemId") Long itemId,
@@ -160,7 +160,7 @@ public class ItemController {
 			return new ResponseEntity<>(FileCopyUtils.copyToByteArray(file), headers, HttpStatus.OK);
 
 		} catch (IOException e) {
-			log.warn("품목 사진을 읽지 못했습니다: " + itemId, e);
+			log.warn("品目画像を読み込めませんでした: " + itemId, e);
 
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}

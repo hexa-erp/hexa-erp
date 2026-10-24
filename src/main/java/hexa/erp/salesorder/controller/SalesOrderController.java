@@ -46,17 +46,17 @@ public class SalesOrderController {
 	@Setter(onMethod_ = @Autowired)
 	private SalesOrderReportService reportService;
 
-	// 주문서 목록 조회 및 페이징
+	// 受注伝票一覧を取得し、ページ分割する。
 	@GetMapping("/list")
 	public String list(SalesOrderCriteria criteria, @RequestParam Map<String, String> params, Model model) {
-		log.info("주문서 목록 조회 요청");
+		log.info("受注一覧の取得リクエスト");
 
-		// 페이징 처리
+		// ページ分割を行う。
 		int totalCount = service.getTotal(criteria);
 		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
 		criteria.setPage(Math.min(criteria.getPage(), totalPages));
 
-		// 검색 조건, 페이징 상태 유지
+		// 検索条件とページ情報を維持する。
 		Map<String, String> search = ViewModels.search(params);
 		search.put("keyword", criteria.getKeyword());
 		search.put("progressStatus", criteria.getProgressStatus());
@@ -71,32 +71,32 @@ public class SalesOrderController {
 		model.addAttribute("totalCount", totalCount);
 		model.addAttribute("basePath", "/order/list");
 		model.addAttribute("activeMenu", "order");
-		model.addAttribute("pageTitle", "주문서 조회");
+		model.addAttribute("pageTitle", "受注一覧");
 
 		return "order/list";
 	}
 
-	// 주문서 신규 입력 및 기존 주문서 조회
+	// 受注伝票の新規入力と既存伝票の取得
 	@GetMapping("/form")
 	public String form(@RequestParam(value = "id", required = false) Long id, @RequestParam Map<String, String> params,
 			@RequestParam(value = "salesOrderId", required = false) Long salesOrderId, HttpServletRequest request,
 			Model model, RedirectAttributes rttr) {
-		log.info("주문서 입력 화면 요청");
+		log.info("受注入力画面の表示リクエスト");
 
 		Long documentId = id == null ? salesOrderId : id;
 		SalesOrderVO form;
 
-		// 신규 주문서 입력 시 기본값 설정
+		// 新規受注伝票の入力時に既定値を設定する。
 		if (documentId == null) {
 			form = new SalesOrderVO();
 
 			form.setBusinessDate(LocalDate.now().toString());
 			form.setProgressStatus("IN_PROGRESS");
 		} else {
-			// 기존 주문서 조회
+			// 既存の受注伝票を取得する。
 			form = service.get(documentId);
 			if (form == null) {
-				rttr.addFlashAttribute("errorMessage", "조회할 주문서가 없습니다.");
+				rttr.addFlashAttribute("errorMessage", "表示対象の受注伝票がありません。");
 
 				return PostRedirects.toList("/order/list", request);
 			}
@@ -106,32 +106,32 @@ public class SalesOrderController {
 		model.addAttribute("mode", "create");
 		model.addAttribute("isEdit", false);
 		model.addAttribute("activeMenu", "order");
-		model.addAttribute("pageTitle", "주문서 입력");
+		model.addAttribute("pageTitle", "受注入力");
 		return "order/form";
 	}
 
-	// 주문서 현황 조회
+	// 受注集計を取得する。
 	@GetMapping("/status")
 	public String status(SalesOrderReportCriteria criteria, BindingResult bindingResult,
 			@RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
-		log.info("주문서 현황 조회 요청");
+		log.info("受注集計の取得リクエスト");
 
-		// 검색 조건 및 필터 설정
+		// 検索条件とフィルターを設定する。
 		prepareReportSearch(criteria, params, request, model);
 
 		SalesOrderReportVO report = new SalesOrderReportVO();
 
-		// 주문서 현황 조회
+		// 受注集計を取得する。
 		if ("results".equals(params.get("view"))) {
 			if (bindingResult.hasErrors()) {
-				model.addAttribute("errorMessage", "검색조건의 수량과 금액을 확인해 주세요.");
+				model.addAttribute("errorMessage", "検索条件の数量と金額を確認してください。");
 			} else {
 				try {
 					report = reportService.getStatus(criteria);
 				} catch (DataAccessException e) {
-					log.error("주문서 현황 조회 실패", e);
+					log.error("受注集計の取得に失敗しました", e);
 
-					model.addAttribute("errorMessage", "현황을 조회하지 못했습니다. 검색조건을 확인해 주세요.");
+					model.addAttribute("errorMessage", "集計を取得できませんでした。検索条件を確認してください。");
 				}
 			}
 		}
@@ -139,15 +139,15 @@ public class SalesOrderController {
 		model.addAttribute("monthGroups", report.getMonthGroups());
 		model.addAttribute("statusTotals", report.getTotals());
 		model.addAttribute("activeMenu", "order");
-		model.addAttribute("pageTitle", "주문서 현황");
+		model.addAttribute("pageTitle", "受注集計");
 		return "order/status";
 	}
 
-	// 주문서 전표 조회
+	// 受注伝票を取得する。
 	@GetMapping("/statement")
 	public String statement(@RequestParam(value = "id", required = false) Long id, HttpServletResponse response,
 			Model model) {
-		log.info("주문서 전표 조회 요청");
+		log.info("受注伝票の表示リクエスト");
 
 		SalesOrderVO form = id == null ? null : service.get(id);
 		if (form == null) {
@@ -155,7 +155,7 @@ public class SalesOrderController {
 			form = new SalesOrderVO();
 		}
 
-		// 주문서 품목별 금액을 더해서 전표 전체 합계 계산
+		// 受注伝票の品目別金額を合計し、伝票全体の合計を計算する。
 		Map<String, BigDecimal> totals = new LinkedHashMap<>();
 		totals.put("supplyAmount", BigDecimal.ZERO);
 		totals.put("vatAmount", BigDecimal.ZERO);
@@ -170,49 +170,49 @@ public class SalesOrderController {
 		model.addAttribute("form", form);
 		model.addAttribute("statementTotals", totals);
 		model.addAttribute("activeMenu", "order");
-		model.addAttribute("pageTitle", "주문서 전표");
+		model.addAttribute("pageTitle", "受注伝票");
 
 		return "order/statement";
 
 	}
 
-	// 미판매 현황 조회
+	// 未売上一覧を取得する。
 	@GetMapping("/unsold")
 	public String unsold(SalesOrderReportCriteria criteria, BindingResult bindingResult,
 			@RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
-		log.info("미판매 현황 조회 요청");
+		log.info("未売上一覧の取得リクエスト");
 
 		if (!StringUtils.hasText(criteria.getCutoffDate())) {
 			criteria.setCutoffDate(LocalDate.now().toString());
 			params.put("cutoffDate", criteria.getCutoffDate());
 		}
 
-		// 검색조건 및 필터 설정
+		// 検索条件とフィルターを設定する。
 		prepareReportSearch(criteria, params, request, model);
 		SalesOrderReportVO report = new SalesOrderReportVO();
 
-		// 미판매 현황 조회
+		// 未売上一覧を取得する。
 		if ("results".equals(params.get("view"))) {
 			if (bindingResult.hasErrors()) {
-				model.addAttribute("errorMessage", "검색조건의 수량과 금액을 확인해 주세요.");
+				model.addAttribute("errorMessage", "検索条件の数量と金額を確認してください。");
 			} else {
 				try {
 					report = reportService.getUnsold(criteria);
 				} catch (DataAccessException e) {
-					log.error("미판매 현황 조회 실패", e);
+					log.error("未売上一覧の取得に失敗しました", e);
 
-					model.addAttribute("errorMessage", "미판매 현황을 조회하지 못했습니다. 검색조건을 확인해 주세요.");
+					model.addAttribute("errorMessage", "未売上一覧を取得できませんでした。検索条件を確認してください。");
 				}
 			}
 		}
 		model.addAttribute("monthGroups", report.getMonthGroups());
 		model.addAttribute("remainingTotals", report.getTotals());
 		model.addAttribute("activeMenu", "order");
-		model.addAttribute("pageTitle", "미판매 현황");
+		model.addAttribute("pageTitle", "未売上一覧");
 		return "order/unsold";
 	}
 
-	// 검색 조건 및 필터
+	// 検索条件とフィルター
 	private void prepareReportSearch(SalesOrderReportCriteria criteria, Map<String, String> params,
 			HttpServletRequest request, Model model) {
 		Map<String, String> search = ViewModels.search(params);

@@ -15,10 +15,10 @@ public class ViewModelsTest {
 	@Test
 	public void searchCopiesRatherThanMutatingRequestValues() {
 		Map<String, String> params = new LinkedHashMap<>();
-		params.put("keyword", "001 검색");
+		params.put("keyword", "001 検索");
 		params.put("view", "results");
 		Map<String, String> search = ViewModels.search(params);
-		assertEquals("001 검색", search.get("keyword"));
+		assertEquals("001 検索", search.get("keyword"));
 		assertEquals("results", search.get("view"));
 		assertEquals("custom", search.get("datePreset"));
 		assertEquals("", search.get("progressStatus"));
@@ -32,7 +32,7 @@ public class ViewModelsTest {
 		ExtendedModelMap model = new ExtendedModelMap();
 		Map<String, String> search = new LinkedHashMap<>();
 		search.put("partnerId", "ignored-legacy");
-		search.put("partnerName", "조회되지 않은 이름");
+		search.put("partnerName", "取得されていない名前");
 		Map<String, List<String>> ids = ViewModels.filters(request, search, model, "warehouse", "partner", "item",
 				"assignee");
 		assertSame(ids, model.get("filterIds"));
@@ -63,7 +63,7 @@ public class ViewModelsTest {
 		Map<String, String> search = new LinkedHashMap<>();
 		search.put("assigneeIds", "001");
 		search.put("assigneeId", "001");
-		search.put("assigneeName", "담당자");
+		search.put("assigneeName", "担当者");
 		ExtendedModelMap model = new ExtendedModelMap();
 		ViewModels.filters(request, search, model, "warehouse", "partner", "item");
 		assertTrue(search.isEmpty());

@@ -44,11 +44,11 @@ public class FilterSelectionServiceTest {
 		Map<String, List<FilterSelectionVO>> selected = service.getSelections(ids);
 
 		assertEquals(4, selected.size());
-		assertNames(selected.get("warehouse"), "웹 테스트 창고 ", "202", "201");
-		assertSelection(selected.get("partner").get(0), "001", "00001", "웹 테스트 거래처 1");
-		assertSelection(selected.get("partner").get(1), "9007199254740993", "00001", "웹 테스트 거래처 9007199254740993");
-		assertNames(selected.get("item"), "웹 테스트 품목 ", "301", "302");
-		assertNames(selected.get("assignee"), "웹 테스트 담당자 ", "401", "402");
+		assertNames(selected.get("warehouse"), "Webテスト倉庫 ", "202", "201");
+		assertSelection(selected.get("partner").get(0), "001", "00001", "Webテスト取引先 1");
+		assertSelection(selected.get("partner").get(1), "9007199254740993", "00001", "Webテスト取引先 9007199254740993");
+		assertNames(selected.get("item"), "Webテスト品目 ", "301", "302");
+		assertNames(selected.get("assignee"), "Webテスト担当者 ", "401", "402");
 		assertEquals(Arrays.asList("001", "9007199254740993"), ids.get("partnerIds"));
 	}
 
@@ -59,7 +59,7 @@ public class FilterSelectionServiceTest {
 			public PartnerLookupVO get(Long id) {
 				PartnerLookupVO row = super.get(id);
 				row.setActiveFlag("N");
-				row.setPartnerName("사용 중지 거래처");
+				row.setPartnerName("利用停止取引先");
 				return row;
 			}
 		});
@@ -67,7 +67,7 @@ public class FilterSelectionServiceTest {
 		FilterSelectionVO selected = service.getSelections(Collections.singletonMap("partnerIds", Arrays.asList("101")))
 				.get("partner").get(0);
 
-		assertSelection(selected, "101", "00001", "사용 중지 거래처");
+		assertSelection(selected, "101", "00001", "利用停止取引先");
 	}
 
 	@Test
@@ -88,14 +88,14 @@ public class FilterSelectionServiceTest {
 		assertEquals(ids.size(), selected.size());
 		for (int i = 0; i < ids.size(); i++) {
 			String id = ids.get(i);
-			assertSelection(selected.get(i), id, "", "찾을 수 없는 항목 (" + id + ")");
+			assertSelection(selected.get(i), id, "", "見つからない項目 (" + id + ")");
 		}
 		assertEquals(Arrays.asList(999L), queried);
 	}
 
 	@Test
 	public void databaseFailurePropagatesInsteadOfBecomingAMissingSelection() {
-		final RuntimeException failure = new IllegalStateException("테스트용 조회 실패");
+		final RuntimeException failure = new IllegalStateException("テスト用取得失敗");
 		service.setPartnerLookupService(new StubPartnerLookupService() {
 			@Override
 			public PartnerLookupVO get(Long id) {
@@ -105,7 +105,7 @@ public class FilterSelectionServiceTest {
 
 		try {
 			service.getSelections(Collections.singletonMap("partnerIds", Arrays.asList("101")));
-			fail("단건 조회 실패를 찾을 수 없는 항목으로 바꾸면 안 된다.");
+			fail("1件取得の失敗を項目が見つからない状態に置き換えてはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}

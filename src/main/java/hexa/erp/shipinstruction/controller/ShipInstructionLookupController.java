@@ -27,7 +27,7 @@ public class ShipInstructionLookupController {
 	public Map<String, Object> shipInstructionSources(@RequestParam(name = "keyword", defaultValue = "") String keyword,
 			@RequestParam(name = "progressStatus", defaultValue = "") String progressStatus,
 			@RequestParam(name = "page", defaultValue = "1") int page) {
-		log.info("출하지시서 불러오기 조회");
+		log.info("出荷指示書の読込候補を取得");
 		LookupCriteria criteria = new LookupCriteria();
 		criteria.setKeyword(keyword);
 		criteria.setPageNum(page);

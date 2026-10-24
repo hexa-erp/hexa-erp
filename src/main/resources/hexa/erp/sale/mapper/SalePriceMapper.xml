@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="hexa.erp.sale.mapper.SalePriceMapper">
-	<!-- 이름과 규격은 전표에 저장한 값을 사용하고 품목 코드만 마스터에서 읽는다. -->
+	<!-- 名前と規格は伝票に保存された値を使用し、品目コードのみマスターから取得する。 -->
 	<sql id="rowTables">
 		FROM SALE h
 		JOIN SALE_LINE l ON l.SALE_ID = h.SALE_ID
 		LEFT JOIN ITEM i
 		ON i.ITEM_ID = l.ITEM_ID
-		<!-- 원주문이 삭제되어도 판매에 연결된 원주문 일자와 번호는 표시한다. -->
+		<!-- 元受注が削除されていても、売上に紐づく元受注の日付と番号は表示する。 -->
 		LEFT JOIN SALES_ORDER_LINE source_line ON
 		source_line.SALES_ORDER_LINE_ID = l.SALES_ORDER_LINE_ID
 		LEFT JOIN
 		SALES_ORDER source_header ON source_header.SALES_ORDER_ID =
 		source_line.SALES_ORDER_ID
 	</sql>
-	<!-- 값이 있는 조건만 추가한다. 종료일은 다음 날 0시 미만으로 비교해 당일 전체를 포함한다. -->
+	<!-- 値が指定された条件のみ追加する。終了日は翌日0時未満で比較し、当日全体を含める。 -->
 	<sql id="searchCondition">
 		WHERE h.DELETED_YN = 'N' AND l.DELETED_YN = 'N'
 		<if test="startDate != null and startDate.trim() != ''">
@@ -50,7 +50,7 @@
 				#{itemId}
 			</foreach>
 		</if>
-		<!-- 검색어는 거래처명·품목코드·품목명 중 하나라도 포함하면 찾는다. -->
+		<!-- 検索語を取引先名・品目コード・品目名のいずれかに含む行を取得する。 -->
 		<if test="keyword != null and keyword != ''">
 			AND (
 			UPPER(h.PARTNER_NAME) LIKE '%' || UPPER(#{keyword})
@@ -62,8 +62,8 @@
 		</if>
 	</sql>
 
-	<!-- 정렬한 결과에 ROWNUM을 붙여 (page - 1) * pageSize 초과, page * pageSize 이하 행만 
-		자른다. -->
+	<!-- ソート結果にROWNUMを付け、(page - 1) * pageSizeより大きく、page * pageSize以下の行のみを
+		切り出す。 -->
 	<select id="getListWithPaging"
 		resultType="hexa.erp.sale.domain.SalePriceVO">
 		SELECT SALE_LINE_ID, SALE_ID, SALE_NO, BUSINESS_DATE,
@@ -80,7 +80,7 @@
 		SELECT l.SALE_LINE_ID, h.SALE_ID, h.SALE_NO,
 		TO_CHAR(h.BUSINESS_DATE,
 		'YYYY-MM-DD') AS BUSINESS_DATE,
-		<!-- 문자열로 바꾼 일자 대신 DATE 값으로 바깥 쿼리를 다시 정렬하기 위한 컬럼 -->
+		<!-- 外側のクエリーで文字列化した日付ではなくDATE値を使って再ソートするための列 -->
 		h.BUSINESS_DATE AS SORT_BUSINESS_DATE,
 		h.PARTNER_NAME, h.ASSIGNEE_NAME,
 		h.WAREHOUSE_NAME,
@@ -114,7 +114,7 @@
 		<include refid="rowTables" />
 		<include refid="searchCondition" />
 	</select>
-	<!-- 품목 행이 해당 전표에 속하는지 확인하면서 금액 계산에 쓸 수량을 읽는다. -->
+	<!-- 品目行が対象伝票に属することを確認し、金額計算に使用する数量を取得する。 -->
 	<select id="read" resultType="hexa.erp.sale.domain.SalePriceVO">
 		SELECT l.SALE_LINE_ID, l.SALE_ID,
 		l.QUANTITY
@@ -125,7 +125,7 @@
 		AND
 		l.DELETED_YN = 'N' AND h.DELETED_YN = 'N'
 	</select>
-	<!-- 전표나 품목 행이 그 사이 삭제됐으면 0건이 바뀐다. -->
+	<!-- 処理の間に伝票や品目行が削除された場合、更新件数は0となる。 -->
 	<update id="updatePrice">
 		UPDATE SALE_LINE
 		SET UNIT_PRICE = #{unitPrice},

@@ -21,8 +21,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * 실제 Oracle 연결 점검: mvn -Dtest=DatabaseConnectionIT test 기본 테스트에서 제외하며 DUAL 조회만
- * 수행한다.
+ * 実際のOracle接続を確認する。mvn -Dtest=DatabaseConnectionIT test。
+ * デフォルトテストには含めず、DUALへのSELECTのみ実行する。
  */
 @Log4j
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -51,7 +51,7 @@ public class DatabaseConnectionIT {
 			assertTrue(rows.next());
 			assertEquals(1, rows.getInt(1));
 		}
-		log.info("Oracle 연결 및 공통 DataSource 설정 확인 완료");
+		log.info("Oracle接続と共通DataSource設定の確認完了");
 	}
 
 	@Test

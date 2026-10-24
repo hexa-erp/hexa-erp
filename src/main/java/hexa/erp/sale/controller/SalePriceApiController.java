@@ -19,10 +19,10 @@ public class SalePriceApiController {
 	@Setter(onMethod_ = @Autowired)
 	private SalePriceService service;
 
-	// 선택한 판매 상세행의 단가와 금액을 기존 서비스에서 함께 갱신한다.
+	// 選択した売上明細行の単価と金額を既存Serviceでまとめて更新する。
 	@PatchMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> changePrices(@RequestBody SalePriceFormVO form) {
 		int count = service.savePrices(form.getChanges());
-		return ResponseEntity.ok(new ApiResponseVO("판매 단가를 변경했습니다.", null, count));
+		return ResponseEntity.ok(new ApiResponseVO("売上単価を変更しました。", null, count));
 	}
 }

@@ -10,11 +10,11 @@ public final class ApiRequests {
 
 	public static List<Long> requireIds(SelectedIdsVO request) {
 		if (request == null || request.getIds() == null || request.getIds().isEmpty()) {
-			throw new IllegalArgumentException("처리할 항목을 선택해 주세요.");
+			throw new IllegalArgumentException("処理する項目を選択してください。");
 		}
 		for (Long id : request.getIds()) {
 			if (id == null || id <= 0) {
-				throw new IllegalArgumentException("선택한 항목의 식별자를 확인해 주세요.");
+				throw new IllegalArgumentException("選択した項目のIDを確認してください。");
 			}
 		}
 		return request.getIds();

@@ -31,7 +31,7 @@ public class WarehouseServiceTests {
 	@Autowired
 	private WarehouseService service;
 
-	// Service 객체 주입 확인
+	// Serviceオブジェクトの注入を確認
 	@Test
 	public void testServiceExist() {
 		log.info("========== SERVICE INJECTION TEST ==========");
@@ -40,7 +40,7 @@ public class WarehouseServiceTests {
 		assertNotNull(service);
 	}
 
-	// 창고 등록과 조회 확인
+	// 倉庫の登録と取得を確認
 	@Test
 	public void testRegisterAndGetList() {
 		WarehouseVO warehouse = createWarehouse();
@@ -71,21 +71,21 @@ public class WarehouseServiceTests {
 		assertEquals(1, totalCount);
 	}
 
-	// 창고 정보 수정 확인
+	// 倉庫情報の更新を確認
 	@Test
 	public void testModify() {
 		WarehouseVO warehouse = createWarehouse();
 		service.register(warehouse);
 
-		String changedName = "서비스 수정 창고 " + createToken();
+		String changedName = "Service更新テスト倉庫 " + createToken();
 
 		warehouse.setWarehouseName(changedName);
-		warehouse.setWarehouseType("공장");
+		warehouse.setWarehouseType("工場");
 
 		log.info("========== SERVICE MODIFY TEST ==========");
 		log.info("WAREHOUSE ID: " + warehouse.getWarehouseId());
 		log.info("CHANGED WAREHOUSE NAME: " + changedName);
-		log.info("CHANGED WAREHOUSE TYPE: 공장");
+		log.info("CHANGED WAREHOUSE TYPE: 工場");
 
 		boolean result = service.modify(warehouse);
 
@@ -99,10 +99,10 @@ public class WarehouseServiceTests {
 		assertTrue(result);
 		assertNotNull(changedWarehouse);
 		assertEquals(changedName, changedWarehouse.getWarehouseName());
-		assertEquals("공장", changedWarehouse.getWarehouseType());
+		assertEquals("工場", changedWarehouse.getWarehouseType());
 	}
 
-	// 창고 사용중단과 재사용 확인
+	// 倉庫の利用停止と利用再開を確認
 	@Test
 	public void testChangeActive() {
 		WarehouseVO warehouse = createWarehouse();
@@ -160,8 +160,8 @@ public class WarehouseServiceTests {
 
 		WarehouseVO warehouse = new WarehouseVO();
 		warehouse.setWarehouseCode("TEST" + token);
-		warehouse.setWarehouseName("서비스 테스트 창고 " + token);
-		warehouse.setWarehouseType("창고");
+		warehouse.setWarehouseName("Serviceテスト倉庫 " + token);
+		warehouse.setWarehouseType("倉庫");
 
 		return warehouse;
 	}

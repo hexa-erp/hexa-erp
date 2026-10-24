@@ -19,7 +19,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-/** Oracle 연결 없이 테스트 Mapper/XML을 검사한다. 실제 연결 확인은 DatabaseConnectionIT에서 한다. */
+/** Oracle接続なしでテストMapper/XMLを検証する。実際の接続はDatabaseConnectionITで確認する。 */
 public class ConnectionProbeConfigurationTest {
 	@Test
 	public void factoryWithoutTestRegistrationHasNoProbeMapper() throws Exception {

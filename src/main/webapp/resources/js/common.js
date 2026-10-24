@@ -15,7 +15,7 @@
   }
 
   function notice(message) {
-    $('#notice-message').text(String(message || '아직 구현되지 않은 기능입니다. 실제 데이터는 변경되지 않습니다.'));
+    $('#notice-message').text(String(message || 'この機能はまだ実装されていません。データは変更されません。'));
     openModal('notice-modal');
   }
 
@@ -33,7 +33,7 @@
       $.ajax({
         url: ctx + url,
         type: 'GET',
-        // 응답을 JSON으로 읽고, 비어 있으면 오류로 처리한다.
+        // 応答をJSONとして読み取り、空の場合はエラーにする。
         dataType: 'text',
         headers: { Accept: 'application/json' },
         success: function(response, textStatus, xhr) {
@@ -54,7 +54,7 @@
     });
   }
 
-  // 변경 요청은 JSON 응답을 받고, 서버의 오류 메시지를 호출한 화면에 전달한다.
+  // 変更リクエストはJSON応答を受け取り、サーバーのエラーメッセージを呼び出し元の画面へ渡す。
   function request(url, method, data, multipart) {
     return new Promise(function(resolve, reject) {
       $.ajax({
@@ -69,14 +69,14 @@
         error: function(xhr) {
           var body = xhr.responseJSON;
           reject(new Error(body && body.message ? body.message
-            : (xhr.status ? '요청을 처리하지 못했습니다. 입력 내용을 확인한 뒤 다시 시도해 주세요.'
-              : '서버에 연결할 수 없습니다. 연결 상태를 확인해 주세요.')));
+            : (xhr.status ? 'リクエストを処理できませんでした。入力内容を確認してから再度お試しください。'
+              : 'サーバーに接続できません。接続状態を確認してください。')));
         }
       });
     });
   }
 
-  // 폼의 lines[0].itemId 등을 JSON 배열로 바꾼다. 금액과 ID는 문자열로 보내 정밀도를 보존한다.
+  // フォームのlines[0].itemIdなどをJSON配列へ変換する。金額とIDは精度を保つため文字列で送る。
   function formPayload(form) {
     var payload = {};
     $(form).serializeArray().forEach(function(entry) {
@@ -165,7 +165,7 @@
         return this.value;
       }).get();
       if (!ids.length) {
-        notice('처리할 전표를 먼저 선택해 주세요.');
+        notice('処理する伝票を先に選択してください。');
         return;
       }
       var deleting = $(submitter).is('[data-api-delete]');
@@ -180,7 +180,7 @@
       var prices = formPayload(form);
       prices.changes = (prices.changes || []).filter(function(row) { return row.selected; });
       if (!prices.changes.length) {
-        notice('단가를 변경할 행을 선택해 주세요.');
+        notice('単価を変更する行を選択してください。');
         return;
       }
       sendForm(form, '/api/sales/prices', 'PATCH', prices, function() {
@@ -191,13 +191,13 @@
 
   function pages(el, data, callback) {
     var $el = $(el).empty();
-    $el.append(node('span', '총 ' + data.totalCount + '건 · 25개씩', 'muted'));
+    $el.append(node('span', '全 ' + data.totalCount + '件・25件ずつ', 'muted'));
     for (var i = 1; i <= data.totalPages; i++) {
       var $button = $(node('button', i, 'page-button ' + (i === data.page ? 'is-active' : '')));
       $button.prop('type', 'button').attr('data-page', i);
       $el.append($button);
     }
-    // 페이지 이동 이벤트가 중복 등록되지 않도록 갱신한다.
+    // ページ移動イベントが重複登録されないよう更新する。
     $el.off('click.hexaPages', 'button[data-page]');
     $el.on('click.hexaPages', 'button[data-page]', function() {
       callback(Number($(this).attr('data-page')));
@@ -211,12 +211,12 @@
     assignee: ['assigneeCode', 'assigneeName'],
     item: ['itemCode', 'itemName', 'specification', 'stockQuantity']
   };
-  var labels = { partner: '거래처', warehouse: '창고', assignee: '담당자', item: '품목' };
+  var labels = { partner: '取引先', warehouse: '倉庫', assignee: '担当者', item: '品目' };
 
   function loadPicker(page) {
     var $body = $('#picker-body').empty();
     picker.rows = [];
-    $body.append(node('tr', '조회 중…'));
+    $body.append(node('tr', '照会中…'));
     json('/lookup/options/' + picker.type
       + '?keyword=' + encodeURIComponent(picker.keyword)
       + '&page=' + page
@@ -229,7 +229,7 @@
         fields[picker.type].forEach(function(f, i) {
           var $td = $(node('td'));
           if (i === 0 || i === 1) {
-            var $button = $(node('button', row[f] || '선택', 'btn btn-sm'));
+            var $button = $(node('button', row[f] || '選択', 'btn btn-sm'));
             $button.prop('type', 'button').attr('data-picker-index', rowIndex);
             $td.append($button);
           } else {
@@ -240,13 +240,13 @@
         $body.append($tr);
       });
       if (!data.rows.length) {
-        var $empty = $(node('td', '검색 결과가 없습니다.', 'empty-state')).prop('colSpan', 4);
+        var $empty = $(node('td', '検索結果がありません。', 'empty-state')).prop('colSpan', 4);
         $body.append($(node('tr')).append($empty));
       }
       pages($('#picker-pages')[0], data, loadPicker);
     }).catch(function() {
       $body.empty();
-      notice('선택 목록을 불러오지 못했습니다. 조회 API 연결을 확인해 주세요.');
+      notice('選択一覧を取得できませんでした。照会APIの接続を確認してください。');
     });
   }
 
@@ -257,15 +257,15 @@
       keyword: initialKeyword == null ? '' : String(initialKeyword),
       rows: []
     };
-    $('#picker-title').text(labels[type] + ' 선택');
+    $('#picker-title').text(labels[type] + ' 選択');
     $('#picker-search input').val(picker.keyword);
     var $head = $('#picker-head').empty();
     var $tr = $(node('tr'));
     var columns = {
-      partner: ['거래처코드', '거래처명'],
-      warehouse: ['창고코드', '창고명', '구분'],
-      assignee: ['담당자코드', '담당자명'],
-      item: ['품목코드', '품목명', '규격', '현재고']
+      partner: ['取引先コード', '取引先名'],
+      warehouse: ['倉庫コード', '倉庫名', '区分'],
+      assignee: ['担当者コード', '担当者名'],
+      item: ['品目コード', '品目名', '規格', '現在庫']
     };
     columns[type].forEach(function(c) {
       $tr.append(node('th', c));
@@ -332,11 +332,11 @@
       var statusForm = statusOption.form;
       closeStatusMenus();
       if (!$(statusForm).find('input[name="selectedIds"]:checked').length) {
-        notice('변경할 전표를 먼저 선택해 주세요.');
+        notice('変更する伝票を先に選択してください。');
         return;
       }
       $(statusForm.elements.nextProgressStatus).val($(statusOption).attr('data-status-value'));
-      // 진행상태 변경 버튼의 전송 주소를 사용한다.
+      // 進捗状況変更ボタンの送信先を使う。
       statusForm.requestSubmit($(statusForm).find('[data-status-submit]')[0]);
       return;
     }
@@ -355,7 +355,7 @@
     var $trigger = $target.closest('[data-pick]');
     if ($trigger.length) {
       var $box = $trigger.closest('[data-selector-field]');
-      // 코드 입력으로 선택하는 항목은 reference-selector.js에서 처리한다.
+      // コード入力による選択はreference-selector.jsで処理する。
       if (!$box.length || $box.is('[data-code-selector]'))
         return;
       pick($trigger.attr('data-pick'), function(row) {
@@ -411,7 +411,7 @@
       setDates(this);
   });
 
-  // 검색 화면(GET)에서 이름을 바꾸면 선택했던 ID를 비운다.
+  // 検索画面（GET）で名称を変更すると、選択済みIDを空にする。
   $(document).on('input.hexaCommon', 'input[name$="Name"]', function() {
     var input = this;
     if (!input.form || input.form.method.toLowerCase() !== 'get')
@@ -438,15 +438,15 @@
     if ($(event.submitter).is('[data-confirm-delete]')) {
       if (!$form.find('input[name="selectedIds"]:checked').length) {
         e.preventDefault();
-        notice('삭제할 전표를 먼저 선택해 주세요.');
+        notice('削除する伝票を先に選択してください。');
         return;
       }
-      if (!window.confirm('선택한 전표를 삭제 하겠습니까?')) {
+      if (!window.confirm('選択した伝票を削除しますか？')) {
         e.preventDefault();
         return;
       }
     }
-    // 읽기 전용 입력칸은 required로 검사되지 않아 직접 확인한다.
+    // 読み取り専用の入力欄はrequiredで検証されないため個別に確認する。
     if ($form.is('[data-document-form]') && form.method.toLowerCase() === 'post') {
       var $missing = $form.find('[data-selector-field] input[readonly][required][name$="Name"]').filter(function() {
         var $input = $(this);
@@ -459,7 +459,7 @@
       if ($missing.length) {
         e.preventDefault();
         var $button = $missing.closest('[data-selector-field]').find('[data-pick]').first();
-        notice('필수 항목을 선택해 주세요: ' + ($button.length ? labels[$button.attr('data-pick')] : '선택값'));
+        notice('必須項目を選択してください: ' + ($button.length ? labels[$button.attr('data-pick')] : '選択値'));
         return;
       }
     }
@@ -520,7 +520,7 @@
     node: node,
     pages: pages,
     number: function(v) {
-      return Number(v || 0).toLocaleString('ko-KR', { maximumFractionDigits: 3 });
+      return Number(v || 0).toLocaleString('ja-JP', { maximumFractionDigits: 3 });
     }
   };
 

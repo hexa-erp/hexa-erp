@@ -42,7 +42,7 @@ public class SaleMapperTests {
 	@Autowired
 	private StockMapper stockMapper;
 
-	// Mapper 객체 주입 확인
+	// Mapperオブジェクトの注入を確認
 	@Test
 	public void testMapperExist() {
 		log.info("========== MAPPER INJECTION TEST ==========");
@@ -55,7 +55,7 @@ public class SaleMapperTests {
 		assertNotNull(stockMapper);
 	}
 
-	// 판매 기본정보와 상세행 등록 확인
+	// 売上の基本情報と明細行の登録を確認
 	@Test
 	public void testInsertAndRead() {
 		SaleVO sale = createSale();
@@ -90,7 +90,7 @@ public class SaleMapperTests {
 		assertEquals(item.getItemId(), savedLines.get(0).getItemId());
 	}
 
-	// 판매 기본정보와 상세행 수정 확인
+	// 売上の基本情報と明細行の更新を確認
 	@Test
 	public void testUpdate() {
 		SaleVO sale = createSale();
@@ -103,7 +103,7 @@ public class SaleMapperTests {
 
 		saleMapper.insertLineSelectKey(line);
 
-		sale.setNote("수정된 판매 비고");
+		sale.setNote("更新後の売上備考");
 		line.setQuantity(new BigDecimal("5.000"));
 		line.setSupplyAmount(new BigDecimal("50000"));
 		line.setVatAmount(new BigDecimal("5000"));
@@ -129,11 +129,11 @@ public class SaleMapperTests {
 
 		assertEquals(1, saleUpdateCount);
 		assertEquals(1, lineUpdateCount);
-		assertEquals("수정된 판매 비고", changedSale.getNote());
+		assertEquals("更新後の売上備考", changedSale.getNote());
 		assertEquals(0, new BigDecimal("5.000").compareTo(changedLine.getQuantity()));
 	}
 
-	// 선택한 판매 상세행 삭제 처리 확인
+	// 選択した売上明細行の削除を確認
 	@Test
 	public void testRemoveSelectedLines() {
 		SaleVO sale = createSale();
@@ -162,7 +162,7 @@ public class SaleMapperTests {
 		assertTrue(savedLines.isEmpty());
 	}
 
-	// 테스트 판매 생성
+	// テスト売上を生成
 	private SaleVO createSale() {
 		WarehouseLookupVO warehouse = stockMapper.getWarehouseList().get(0);
 
@@ -170,12 +170,12 @@ public class SaleMapperTests {
 		sale.setBusinessDate(LocalDate.now().toString());
 		sale.setWarehouseId(warehouse.getWarehouseId());
 		sale.setWarehouseName(warehouse.getWarehouseName());
-		sale.setNote("Mapper 테스트 판매");
+		sale.setNote("Mapperテスト売上");
 
 		return sale;
 	}
 
-	// 테스트 판매 상세행 생성
+	// テスト売上明細行を生成
 	private SaleLineVO createLine(Long saleId, ItemVO item) {
 
 		SaleLineVO line = new SaleLineVO();
@@ -189,24 +189,24 @@ public class SaleMapperTests {
 		line.setSupplyAmount(new BigDecimal("30000"));
 		line.setVatAmount(new BigDecimal("3000"));
 		line.setTotalAmount(new BigDecimal("33000"));
-		line.setNote("판매 상세 테스트");
+		line.setNote("売上明細テスト");
 
 		return line;
 	}
 
-	// 테스트 품목 생성
+	// テスト品目を生成
 	private ItemVO createItem() {
 		String token = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
 
 		ItemVO item = new ItemVO();
 		item.setItemCode("SALE" + token);
-		item.setItemName("판매 테스트 품목 " + token);
+		item.setItemName("売上テスト品目 " + token);
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 		item.setInboundPrice(new BigDecimal("7000"));
 		item.setOutboundPrice(new BigDecimal("10000"));
-		item.setNote("판매 Mapper 테스트");
+		item.setNote("売上Mapperテスト");
 
 		return item;
 	}

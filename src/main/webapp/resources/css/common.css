@@ -1,4 +1,4 @@
-/* 공통 화면 틀. 조회·현황은 workspace.css, 입력·모달은 editor.css에서 다룬다. */
+/* 共通画面レイアウト。一覧・集計はworkspace.css、入力・モーダルはeditor.cssで扱う。 */
 :root {
   --blue: #2451c6;
   --ink: #29364b;
@@ -18,7 +18,7 @@ body {
   overflow: hidden;
   background: var(--surface);
   color: var(--ink);
-  font: 13px/1.5 "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif;
+  font: 13px/1.5 "Yu Gothic UI", "Meiryo", "Hiragino Kaku Gothic ProN", Arial, sans-serif;
 }
 button, input, select, textarea { font: inherit; }
 button, a, input, select, textarea { outline-offset: 2px; }
@@ -213,7 +213,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   background: var(--blue);
 }
 
-/* 가로 스크롤은 table-wrap 안으로 제한해 상단·메뉴의 위치를 유지한다. */
+/* 横スクロールをtable-wrap内に限定し、ヘッダーとメニューの位置を維持する。 */
 .page-shell {
   height: calc(100vh - var(--header-height));
   width: calc(100% - var(--sidebar-width));
@@ -352,7 +352,7 @@ fieldset.field > .tabs { gap: 8px 18px; }
   .total-strip { gap: 10px; font-size: 13px; flex-wrap: wrap; }
   .toolbar input[name=keyword] { min-width: 150px; }
 }
-/* 인쇄할 때 고정 높이와 스크롤 제한을 풀어 전표가 잘리지 않게 한다. */
+/* 印刷時は固定高さとスクロール制限を解除し、伝票が欠けないようにする。 */
 @media print {
   html, body { height: auto; overflow: visible; background: #fff; }
   .site-header, .sidebar, .skip-link, .development-banner { display: none !important; }

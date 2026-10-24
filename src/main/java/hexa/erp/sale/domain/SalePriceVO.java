@@ -4,10 +4,10 @@ import java.math.BigDecimal;
 
 import lombok.Data;
 
-/** 판매 단가 일괄변경 목록의 한 행. 판매 품목(라인) 하나에 해당한다. */
+/** 売上単価一括変更の一覧行。売上品目の1明細行に対応する。 */
 @Data
 public class SalePriceVO {
-	// 판매 품목 ID와 그 품목이 속한 판매 전표 ID
+	// 売上明細行IDと、その明細が属する売上伝票ID
 	private Long saleLineId;
 	private Long saleId;
 	private String businessDate;
@@ -15,7 +15,7 @@ public class SalePriceVO {
 	private String partnerName;
 	private String assigneeName;
 	private String warehouseName;
-	// 판매의 근거가 된 원본 전표(주문 등)의 일자와 번호
+	// 売上の元となる伝票（受注など）の日付と番号
 	private String sourceBusinessDate;
 	private String sourceDocumentNo;
 	private String itemCode;
@@ -24,7 +24,7 @@ public class SalePriceVO {
 	private BigDecimal quantity;
 	private String unit;
 	private BigDecimal unitPrice;
-	// 공급가액 + 부가세 = 합계금액
+	// 税抜金額 + 消費税 = 合計金額
 	private BigDecimal supplyAmount;
 	private BigDecimal vatAmount;
 	private BigDecimal totalAmount;

@@ -31,7 +31,7 @@ public class ItemMapperTests {
 	@Autowired
 	private ItemMapper mapper;
 
-	// Mapper 객체 주입 확인
+	// Mapperオブジェクトの注入を確認
 	@Test
 	public void testMapperExist() {
 		log.info("========== MAPPER INJECTION TEST ==========");
@@ -40,7 +40,7 @@ public class ItemMapperTests {
 		assertNotNull(mapper);
 	}
 
-	// 품목 등록과 조회 확인
+	// 品目の登録と取得を確認
 	@Test
 	public void testInsertAndRead() {
 		ItemVO item = createItem();
@@ -65,17 +65,17 @@ public class ItemMapperTests {
 		assertEquals("Y", savedItem.getActiveFlag());
 	}
 
-	// 품목 정보 수정 확인
+	// 品目情報の更新を確認
 	@Test
 	public void testUpdate() {
 		ItemVO item = createItem();
 		mapper.insertSelectKey(item);
 
 		String originalCode = item.getItemCode();
-		String changedName = "수정 품목 " + createToken();
+		String changedName = "更新品目 " + createToken();
 
 		item.setItemName(changedName);
-		item.setSpecification("수정 규격");
+		item.setSpecification("更新規格");
 		item.setOutboundPrice(new BigDecimal("25000"));
 
 		log.info("========== MAPPER UPDATE TEST ==========");
@@ -97,7 +97,7 @@ public class ItemMapperTests {
 		assertEquals(0, new BigDecimal("25000").compareTo(changedItem.getOutboundPrice()));
 	}
 
-	// 품목 사용중단 처리 확인
+	// 品目の利用停止を確認
 	@Test
 	public void testChangeActive() {
 		ItemVO item = createItem();
@@ -125,7 +125,7 @@ public class ItemMapperTests {
 		assertTrue(activeList.isEmpty());
 	}
 
-	// 품목코드와 품목명 검색 확인
+	// 品目コードと品目名の検索を確認
 	@Test
 	public void testSearch() {
 		ItemVO item = createItem();
@@ -149,7 +149,7 @@ public class ItemMapperTests {
 		assertNotNull(nameResult);
 	}
 
-	// 검색 조건 생성
+	// 検索条件を生成
 	private ItemCriteria createCriteria(String keyword) {
 		ItemCriteria criteria = new ItemCriteria();
 
@@ -161,30 +161,30 @@ public class ItemMapperTests {
 		return criteria;
 	}
 
-	// 품목 ID로 조회 결과 확인
+	// 品目IDによる取得結果を確認
 	private ItemVO findById(List<ItemVO> list, Long itemId) {
 
 		return list.stream().filter(item -> itemId.equals(item.getItemId())).findFirst().orElse(null);
 	}
 
-	// 테스트 품목 생성
+	// テスト品目を生成
 	private ItemVO createItem() {
 		String token = createToken();
 
 		ItemVO item = new ItemVO();
 		item.setItemCode("TEST" + token);
-		item.setItemName("테스트 품목 " + token);
+		item.setItemName("テスト品目 " + token);
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 		item.setInboundPrice(new BigDecimal("10000"));
 		item.setOutboundPrice(new BigDecimal("15000"));
-		item.setNote("Mapper 테스트 품목");
+		item.setNote("Mapperテスト品目");
 
 		return item;
 	}
 
-	// 중복 방지 문자열 생성
+	// 重複防止用の文字列を生成
 	private String createToken() {
 		return UUID.randomUUID().toString().replace("-", "").substring(0, 12);
 	}

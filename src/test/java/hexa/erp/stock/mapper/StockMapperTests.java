@@ -36,7 +36,7 @@ public class StockMapperTests {
 	@Autowired
 	private ItemMapper itemMapper;
 
-	// Mapper 객체 주입 확인
+	// Mapperオブジェクトの注入を確認
 	@Test
 	public void testMapperExist() {
 		log.info("========== MAPPER INJECTION TEST ==========");
@@ -47,7 +47,7 @@ public class StockMapperTests {
 		assertNotNull(itemMapper);
 	}
 
-	// 사용 중인 창고 조회 확인
+	// 利用中の倉庫を取得できることを確認
 	@Test
 	public void testGetWarehouseList() {
 		List<WarehouseLookupVO> warehouseList = stockMapper.getWarehouseList();
@@ -60,7 +60,7 @@ public class StockMapperTests {
 		assertFalse(warehouseList.isEmpty());
 	}
 
-	// 현재고 등록과 수정 확인
+	// 現在庫の登録と更新を確認
 	@Test
 	public void testInsertAndUpdate() {
 		ItemVO item = createItem();
@@ -101,7 +101,7 @@ public class StockMapperTests {
 		assertEquals(0, new BigDecimal("15").compareTo(changedStock.getQuantity()));
 	}
 
-	// 현재고 수량 증감 확인
+	// 現在庫数量の増減を確認
 	@Test
 	public void testAddQuantity() {
 		ItemVO item = createItem();
@@ -139,7 +139,7 @@ public class StockMapperTests {
 		assertEquals(0, new BigDecimal("7").compareTo(changedStock.getQuantity()));
 	}
 
-	// 재고 변동 이력 등록 확인
+	// 在庫変動履歴の登録を確認
 	@Test
 	public void testInsertMovement() {
 		ItemVO item = createItem();
@@ -169,19 +169,19 @@ public class StockMapperTests {
 		log.info("STOCK MOVEMENT INSERT COMPLETED");
 	}
 
-	// 테스트 품목 생성
+	// テスト品目を生成
 	private ItemVO createItem() {
 		String token = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
 
 		ItemVO item = new ItemVO();
 		item.setItemCode("STOCK" + token);
-		item.setItemName("재고 테스트 품목 " + token);
+		item.setItemName("在庫テスト品目 " + token);
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 		item.setInboundPrice(new BigDecimal("10000"));
 		item.setOutboundPrice(new BigDecimal("15000"));
-		item.setNote("재고 Mapper 테스트 품목");
+		item.setNote("在庫Mapperテスト品目");
 
 		return item;
 	}

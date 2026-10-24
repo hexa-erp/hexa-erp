@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 public class CommonViewAdvice {
 	@ModelAttribute
 	public void common(Model model, HttpServletRequest request) {
-		// 상단의 개발 안내를 표시한다.
+		// 画面上部に開発用の案内を表示する。
 		model.addAttribute("developmentMode", true);
 		model.addAttribute("currentPath", request.getServletPath());
 		model.addAttribute("returnSearch", PostRedirects.returnSearch(request));
@@ -26,17 +26,17 @@ public class CommonViewAdvice {
 
 	private List<Map<String, Object>> navigation() {
 		List<Map<String, Object>> groups = new ArrayList<>();
-		groups.add(group("master", "기초등록", "거래처 등록", "/master/partner", "창고 등록", "/master/warehouse", "품목 등록",
+		groups.add(group("master", "マスター登録", "取引先登録", "/master/partner", "倉庫登録", "/master/warehouse", "品目登録",
 				"/master/item"));
-		groups.add(group("quotation", "견적서", "견적서 조회", "/quotation/list", "견적서 입력", "/quotation/form", "견적서 현황",
-				"/quotation/status", "미주문 현황", "/quotation/unordered"));
-		groups.add(group("order", "주문서", "주문서 조회", "/order/list", "주문서 입력", "/order/form", "주문서 현황", "/order/status",
-				"미판매 현황", "/order/unsold"));
-		groups.add(group("sale", "판매", "판매 조회", "/sale/list", "판매 입력", "/sale/form", "판매 단가 일괄 변경", "/sale/bulk-price",
-				"판매 현황", "/sale/status"));
-		groups.add(group("shipping-instruction", "출하지시서", "출하지시서 조회", "/shipping-instruction/list", "출하지시서 입력",
+		groups.add(group("quotation", "見積書", "見積一覧", "/quotation/list", "見積入力", "/quotation/form", "見積集計",
+				"/quotation/status", "未受注一覧", "/quotation/unordered"));
+		groups.add(group("order", "受注伝票", "受注一覧", "/order/list", "受注入力", "/order/form", "受注集計", "/order/status",
+				"未売上一覧", "/order/unsold"));
+		groups.add(group("sale", "売上", "売上一覧", "/sale/list", "売上入力", "/sale/form", "売上単価一括変更", "/sale/bulk-price",
+				"売上集計", "/sale/status"));
+		groups.add(group("shipping-instruction", "出荷指示書", "出荷指示一覧", "/shipping-instruction/list", "出荷指示入力",
 				"/shipping-instruction/form"));
-		groups.add(group("shipment", "출하", "출하 조회", "/shipment/list", "출하 입력", "/shipment/form"));
+		groups.add(group("shipment", "出荷", "出荷一覧", "/shipment/list", "出荷入力", "/shipment/form"));
 		return groups;
 	}
 

@@ -37,7 +37,7 @@ public class StockServiceTests {
 	@Autowired
 	private ItemMapper itemMapper;
 
-	// Service 객체 주입 확인
+	// Serviceオブジェクトの注入を確認
 	@Test
 	public void testServiceExist() {
 		log.info("========== SERVICE INJECTION TEST ==========");
@@ -46,7 +46,7 @@ public class StockServiceTests {
 		assertNotNull(service);
 	}
 
-	// 신규 현재고 생성과 조정 확인
+	// 新しい現在庫の作成と調整を確認
 	@Test
 	public void testAdjust() {
 		ItemVO item = createItem();
@@ -84,16 +84,16 @@ public class StockServiceTests {
 		assertEquals(0, new BigDecimal("15.124").compareTo(changedStock.getQuantity()));
 	}
 
-	// 테스트 품목 생성
+	// テスト品目を生成
 	private ItemVO createItem() {
 		String token = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
 
 		ItemVO item = new ItemVO();
 		item.setItemCode("STOCKSERVICE" + token);
-		item.setItemName("재고 서비스 테스트 품목 " + token);
+		item.setItemName("在庫Serviceテスト品目 " + token);
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 		item.setInboundPrice(new BigDecimal("10000"));
 		item.setOutboundPrice(new BigDecimal("15000"));
 

@@ -16,28 +16,28 @@
             value="${search.includeInactive eq 'Y' ? 'Y' : 'N'}">
 
         <div class="list-title-status">
-            <h1>창고 등록</h1>
+            <h1>倉庫 登録</h1>
 
             <button
                 class="btn ${search.includeInactive eq 'Y' ? 'btn-primary' : ''}"
                 type="button" data-master-inactive-toggle
-                aria-pressed="${search.includeInactive eq 'Y'}">사용중단 포함</button>
+                aria-pressed="${search.includeInactive eq 'Y'}">利用停止を含む</button>
         </div>
 
         <div class="input-group list-keyword">
             <input type="search" name="keyword"
-                aria-label="창고 등록 검색"
-                placeholder="입력 후 [Enter]"
+                aria-label="倉庫登録検索"
+                placeholder="入力後に［Enter］"
                 value="<c:out value='${search.keyword}'/>">
 
-            <button class="btn btn-primary" type="submit">검색</button>
+            <button class="btn btn-primary" type="submit">検索</button>
         </div>
     </form>
 
     <div class="workspace-meta">
         <%@ include file="../common/pagination.jsp"%>
 
-        <span class="workspace-hint">창고 등록 정보를 조회하고 등록합니다.</span>
+        <span class="workspace-hint">倉庫マスターの照会・登録を行います。</span>
     </div>
 
     <form id="warehouse-selection" data-master-active-form
@@ -57,12 +57,12 @@
                         <th class="col-select">
                             <input type="checkbox"
                                 data-check-all="#warehouse-selection input[name=ids]"
-                                aria-label="전체 선택">
+                                aria-label="すべて選択">
                         </th>
-                        <th class="col-code">창고 코드</th>
-                        <th>창고명</th>
-                        <th>구분</th>
-                        <th class="col-active text-center">사용</th>
+                        <th class="col-code">倉庫 コード</th>
+                        <th>倉庫名</th>
+                        <th>区分</th>
+                        <th class="col-active text-center">利用中</th>
                     </tr>
                 </thead>
 
@@ -78,7 +78,7 @@
                             <td class="col-select">
                                 <input type="checkbox" name="ids"
                                     value="<c:out value='${row.warehouseId}'/>"
-                                    aria-label="<c:out value='${row.warehouseName}'/> 선택">
+                                    aria-label="<c:out value='${row.warehouseName}'/> 選択">
                             </td>
 
                             <td class="col-code">
@@ -98,14 +98,14 @@
                             </td>
 
                             <td class="col-active text-center">
-                                <span class="badge">${row.activeFlag eq 'N' ? '중단' : '사용'}</span>
+                                <span class="badge">${row.activeFlag eq 'N' ? '停止' : '利用中'}</span>
                             </td>
                         </tr>
                     </c:forEach>
 
                     <c:if test="${empty warehouseList}">
                         <tr>
-                            <td class="empty-state" colspan="5">조회된 창고가 없습니다.</td>
+                            <td class="empty-state" colspan="5">倉庫が見つかりません。</td>
                         </tr>
                     </c:if>
                 </tbody>
@@ -114,13 +114,13 @@
 
         <div class="workspace-actions">
             <button class="btn btn-primary" type="button"
-                data-master-new="warehouse">신규</button>
+                data-master-new="warehouse">新規</button>
 
             <button class="btn" type="button" data-master-active="N"
-                data-selection-form="warehouse-selection">사용중단</button>
+                data-selection-form="warehouse-selection">利用停止</button>
 
             <button class="btn" type="button" data-master-active="Y"
-                data-selection-form="warehouse-selection">재사용</button>
+                data-selection-form="warehouse-selection">利用再開</button>
         </div>
     </form>
 </section>
@@ -130,10 +130,10 @@
 
     <div class="modal-header">
         <h2 id="warehouse-form-title"
-            data-master-title="warehouse">창고 등록</h2>
+            data-master-title="warehouse">倉庫 登録</h2>
 
         <button class="btn btn-sm" type="button" data-modal-close
-            aria-label="닫기">×</button>
+            aria-label="閉じる">×</button>
     </div>
 
     <form id="warehouse-form" data-master-api="/api/warehouses"
@@ -148,32 +148,32 @@
                 <input type="hidden" name="activeFlag">
 
                 <label class="field">
-                    <span>창고 코드</span>
+                    <span>倉庫 コード</span>
                     <input type="text" name="warehouseCode" maxlength="30"
                         required
                         value="<c:out value='${newWarehouseCode}'/>"
-                        placeholder="코드 입력"
-                        title="신규 등록 시에만 코드를 입력하거나 수정할 수 있습니다.">
+                        placeholder="コード入力"
+                        title="コードの入力・変更は新規登録時のみ可能です。">
                 </label>
 
                 <label class="field">
-                    <span>창고명</span>
+                    <span>倉庫名</span>
                     <input type="text" name="warehouseName" maxlength="100"
                         required>
                 </label>
 
                 <fieldset class="field field-wide">
-                    <legend>구분</legend>
+                    <legend>区分</legend>
 
                     <div class="choice-options">
                         <label>
                             <input type="radio" name="warehouseType"
-                                value="창고" checked> 창고
+                                value="倉庫" checked> 倉庫
                         </label>
 
                         <label>
                             <input type="radio" name="warehouseType"
-                                value="공장"> 공장
+                                value="工場"> 工場
                         </label>
                     </div>
                 </fieldset>
@@ -181,9 +181,9 @@
         </div>
 
         <div class="modal-footer">
-            <button class="btn btn-primary" type="submit">저장</button>
-            <button class="btn" type="reset">다시 작성</button>
-            <button class="btn" type="button" data-modal-close>닫기</button>
+            <button class="btn btn-primary" type="submit">保存</button>
+            <button class="btn" type="reset">リセット</button>
+            <button class="btn" type="button" data-modal-close>閉じる</button>
         </div>
     </form>
 </dialog>

@@ -29,7 +29,7 @@ public class SalesOrderMapperTests {
 	@Autowired
 	private SalesOrderMapper mapper;
 
-	// 일치하는 주문서가 없을 때 목록과 전체 건수 확인
+	// 一致する受注伝票がない場合の一覧と総件数を確認
 	@Test
 	public void testGetListWithPaging() {
 		SalesOrderCriteria criteria = new SalesOrderCriteria();

@@ -17,7 +17,7 @@ import hexa.erp.sale.mapper.SalePriceMapper;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j;
 
-/** 단가 변경 시 금액은 화면 값을 믿지 않고 DB에 저장된 수량으로 다시 계산한다. */
+/** 単価変更時の金額は画面の値を使用せず、DBに保存された数量から再計算する。 */
 @Service
 @Log4j
 public class SalePriceServiceImpl implements SalePriceService {
@@ -41,27 +41,27 @@ public class SalePriceServiceImpl implements SalePriceService {
 		Set<Long> changedLineIds = new HashSet<>();
 		if (changes != null) {
 			for (SalePriceChangeVO change : changes) {
-				// 체크하지 않은 행은 건너뛴다.
+				// 選択されていない行は処理を省略する。
 				if (change == null || !change.isSelected()) {
 					continue;
 				}
 				if (change.getSaleId() == null || change.getSaleLineId() == null) {
-					throw new IllegalArgumentException("판매 상세행 정보를 확인할 수 없습니다. 다시 조회한 뒤 선택해 주세요.");
+					throw new IllegalArgumentException("売上明細行の情報を確認できません。再度検索してから選択してください。");
 				}
-				// 같은 품목 행이 두 번 넘어오면 처음 값만 반영한다.
+				// 同じ品目行が複数回送信された場合は、最初の値のみ反映する。
 				if (!changedLineIds.add(change.getSaleLineId())) {
 					continue;
 				}
 				if (change.getUnitPrice() == null) {
-					throw new IllegalArgumentException("선택한 판매 상세행의 단가를 입력해 주세요.");
+					throw new IllegalArgumentException("選択した売上明細行の単価を入力してください。");
 				}
 				SalePriceVO row = mapper.read(change.getSaleId(), change.getSaleLineId());
 				if (row == null) {
-					throw new IllegalArgumentException("선택한 판매 또는 상세행이 삭제되었거나 변경되었습니다. 다시 조회해 주세요.");
+					throw new IllegalArgumentException("選択した売上または明細行は削除または変更されています。再度検索してください。");
 				}
-				// 수량은 제출값이 아니라 현재 판매 상세행에 저장된 값을 사용한다.
-				// 단가는 소수 둘째 자리, 금액은 원 단위로 반올림한다. (DB 컬럼 자릿수와 같음)
-				// 공급가액 = 수량 × 단가, 부가세 = 공급가액 × 10%, 합계 = 공급가액 + 부가세
+				// 数量は送信値ではなく、現在の売上明細行に保存されている値を使用する。
+				// 単価は小数第2位、金額は1円単位に四捨五入する。DB列の桁数と一致する。
+				// 税抜金額 = 数量 × 単価、消費税 = 税抜金額 × 10%、合計 = 税抜金額 + 消費税
 				BigDecimal unitPrice = change.getUnitPrice().setScale(2, RoundingMode.HALF_UP);
 				BigDecimal supplyAmount = row.getQuantity().multiply(unitPrice).setScale(0, RoundingMode.HALF_UP);
 				BigDecimal vatAmount = supplyAmount.multiply(new BigDecimal("0.1")).setScale(0, RoundingMode.HALF_UP);
@@ -69,17 +69,17 @@ public class SalePriceServiceImpl implements SalePriceService {
 				row.setSupplyAmount(supplyAmount);
 				row.setVatAmount(vatAmount);
 				row.setTotalAmount(supplyAmount.add(vatAmount));
-				// 조회 이후 삭제된 경우 0건이 바뀌므로 예외를 던져 앞에서 바꾼 행까지 모두 롤백한다.
+				// 取得後に削除されると更新件数が0になるため、例外を送出して先に更新した行もすべてロールバックする。
 				if (mapper.updatePrice(row) != 1 || mapper.updateSaleTimestamp(row.getSaleId()) != 1) {
-					throw new IllegalArgumentException("단가를 변경할 판매 상세행을 찾을 수 없습니다. 다시 조회해 주세요.");
+					throw new IllegalArgumentException("単価を変更する売上明細行が見つかりません。再度検索してください。");
 				}
 				count++;
 			}
 		}
 		if (count == 0) {
-			throw new IllegalArgumentException("단가를 변경할 판매 상세행을 선택해 주세요.");
+			throw new IllegalArgumentException("単価を変更する売上明細行を選択してください。");
 		}
-		log.info("판매 상세행 단가 변경: " + count + "건");
+		log.info("売上明細行の単価変更: " + count + "件");
 		return count;
 	}
 }

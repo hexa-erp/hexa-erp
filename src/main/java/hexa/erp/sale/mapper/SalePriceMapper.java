@@ -7,21 +7,21 @@ import org.apache.ibatis.annotations.Param;
 import hexa.erp.sale.domain.SalePriceCriteria;
 import hexa.erp.sale.domain.SalePriceVO;
 
-/** 판매 단가 일괄변경. 삭제되지 않은 전표와 품목 행만 읽고 바꾼다. */
+/** 売上単価の一括変更。削除されていない伝票と品目行のみ取得・更新する。 */
 public interface SalePriceMapper {
-	/** 검색 조건에 맞는 품목 행을 최신 일자순으로 한 페이지만 조회한다. */
+	/** 検索条件に一致する品目行を日付の降順で1ページ分取得する。 */
 	List<SalePriceVO> getListWithPaging(SalePriceCriteria criteria);
 
-	/** 페이지 계산용. 검색 조건에 맞는 품목 행 전체 개수를 센다. */
+	/** ページ数の計算用。検索条件に一致する品目行の総件数を取得する。 */
 	int getTotalCount(SalePriceCriteria criteria);
 
-	/** 금액 재계산에 필요한 수량만 읽는다. 품목 행이 해당 전표에 속하지 않거나 삭제됐으면 null이다. */
+	/** 金額の再計算に必要な数量のみ取得する。対象伝票に属さない品目行や削除済みの行の場合はnullを返す。 */
 	SalePriceVO read(@Param("saleId") Long saleId, @Param("saleLineId") Long saleLineId);
 
-	/** 단가와 금액을 함께 바꾼다. 금액은 Service에서 계산해서 넘긴다. 바뀐 행 수를 돌려준다. */
+	/** 単価と金額を同時に更新する。金額はServiceで計算した値を受け取る。更新行数を返す。 */
 	int updatePrice(SalePriceVO row);
 
-	/** 품목 행에는 수정 시각이 없어서 전표의 수정 시각을 갱신한다. */
+	/** 品目行には更新日時がないため、伝票の更新日時を更新する。 */
 	int updateSaleTimestamp(Long saleId);
 
 }

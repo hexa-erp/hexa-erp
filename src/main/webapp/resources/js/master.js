@@ -1,11 +1,11 @@
-/* 창고별 재고는 서버에서 전달한 #stock-data 값을 표시한다. */
+/* 倉庫別在庫はサーバーから渡された#stock-dataの値を表示する。 */
 (function($) {
 	'use strict';
 	var photoObjectUrl = null;
 	var defaults = {
 		activeFlag : 'Y',
-		warehouseType : '창고',
-		itemType : '상품',
+		warehouseType : '倉庫',
+		itemType : '商品',
 		inboundPrice : '0',
 		outboundPrice : '0',
 		removeImage : 'N'
@@ -37,10 +37,10 @@
 		Promise.resolve().then(function() {
 			return window.Hexa.request(url, method, data, multipart);
 		}).then(function() {
-			// 현재 검색 조건과 페이지를 유지하여 목록을 다시 조회한다.
+			// 現在の検索条件とページを維持して一覧を再照会する。
 			window.location.reload();
 		}, function(error) {
-			notify(error.message || '요청을 처리하지 못했습니다.');
+			notify(error.message || 'リクエストを処理できませんでした。');
 		}).then(function() {
 			form._masterPending = false;
 			$buttons.prop('disabled', false);
@@ -93,18 +93,18 @@
 				});
 		var isEdit = value(form, kind + 'Id') !== '';
 		$(field(form, kind + 'Code')).prop('readOnly', isEdit).attr(
-				'placeholder', isEdit ? '' : '코드 입력');
+				'placeholder', isEdit ? '' : 'コード入力');
 		if (kind === 'item') {
 			releasePhoto();
 			showPhoto(record.imageUrl || '');
 		}
 		var labels = {
-			partner : '거래처',
-			warehouse : '창고',
-			item : '품목'
+			partner : '取引先',
+			warehouse : '倉庫',
+			item : '品目'
 		};
 		$('[data-master-title="' + kind + '"]').text(
-				labels[kind] + (isEdit ? ' 수정' : ' 등록'));
+				labels[kind] + (isEdit ? ' 編集' : ' 登録'));
 	}
 
 	function openForm(kind, record) {
@@ -138,7 +138,7 @@
 				'data-stock-quantity') : (id && warehouse ? '0' : '');
 
 		$('#stock-current').text(
-				current !== '' ? Number(current).toLocaleString('ko-KR', {
+				current !== '' ? Number(current).toLocaleString('ja-JP', {
 					maximumFractionDigits : 3
 				}) : '—');
 		setValue(form, 'quantity', current);
@@ -185,7 +185,7 @@
 									.attr('data-selection-form'));
 							if (!$(selectedForm).find(
 									'input[name="ids"]:checked').length)
-								return notify('처리할 행을 선택해 주세요.');
+								return notify('処理する行を選択してください。');
 							setValue(selectedForm, 'activeFlag', $target
 									.attr('data-master-active'));
 							selectedForm.requestSubmit();
@@ -203,7 +203,7 @@
 							if ($target.attr('data-stock-open') === 'current') {
 								var itemForm = $('#item-form')[0];
 								if (!value(itemForm, 'itemId'))
-									return notify('품목을 저장한 후 재고수량을 입력할 수 있습니다.');
+									return notify('品目を保存すると在庫数量を入力できます。');
 								item = {
 									itemId : value(itemForm, 'itemId'),
 									itemName : value(itemForm, 'itemName')
@@ -211,7 +211,7 @@
 							} else {
 								var $selected = $('#item-selection input[name="ids"]:checked');
 								if ($selected.length > 1)
-									return notify('재고를 조정할 품목을 한 개만 선택해 주세요.');
+									return notify('在庫を調整する品目を1件だけ選択してください。');
 								if ($selected.length === 1) {
 									var $itemRow = $selected.first().closest(
 											'[data-record-type]');
@@ -244,7 +244,7 @@
 										src : $target.attr('data-item-image'),
 										alt : $target
 												.attr('data-item-image-name')
-												+ ' 대표 사진'
+												+ ' 代表画像'
 									});
 							window.Hexa.openModal('item-image-modal');
 						}
@@ -259,7 +259,7 @@
 			stockCurrent);
 
 	$(document).on('change.hexaMaster', '[data-item-file]', function() {
-		// 사용이 끝난 사진 미리보기 주소를 해제한다.
+		// 使用済みの画像プレビューURLを解放する。
 		var file = this.files && this.files[0];
 		releasePhoto();
 		if (!file) {
@@ -271,7 +271,7 @@
 			$(this).val('');
 			showPhoto('');
 
-			return notify('JPG·PNG·GIF 파일을 5MB 이하로 선택해 주세요.');
+			return notify('5MB以下のJPG・PNG・GIFファイルを選択してください。');
 		}
 		photoObjectUrl = URL.createObjectURL(file);
 		setValue(this.form, 'removeImage', 'N');
@@ -310,7 +310,7 @@
 				return this.value;
 			}).get();
 			if (!ids.length)
-				return notify('처리할 행을 선택해 주세요.');
+				return notify('処理する行を選択してください。');
 			sendMaster(this, $(this).attr('data-master-api'), 'PATCH', {
 				ids : ids,
 				activeFlag : value(this, 'activeFlag')
@@ -319,7 +319,7 @@
 
 		$('#' + kind + '-form').on('reset.hexaMaster', function() {
 			var form = this;
-			// '다시 작성'을 누르면 팝업을 열었을 때의 값으로 되돌린다.
+			// リセットを押すとダイアログを開いた時点の値に戻す。
 			window.setTimeout(function() {
 				applyRecord(kind, form._masterInitial || {});
 			}, 0);
@@ -330,7 +330,7 @@
 		if (!value(this, 'itemId')) {
 			event.preventDefault();
 			event.stopPropagation();
-			notify('재고를 입력할 품목을 선택해 주세요.');
+			notify('在庫を入力する品目を選択してください。');
 		}
 	});
 

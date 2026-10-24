@@ -60,7 +60,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
 	@Override
 	public SalesOrderVO get(Long salesOrderId) {
-		log.info("주문서 조회");
+		log.info("受注一覧");
 
 		if (salesOrderId == null) {
 			return null;
@@ -78,13 +78,13 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 	@Transactional
 	public Long save(SalesOrderVO salesOrder) {
 		if (salesOrder == null || isBlank(salesOrder.getBusinessDate())) {
-			throw new IllegalArgumentException("주문 일자를 입력하세요.");
+			throw new IllegalArgumentException("受注日を入力してください。");
 		}
 
 		try {
 			salesOrder.setBusinessDate(LocalDate.parse(salesOrder.getBusinessDate().trim()).toString());
 		} catch (DateTimeParseException e) {
-			throw new IllegalArgumentException("주문 일자를 올바르게 입력하세요.");
+			throw new IllegalArgumentException("正しい受注日を入力してください。");
 		}
 
 		if (isBlank(salesOrder.getDueDate())) {
@@ -93,21 +93,21 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 			try {
 				salesOrder.setDueDate(LocalDate.parse(salesOrder.getDueDate().trim()).toString());
 			} catch (DateTimeParseException e) {
-				throw new IllegalArgumentException("납기 일자를 올바르게 입력하세요.");
+				throw new IllegalArgumentException("正しい納期を入力してください。");
 			}
 		}
 
 		if (salesOrder.getWarehouseId() == null) {
-			throw new IllegalArgumentException("출하창고를 선택해 주세요.");
+			throw new IllegalArgumentException("出荷倉庫を選択してください。");
 		}
 
-		// 기존 주문서 불러오기
+		// 既存の受注伝票を読み込む。
 		SalesOrderVO existing = null;
 		if (salesOrder.getSalesOrderId() != null) {
 			existing = mapper.read(salesOrder.getSalesOrderId());
 
 			if (existing == null) {
-				throw new IllegalArgumentException("수정할 주문서를 찾을 수 없습니다.");
+				throw new IllegalArgumentException("更新対象の受注伝票が見つかりません。");
 			}
 
 			salesOrder.setSalesOrderNo(existing.getSalesOrderNo());
@@ -119,14 +119,14 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
 		fillHeaderNames(salesOrder, existing);
 		if (isBlank(salesOrder.getWarehouseName())) {
-			throw new IllegalArgumentException("선택한 출하창고를 찾을 수 없습니다.");
+			throw new IllegalArgumentException("選択した出荷倉庫が見つかりません。");
 		}
 
 		List<Long> removedLineIds = cleanIds(salesOrder.getRemovedLineIds());
 		List<SalesOrderLineVO> lines = new ArrayList<>();
 		Set<Long> lineIds = new HashSet<>();
 
-		// 중복, 삭제된 품목 행 검사
+		// 重複した品目行や削除指定された品目行を検証する。
 		if (salesOrder.getLines() != null) {
 			for (SalesOrderLineVO line : salesOrder.getLines()) {
 				if (line == null || line.getItemId() == null) {
@@ -135,7 +135,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 				if (line.getSalesOrderLineId() != null) {
 					if (!lineIds.add(line.getSalesOrderLineId())
 							|| removedLineIds.contains(line.getSalesOrderLineId())) {
-						throw new IllegalArgumentException("중복되거나 삭제 표시된 품목 행을 확인해 주세요.");
+						throw new IllegalArgumentException("重複または削除指定された品目行を確認してください。");
 					}
 				}
 				prepareLine(line);
@@ -143,17 +143,17 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 			}
 		}
 		if (lines.isEmpty()) {
-			throw new IllegalArgumentException("주문 품목을 한 개 이상 선택해 주세요");
+			throw new IllegalArgumentException("受注品目を1件以上選択してください。");
 		}
 		salesOrder.setLines(lines);
 
-		// 신규 주문서 등록
+		// 新規受注伝票を登録する。
 		if (existing == null) {
 			mapper.insertSelectKey(salesOrder);
 
-			// 기존 주문서 수정
+			// 既存の受注伝票を更新する。
 		} else if (mapper.update(salesOrder) != 1) {
-			throw new IllegalArgumentException("수정할 주문서를 찾을 수 없습니다.");
+			throw new IllegalArgumentException("更新対象の受注伝票が見つかりません。");
 		}
 
 		if (!removedLineIds.isEmpty()) {
@@ -163,21 +163,21 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 		for (SalesOrderLineVO line : lines) {
 			line.setSalesOrderId(salesOrder.getSalesOrderId());
 
-			// 신규 주문서 품목 행 입력
+			// 新規受注伝票の品目行を登録する。
 			if (line.getSalesOrderLineId() == null) {
 				mapper.insertLineSelectKey(line);
 
-				// 기존 주문서 품목 행 수정
+				// 既存の受注伝票の品目行を更新する。
 			} else if (mapper.updateLine(line) != 1) {
-				throw new IllegalArgumentException("주문서에 속하지 않거나 삭제된 품목 행 입니다.");
+				throw new IllegalArgumentException("この受注伝票に属していないか、削除済みの品目行です。");
 			}
 		}
 
-		log.info("주문서 저장: " + salesOrder.getSalesOrderId());
+		log.info("受注伝票の保存: " + salesOrder.getSalesOrderId());
 		return salesOrder.getSalesOrderId();
 	}
 
-	// 주문서 삭제
+	// 受注伝票を削除する。
 	@Override
 	@Transactional
 	public int remove(List<Long> selectedIds) {
@@ -186,18 +186,18 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 			return 0;
 		}
 
-		// 주문서 기본 정보 삭제
+		// 受注伝票のヘッダー情報を削除する。
 		int count = mapper.remove(ids);
 
-		// 주문서 품목 행 삭제
+		// 受注伝票の品目行を削除する。
 		mapper.removeLines(ids);
 
-		log.info("주문서 삭제: " + count + "건");
+		log.info("受注伝票の削除: " + count + "件");
 
 		return count;
 	}
 
-	// 주문서 진행 상태 변경
+	// 受注伝票の進行状態を変更する。
 	@Override
 	public int changeStatus(List<Long> selectedIds, String progressStatus) {
 		List<Long> ids = cleanIds(selectedIds);
@@ -207,20 +207,20 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
 		if (!"UNCONFIRMED".equals(progressStatus) && !"IN_PROGRESS".equals(progressStatus)
 				&& !"COMPLETED".equals(progressStatus)) {
-			throw new IllegalArgumentException("진행상태는 미확인, 진행중, 완료 중에서 선택해 주세요.");
+			throw new IllegalArgumentException("進行状態は未確認、進行中、完了のいずれかを選択してください。");
 		}
 
-		log.info("주문서 진행상태 변경: " + progressStatus);
+		log.info("受注伝票の進行状態変更: " + progressStatus);
 		return mapper.changeStatus(ids, progressStatus);
 	}
 
-	// 품목행 값 계산
+	// 品目行の値を計算する。
 	private void prepareLine(SalesOrderLineVO line) {
 		if (isBlank(line.getItemName())) {
 			ItemLookupVO item = itemLookupService.get(line.getItemId());
 
 			if (item == null) {
-				throw new IllegalArgumentException("선택한 품목을 찾을 수 없습니다.");
+				throw new IllegalArgumentException("選択した品目が見つかりません。");
 			}
 
 			line.setItemName(item.getItemName());
@@ -232,15 +232,15 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 		quantity = quantity.setScale(3, RoundingMode.HALF_UP);
 		unitPrice = unitPrice.setScale(2, RoundingMode.HALF_UP);
 
-		// 공급가액 계산
+		// 税抜金額を計算する。
 		BigDecimal supplyAmount = quantity.multiply(unitPrice);
 		supplyAmount = supplyAmount.setScale(0, RoundingMode.HALF_UP);
 
-		// 부가세 계산
+		// 消費税を計算する。
 		BigDecimal vatAmount = supplyAmount.multiply(new BigDecimal("0.1"));
 		vatAmount = vatAmount.setScale(0, RoundingMode.HALF_UP);
 
-		// 합계 계산
+		// 合計を計算する。
 		BigDecimal totalAmount = supplyAmount.add(vatAmount);
 
 		line.setQuantity(quantity);
@@ -250,7 +250,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 		line.setTotalAmount(totalAmount);
 	}
 
-	// 주문서 기본정보에 들어가는 이름 보완
+	// 受注伝票のヘッダーに保存する名前を補完する。
 	private void fillHeaderNames(SalesOrderVO salesOrder, SalesOrderVO existing) {
 		if (salesOrder.getPartnerId() == null) {
 			salesOrder.setPartnerName(null);
@@ -293,7 +293,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 		return value == null || value.trim().isEmpty();
 	}
 
-	// 선택한 주문서 품목행 id 중복 제거
+	// 選択した受注伝票の品目行IDの重複を除去する。
 	private List<Long> cleanIds(List<Long> values) {
 		Set<Long> ids = new LinkedHashSet<>();
 

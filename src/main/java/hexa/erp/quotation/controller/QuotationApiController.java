@@ -34,56 +34,56 @@ public class QuotationApiController {
 	@Setter(onMethod_ = @Autowired)
 	private QuotationService service;
 
-	// 견적서 한 건과 상세 품목을 조회한다.
+	// 見積書1件と品目明細を取得する。
 	@GetMapping("/{id}")
 	public QuotationVO get(@PathVariable("id") Long id) {
 		QuotationVO document = service.get(id);
 		if (document == null) {
-			throw new ApiException(HttpStatus.NOT_FOUND, "조회할 견적서 정보가 없습니다.");
+			throw new ApiException(HttpStatus.NOT_FOUND, "表示対象の見積書がありません。");
 		}
 		return document;
 	}
 
-	// 신규 견적서를 등록한다.
+	// 新規見積書を登録する。
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> create(@RequestBody QuotationVO form) {
 		if (form.getQuotationId() != null) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "신규 등록에는 전표 ID를 지정할 수 없습니다.");
+			throw new ApiException(HttpStatus.BAD_REQUEST, "新規登録時に伝票IDを指定することはできません。");
 		}
 		Long id = service.save(form);
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
-		return ResponseEntity.created(location).body(new ApiResponseVO("견적서를 저장했습니다.", id, null));
+		return ResponseEntity.created(location).body(new ApiResponseVO("見積書を保存しました。", id, null));
 	}
 
-	// 경로의 ID에 해당하는 견적서를 수정한다.
+	// パスのIDに対応する見積書を更新する。
 	@PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> update(@PathVariable("id") Long id, @RequestBody QuotationVO form) {
 		if (service.get(id) == null) {
-			throw new ApiException(HttpStatus.NOT_FOUND, "수정할 견적서 정보가 없습니다.");
+			throw new ApiException(HttpStatus.NOT_FOUND, "更新対象の見積書がありません。");
 		}
 		form.setQuotationId(id);
 		service.save(form);
-		return ResponseEntity.ok(new ApiResponseVO("견적서를 수정했습니다.", id, null));
+		return ResponseEntity.ok(new ApiResponseVO("見積書を更新しました。", id, null));
 	}
 
-	// 선택한 견적서를 삭제한다.
+	// 選択した見積書を削除する。
 	@DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> delete(@RequestBody SelectedIdsVO form) {
 		int count = service.remove(ApiRequests.requireIds(form));
 		if (count == 0) {
-			throw new ApiException(HttpStatus.NOT_FOUND, "삭제할 견적서 정보가 없습니다.");
+			throw new ApiException(HttpStatus.NOT_FOUND, "削除対象の見積書がありません。");
 		}
-		return ResponseEntity.ok(new ApiResponseVO("견적서를 삭제했습니다.", null, count));
+		return ResponseEntity.ok(new ApiResponseVO("見積書を削除しました。", null, count));
 	}
 
-	// 선택한 견적서의 진행상태를 변경한다.
+	// 選択した見積書の進行状態を変更する。
 	@PatchMapping(value = "/status", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> changeStatus(@RequestBody StatusChangeVO form) {
 		List<Long> ids = ApiRequests.requireIds(form);
 		int count = service.changeStatus(ids, form.getProgressStatus());
 		if (count == 0) {
-			throw new ApiException(HttpStatus.NOT_FOUND, "진행상태를 변경할 견적서 정보가 없습니다.");
+			throw new ApiException(HttpStatus.NOT_FOUND, "進行状態を変更する見積書がありません。");
 		}
-		return ResponseEntity.ok(new ApiResponseVO("진행상태를 변경했습니다.", null, count));
+		return ResponseEntity.ok(new ApiResponseVO("進行状態を変更しました。", null, count));
 	}
 }

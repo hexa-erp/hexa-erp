@@ -8,7 +8,7 @@ import hexa.erp.shipment.domain.ShipmentCriteria;
 import hexa.erp.shipment.domain.ShipmentLineVO;
 import hexa.erp.shipment.domain.ShipmentVO;
 
-/** 출하 전표와 품목 행을 조회·저장한다. 삭제는 DELETED_YN만 변경한다. */
+/** 出荷伝票と品目行を取得・保存する。削除時はDELETED_YNのみ変更する。 */
 public interface ShipmentMapper {
 	List<ShipmentVO> getListWithPaging(ShipmentCriteria criteria);
 

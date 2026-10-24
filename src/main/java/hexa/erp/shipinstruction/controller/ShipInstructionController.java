@@ -30,7 +30,7 @@ public class ShipInstructionController {
 
 	@GetMapping("/list")
 	public String list(ShipInstructionCriteria criteria, @RequestParam Map<String, String> params, Model model) {
-		log.info("출하지시서 목록 조회 요청");
+		log.info("出荷指示一覧の取得リクエスト");
 		int totalCount = service.getTotal(criteria);
 		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
 		criteria.setPage(Math.min(criteria.getPage(), totalPages));
@@ -48,7 +48,7 @@ public class ShipInstructionController {
 		model.addAttribute("totalCount", totalCount);
 		model.addAttribute("basePath", "/shipping-instruction/list");
 		model.addAttribute("activeMenu", "shipping-instruction");
-		model.addAttribute("pageTitle", "출하지시서 조회");
+		model.addAttribute("pageTitle", "出荷指示一覧");
 		return "shippingInstruction/list";
 	}
 
@@ -56,7 +56,7 @@ public class ShipInstructionController {
 	public String form(@RequestParam(value = "id", required = false) Long id,
 			@RequestParam(value = "shipInstructionId", required = false) Long shipInstructionId,
 			HttpServletRequest request, Model model, RedirectAttributes rttr) {
-		log.info("출하지시서 입력 화면 요청");
+		log.info("出荷指示入力画面の表示リクエスト");
 		Long documentId = id == null ? shipInstructionId : id;
 		ShipInstructionVO form;
 
@@ -67,7 +67,7 @@ public class ShipInstructionController {
 		} else {
 			form = service.get(documentId);
 			if (form == null) {
-				rttr.addFlashAttribute("errorMessage", "조회할 출하지시서가 없습니다.");
+				rttr.addFlashAttribute("errorMessage", "表示対象の出荷指示書がありません。");
 				return PostRedirects.toList("/shipping-instruction/list", request);
 			}
 		}
@@ -75,7 +75,7 @@ public class ShipInstructionController {
 		model.addAttribute("mode", documentId == null ? "create" : "edit");
 		model.addAttribute("isEdit", documentId != null);
 		model.addAttribute("activeMenu", "shipping-instruction");
-		model.addAttribute("pageTitle", "출하지시서 입력");
+		model.addAttribute("pageTitle", "出荷指示入力");
 		return "shippingInstruction/form";
 	}
 }

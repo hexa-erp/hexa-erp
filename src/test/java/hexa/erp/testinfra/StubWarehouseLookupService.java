@@ -7,13 +7,13 @@ import hexa.erp.warehouse.domain.WarehouseLookupVO;
 import hexa.erp.warehouse.service.WarehouseLookupService;
 import hexa.erp.common.domain.LookupCriteria;
 
-/** 웹 컨텍스트 테스트 전용 응답. 실제 DB 데이터나 검색 구현이 아니며 main에서는 사용하지 않는다. */
+/** Webコンテキストテスト専用レスポンス。実際のDBデータや検索処理ではなく、mainでは使用しない。 */
 public class StubWarehouseLookupService implements WarehouseLookupService {
 	@Override
 	public WarehouseLookupVO get(Long id) {
 		WarehouseLookupVO row = getList(new LookupCriteria()).get(0);
 		row.setWarehouseId(id);
-		row.setWarehouseName("웹 테스트 창고 " + id);
+		row.setWarehouseName("Webテスト倉庫 " + id);
 		return row;
 	}
 
@@ -27,8 +27,8 @@ public class StubWarehouseLookupService implements WarehouseLookupService {
 		WarehouseLookupVO row = new WarehouseLookupVO();
 		row.setWarehouseId(42L);
 		row.setWarehouseCode("00001");
-		row.setWarehouseName("웹 테스트 창고");
-		row.setWarehouseType("창고");
+		row.setWarehouseName("Webテスト倉庫");
+		row.setWarehouseType("倉庫");
 		row.setActiveFlag("Y");
 		return Collections.singletonList(row);
 	}

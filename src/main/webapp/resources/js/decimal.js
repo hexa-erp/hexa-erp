@@ -1,5 +1,5 @@
-/* 화면 금액 계산용. 소수 계산 오차를 줄이기 위해 문자열과 BigInt를 사용한다.
- * 공급가액은 수량×단가, 부가세는 공급가액×10%를 원 단위로 반올림한다(HALF_UP).
+/* 画面上の金額計算用。小数計算の誤差を抑えるため文字列とBigIntを使う。
+ * 税抜金額は数量×単価、消費税は税抜金額×10%を円単位で四捨五入する（HALF_UP）。
  */
 (function(root, factory) {
 	'use strict';
@@ -61,7 +61,7 @@
 		return sign + whole + (fraction ? '.' + fraction : '');
 	}
 
-	// HALF_UP 반올림: 1.5는 2, -1.5는 -2가 된다.
+	// HALF_UPの丸めでは1.5は2、-1.5は-2になる。
 	function roundInteger(value) {
 		if (!value.scale)
 			return value.coefficient;
@@ -74,9 +74,9 @@
 		return value.coefficient < ZERO ? -whole : whole;
 	}
 
-	// HALF_UP으로 소수 scale자리까지 반올림한다.
+	// HALF_UPで小数点以下scale桁まで丸める。
 	function roundScale(value, scale) {
-		// 자릿수가 모자라면 0을 붙여 맞추고, 넘치면 넘친 자리만 정수 반올림으로 자른다.
+		// 桁数が足りなければ0で補い、超える場合は超過桁を整数演算で丸める。
 		if (value.scale <= scale)
 			return {
 				coefficient : value.coefficient * power10(scale - value.scale),
@@ -91,14 +91,14 @@
 		};
 	}
 
-	// 단가를 percent%만큼 올리거나(음수면 내림) 소수 둘째 자리까지 반올림한다.
+	// 単価をpercent%調整し（負数なら値下げ）、小数点以下2桁に丸める。
 	function adjustPercent(unitPrice, percent) {
 		var p = parse(unitPrice), r = parse(percent);
 		if (!p || !r)
 			return null;
-		// 단가 × (100 + percent) ÷ 100
-		// percent의 소수 자릿수에 맞춰 100도 같은 배율로 키운 뒤 더한다. (2.5% → 1000 + 25)
-		// ÷ 100은 scale을 2 늘리는 것으로 대신한다.
+		// 単価 × (100 + percent) ÷ 100
+		// percentの小数桁に合わせて100も同じ倍率で拡大してから加える。（2.5% → 1000 + 25）
+		// ÷100はscaleを2増やすことで表す。
 		var factor = BigInt(100) * power10(r.scale) + r.coefficient;
 		return stringify(roundScale({
 			coefficient : p.coefficient * factor,
@@ -137,7 +137,7 @@
 		};
 	}
 
-	// 큰 금액도 정확하게 표시하도록 문자열에 쉼표를 붙인다.
+	// 大きな金額も正確に表示するため、文字列に桁区切りを付ける。
 	function format(value) {
 		var parsed = parse(value);
 		if (!parsed)

@@ -51,7 +51,7 @@ public class FilterSelectionServiceImpl implements FilterSelectionService {
 		FilterSelectionVO selection = new FilterSelectionVO();
 		selection.setId(id);
 		selection.setCode("");
-		selection.setName("찾을 수 없는 항목 (" + id + ")");
+		selection.setName("見つからない項目 (" + id + ")");
 		Long key;
 		try {
 			key = Long.valueOf(id);

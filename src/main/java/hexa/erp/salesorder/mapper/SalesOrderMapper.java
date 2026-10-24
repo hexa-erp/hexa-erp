@@ -14,33 +14,33 @@ public interface SalesOrderMapper {
 
 	int getTotalCount(SalesOrderCriteria criteria);
 
-	// 주문서 기본 정보 조회
+	// 受注伝票のヘッダー情報を取得する。
 	SalesOrderVO read(Long salesOrderId);
 
-	// 주문서 품목 행 조회
+	// 受注伝票の品目行を取得する。
 	List<SalesOrderLineVO> getLines(Long salesOrderId);
 
-	// 주문서 기본 정보 입력
+	// 受注伝票のヘッダー情報を登録する。
 	void insertSelectKey(SalesOrderVO saleOrder);
 
-	// 주문서 품목 행 입력
+	// 受注伝票の品目行を登録する。
 	void insertLineSelectKey(SalesOrderLineVO line);
 
-	// 주문서 기본 정보 수정
+	// 受注伝票のヘッダー情報を更新する。
 	int update(SalesOrderVO salesOrder);
 
-	// 주문서 품목 행 수정
+	// 受注伝票の品目行を更新する。
 	int updateLine(SalesOrderLineVO line);
 
-	// 주문서 품목 행 삭제
+	// 受注伝票の品目行を削除する。
 	int removeSelectedLines(@Param("salesOrderId") Long salesOrderId, @Param("lineIds") List<Long> lineIds);
 
-	// 주문서 삭제 - 기본 정보
+	// 受注伝票のヘッダー情報を削除する。
 	int remove(@Param("ids") List<Long> ids);
 
-	// 주문서 삭제 - 품목 행
+	// 受注伝票の品目行を削除する。
 	int removeLines(@Param("ids") List<Long> ids);
 
-	// 주문서 진행 상태 변경
+	// 受注伝票の進行状態を変更する。
 	int changeStatus(@Param("ids") List<Long> ids, @Param("progressStatus") String progressStatus);
 }

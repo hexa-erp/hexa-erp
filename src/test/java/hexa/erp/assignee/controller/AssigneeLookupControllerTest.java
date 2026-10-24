@@ -27,7 +27,7 @@ import hexa.erp.assignee.domain.AssigneeLookupVO;
 import hexa.erp.assignee.service.AssigneeLookupService;
 import hexa.erp.common.domain.LookupCriteria;
 
-/** 테스트 Service를 사용하며 실제 Oracle에는 연결하지 않는다. */
+/** テストServiceを使用し、実際のOracleには接続しない。 */
 public class AssigneeLookupControllerTest {
 	private AssigneeLookupController controller;
 	private StubAssigneeLookupService service;
@@ -50,7 +50,7 @@ public class AssigneeLookupControllerTest {
 					new RootBeanDefinition(AssigneeLookupController.class));
 			try {
 				context.refresh();
-				fail("AssigneeLookupService 없이 Controller가 등록되면 안 된다.");
+				fail("AssigneeLookupServiceなしでControllerを登録してはならない。");
 			} catch (UnsatisfiedDependencyException expected) {
 				assertTrue(expected.getMessage().contains("AssigneeLookupService"));
 			}
@@ -61,13 +61,13 @@ public class AssigneeLookupControllerTest {
 	public void trimsKeywordBindsPageAndIgnoresRequestedAmount() throws Exception {
 		service.total = 26;
 		service.rows = Collections.singletonList(row());
-		JsonNode body = body(mvc.perform(get("/lookup/options/assignee").param("keyword", "  김 담당자  ")
+		JsonNode body = body(mvc.perform(get("/lookup/options/assignee").param("keyword", "  佐藤 担当者  ")
 				.param("page", "2").param("amount", "1000").param("pageSize", "1000")).andReturn());
 		assertEnvelope(body, 2, 2, 26);
 		assertEquals(1, body.get("rows").size());
 		assertEquals(2, service.calls.size());
 		for (LookupCriteria criteria : service.calls) {
-			assertEquals("김 담당자", criteria.getKeyword());
+			assertEquals("佐藤 担当者", criteria.getKeyword());
 			assertEquals(2, criteria.getPageNum());
 			assertEquals(25, criteria.getAmount());
 		}
@@ -77,7 +77,7 @@ public class AssigneeLookupControllerTest {
 		assertEquals(42L, selected.get("assigneeId").asLong());
 		assertTrue(selected.get("assigneeCode").isTextual());
 		assertEquals("00001", selected.get("assigneeCode").asText());
-		assertEquals("김 담당자", selected.get("assigneeName").asText());
+		assertEquals("佐藤 担当者", selected.get("assigneeName").asText());
 		assertEquals("Y", selected.get("activeFlag").asText());
 		assertEquals(Long.valueOf(42L), service.rows.get(0).getAssigneeId());
 	}
@@ -100,7 +100,7 @@ public class AssigneeLookupControllerTest {
 	public void outOfRangePageIsClampedBeforeListQueryAndInJson() throws Exception {
 		service.total = 26;
 		assertEnvelope(body(mvc.perform(get("/lookup/options/assignee").param("page", "99")).andReturn()), 2, 2, 26);
-		assertEquals(99, service.calls.get(0).getPageNum()); // count는 페이지를 사용하지 않는다.
+		assertEquals(99, service.calls.get(0).getPageNum()); // countではページを使用しない。
 		assertEquals(2, service.calls.get(1).getPageNum());
 	}
 
@@ -129,11 +129,11 @@ public class AssigneeLookupControllerTest {
 
 	@Test
 	public void countAndListFailuresAreNeverReportedAsEmptySuccess() {
-		RuntimeException failure = new IllegalStateException("테스트용 SQL 오류");
+		RuntimeException failure = new IllegalStateException("テスト用SQLエラー");
 		service.countFailure = failure;
 		try {
 			controller.assigneeOptions("", 1);
-			fail("DB 오류를 빈 성공 응답으로 바꾸면 안 된다.");
+			fail("DBエラーを空の成功レスポンスに置き換えてはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
@@ -141,7 +141,7 @@ public class AssigneeLookupControllerTest {
 		service.listFailure = failure;
 		try {
 			controller.assigneeOptions("", 1);
-			fail("목록 조회 오류도 숨기면 안 된다.");
+			fail("一覧取得のエラーも隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
@@ -165,7 +165,7 @@ public class AssigneeLookupControllerTest {
 		AssigneeLookupVO row = new AssigneeLookupVO();
 		row.setAssigneeId(42L);
 		row.setAssigneeCode("00001");
-		row.setAssigneeName("김 담당자");
+		row.setAssigneeName("佐藤 担当者");
 		row.setActiveFlag("Y");
 		return row;
 	}

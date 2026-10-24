@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-/** 출하 목록의 검색·페이지 조건. 잘못된 값은 기본값으로 보정한다. */
+/** 出荷一覧の検索条件とページ情報。不正な値は既定値に補正する。 */
 @Getter
 @Setter
 @ToString

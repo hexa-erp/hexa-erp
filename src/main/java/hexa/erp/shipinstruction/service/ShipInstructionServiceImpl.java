@@ -71,13 +71,13 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 	@Transactional
 	public Long save(ShipInstructionVO shipInstruction) {
 		if (shipInstruction == null || isBlank(shipInstruction.getBusinessDate())) {
-			throw new IllegalArgumentException("출하지시 일자를 입력해 주세요.");
+			throw new IllegalArgumentException("出荷指示日を入力してください。");
 		}
 		try {
 
 			shipInstruction.setBusinessDate(LocalDate.parse(shipInstruction.getBusinessDate().trim()).toString());
 		} catch (DateTimeParseException e) {
-			throw new IllegalArgumentException("출하지시 일자를 올바르게 입력해 주세요.");
+			throw new IllegalArgumentException("正しい出荷指示日を入力してください。");
 		}
 		if (isBlank(shipInstruction.getPlannedDate())) {
 			shipInstruction.setPlannedDate(null);
@@ -85,18 +85,18 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 			try {
 				shipInstruction.setPlannedDate(LocalDate.parse(shipInstruction.getPlannedDate().trim()).toString());
 			} catch (DateTimeParseException e) {
-				throw new IllegalArgumentException("출하 예정일을 올바르게 입력해 주세요.");
+				throw new IllegalArgumentException("正しい出荷予定日を入力してください。");
 			}
 		}
 		if (shipInstruction.getWarehouseId() == null) {
-			throw new IllegalArgumentException("출하창고를 선택해 주세요.");
+			throw new IllegalArgumentException("出荷倉庫を選択してください。");
 		}
 
 		ShipInstructionVO existing = null;
 		if (shipInstruction.getShipInstructionId() != null) {
 			existing = mapper.read(shipInstruction.getShipInstructionId());
 			if (existing == null) {
-				throw new IllegalArgumentException("수정할 출하지시서를 찾을 수 없습니다.");
+				throw new IllegalArgumentException("更新対象の出荷指示書が見つかりません。");
 			}
 			shipInstruction.setShipInstructionNo(existing.getShipInstructionNo());
 			shipInstruction.setProgressStatus(existing.getProgressStatus());
@@ -105,7 +105,7 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 		}
 		fillHeaderNames(shipInstruction, existing);
 		if (isBlank(shipInstruction.getWarehouseName())) {
-			throw new IllegalArgumentException("선택한 출하창고를 찾을 수 없습니다.");
+			throw new IllegalArgumentException("選択した出荷倉庫が見つかりません。");
 		}
 
 		List<Long> removedLineIds = cleanIds(shipInstruction.getRemovedLineIds());
@@ -119,7 +119,7 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 				if (line.getShipInstructionLineId() != null) {
 					if (!lineIds.add(line.getShipInstructionLineId())
 							|| removedLineIds.contains(line.getShipInstructionLineId())) {
-						throw new IllegalArgumentException("중복되거나 삭제 표시된 품목 행을 확인해주세요.");
+						throw new IllegalArgumentException("重複または削除指定された品目行を確認してください。");
 					}
 				}
 				prepareLine(line);
@@ -128,14 +128,14 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 		}
 
 		if (lines.isEmpty()) {
-			throw new IllegalArgumentException("출하지시 품목을 한 개 이상 선택해 주세요.");
+			throw new IllegalArgumentException("出荷指示の品目を1件以上選択してください。");
 		}
 		shipInstruction.setLines(lines);
 
 		if (existing == null) {
 			mapper.insertSelectKey(shipInstruction);
 		} else if (mapper.update(shipInstruction) != 1) {
-			throw new IllegalArgumentException("수정할 출하지시서를 찾을 수 없습니다.");
+			throw new IllegalArgumentException("更新対象の出荷指示書が見つかりません。");
 		}
 		if (!removedLineIds.isEmpty()) {
 			mapper.removeSelectedLines(shipInstruction.getShipInstructionId(), removedLineIds);
@@ -145,10 +145,10 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 			if (line.getShipInstructionLineId() == null) {
 				mapper.insertLineSelectKey(line);
 			} else if (mapper.updateLine(line) != 1) {
-				throw new IllegalArgumentException("출하지시서에 속하지 않거나 삭제된 품목 행입니다.");
+				throw new IllegalArgumentException("この出荷指示書に属していないか、削除済みの品目行です。");
 			}
 		}
-		log.info("출하지시서 저장: " + shipInstruction.getShipInstructionId());
+		log.info("出荷指示書の保存: " + shipInstruction.getShipInstructionId());
 		return shipInstruction.getShipInstructionId();
 	}
 
@@ -161,7 +161,7 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 		}
 		int count = mapper.remove(ids);
 		mapper.removeLines(ids);
-		log.info("출하지시서 삭제: " + count + "건");
+		log.info("出荷指示書の削除: " + count + "件");
 		return count;
 	}
 
@@ -172,9 +172,9 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 			return 0;
 		}
 		if (!"IN_PROGRESS".equals(progressStatus) && !"COMPLETED".equals(progressStatus)) {
-			throw new IllegalArgumentException("진행상태는 진행중, 완료 중에서 선택해 주세요.");
+			throw new IllegalArgumentException("進行状態は進行中、完了のいずれかを選択してください。");
 		}
-		log.info("출하지시서 진행상태 변경: " + progressStatus);
+		log.info("出荷指示書の進行状態変更: " + progressStatus);
 		return mapper.changeStatus(ids, progressStatus);
 	}
 
@@ -182,7 +182,7 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 		if (isBlank(line.getItemName())) {
 			ItemLookupVO item = itemLookupService.get(line.getItemId());
 			if (item == null) {
-				throw new IllegalArgumentException("선택한 품목을 찾을 수 없습니다.");
+				throw new IllegalArgumentException("選択した品目が見つかりません。");
 			}
 			line.setItemName(item.getItemName());
 		}

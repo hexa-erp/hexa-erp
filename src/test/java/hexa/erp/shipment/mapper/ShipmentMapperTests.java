@@ -29,7 +29,7 @@ public class ShipmentMapperTests {
 	@Autowired
 	private ShipmentMapper mapper;
 
-	// 일치하는 출하가 없을 때 목록과 전체 건수 확인
+	// 一致する出荷がない場合の一覧と総件数を確認
 	@Test
 	public void testGetListWithPaging() {
 		ShipmentCriteria criteria = new ShipmentCriteria();

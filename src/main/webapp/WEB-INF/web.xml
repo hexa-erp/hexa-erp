@@ -5,7 +5,7 @@
 	version="3.1">
 	<display-name>hexa-erp</display-name>
 
-	<!-- Tomcat 시작 시 root-context.xml을 읽는다. -->
+	<!-- Tomcat起動時にroot-context.xmlを読み込む。 -->
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
 		<param-value>/WEB-INF/spring/root-context.xml</param-value>
@@ -14,7 +14,7 @@
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 	</listener>
 
-	<!-- 한글 Form 입력과 응답에 UTF-8을 적용한다. -->
+	<!-- フォーム入力とレスポンスにUTF-8を適用する。 -->
 	<filter>
 		<filter-name>encodingFilter</filter-name>
 		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
@@ -32,7 +32,7 @@
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
-	<!-- DispatcherServlet은 servlet-context.xml을 읽는다. -->
+	<!-- DispatcherServletはservlet-context.xmlを読み込む。 -->
 	<servlet>
 		<servlet-name>appServlet</servlet-name>
 		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
@@ -41,7 +41,7 @@
 			<param-value>/WEB-INF/spring/appServlet/servlet-context.xml</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
-		<!-- 업로드 파일의 크기를 제한한다. 실제 파일 저장은 별도로 구현한다. -->
+		<!-- アップロードファイルのサイズを制限する。実際のファイル保存処理は別途実装する。 -->
 		<multipart-config>
 			<max-file-size>5242880</max-file-size>
 			<max-request-size>6291456</max-request-size>
@@ -53,7 +53,7 @@
 		<url-pattern>/</url-pattern>
 	</servlet-mapping>
 
-	<!-- 세션 시간은 분 단위이며 http-only는 JavaScript의 쿠키 접근을 막는다. -->
+	<!-- セッション時間の単位は分。http-onlyによりJavaScriptからのCookieアクセスを防ぐ。 -->
 	<session-config>
 		<session-timeout>30</session-timeout>
 		<cookie-config>

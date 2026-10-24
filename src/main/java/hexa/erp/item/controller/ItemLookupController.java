@@ -27,7 +27,7 @@ public class ItemLookupController {
 	public Map<String, Object> itemOptions(@RequestParam(name = "keyword", defaultValue = "") String keyword,
 			@RequestParam(name = "page", defaultValue = "1") int page,
 			@RequestParam(name = "warehouseId", required = false) Long warehouseId) {
-		log.info("품목 선택 목록 조회");
+		log.info("品目の選択候補を取得");
 		LookupCriteria criteria = new LookupCriteria();
 		criteria.setKeyword(keyword);
 		criteria.setPageNum(page);

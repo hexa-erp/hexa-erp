@@ -56,7 +56,7 @@ public class ShipInstructionServiceTests {
 	@Autowired
 	private SaleLookupMapper saleLookupMapper;
 
-	// 출하지시 저장·수정과 원판매 연결, 재고 유지 확인
+	// 出荷指示の保存・更新、元売上との紐付け、在庫保持を確認
 	@Test
 	public void testSaveAndUpdateWithoutChangingStock() {
 		ItemVO item = createItem();
@@ -65,7 +65,7 @@ public class ShipInstructionServiceTests {
 		WarehouseVO warehouse = createWarehouse();
 		warehouseMapper.insertSelectKey(warehouse);
 
-		// 판매 3개 저장: 이 시점에만 재고가 차감
+		// 売上3個を保存：この時点でのみ在庫を減算
 		SaleVO sale = createSale(item, warehouse);
 		Long saleId = saleService.save(sale);
 
@@ -76,7 +76,7 @@ public class ShipInstructionServiceTests {
 		assertNotNull(saleLineId);
 		assertStockQuantity(warehouse, item, "-3");
 
-		// 원판매 상세행을 연결해 출하지시 2개 저장
+		// 元売上明細行に紐付けて出荷指示2個を保存
 		ShipInstructionVO instruction = createInstruction(item, warehouse, saleLineId, "2");
 
 		Long instructionId = service.save(instruction);
@@ -97,11 +97,11 @@ public class ShipInstructionServiceTests {
 		assertEquals(0, new BigDecimal("2").compareTo(saved.getTotalQuantity()));
 		assertStockQuantity(warehouse, item, "-3");
 
-		// 같은 출하지시 상세행의 수량을 1개로 수정
+		// 同じ出荷指示明細行の数量を1個に変更
 		ShipInstructionVO update = createInstruction(item, warehouse, saleLineId, "1");
 
 		update.setShipInstructionId(instructionId);
-		update.setNote("출하지시 수정 테스트");
+		update.setNote("出荷指示の更新テスト");
 		update.getLines().get(0).setShipInstructionLineId(lineId);
 
 		Long updatedId = service.save(update);
@@ -110,7 +110,7 @@ public class ShipInstructionServiceTests {
 		assertEquals(instructionId, updatedId);
 		assertNotNull(changed);
 		assertEquals(saved.getShipInstructionNo(), changed.getShipInstructionNo());
-		assertEquals("출하지시 수정 테스트", changed.getNote());
+		assertEquals("出荷指示の更新テスト", changed.getNote());
 		assertEquals(1, changed.getLines().size());
 
 		ShipInstructionLineVO changedLine = changed.getLines().get(0);
@@ -122,7 +122,7 @@ public class ShipInstructionServiceTests {
 		assertStockQuantity(warehouse, item, "-3");
 	}
 
-	// 출하지시 상태 변경·삭제와 재고 유지 확인
+	// 出荷指示の状態変更・削除と在庫保持を確認
 	@Test
 	public void testChangeStatusAndRemoveWithoutChangingStock() {
 		ItemVO item = createItem();
@@ -131,7 +131,7 @@ public class ShipInstructionServiceTests {
 		WarehouseVO warehouse = createWarehouse();
 		warehouseMapper.insertSelectKey(warehouse);
 
-		// 원판매 저장: 재고 -3
+		// 元売上を保存：在庫-3
 		SaleVO sale = createSale(item, warehouse);
 		saleService.save(sale);
 
@@ -149,7 +149,7 @@ public class ShipInstructionServiceTests {
 
 		List<Long> selectedIds = Collections.singletonList(instructionId);
 
-		// 진행상태를 완료로 변경
+		// 進行状況を完了に変更
 		int changeCount = service.changeStatus(selectedIds, "COMPLETED");
 		ShipInstructionVO completed = service.get(instructionId);
 
@@ -159,12 +159,12 @@ public class ShipInstructionServiceTests {
 		assertEquals(1, completed.getLines().size());
 		assertStockQuantity(warehouse, item, "-3");
 
-		// 일반 수정으로 완료 상태가 초기화되지 않는지 확인
+		// 通常の更新で完了状態が初期化されないことを確認
 		ShipInstructionVO update = createInstruction(item, warehouse, saleLineId, "2");
 
 		update.setShipInstructionId(instructionId);
 		update.setProgressStatus("IN_PROGRESS");
-		update.setNote("출하지시 완료 상태 유지 테스트");
+		update.setNote("出荷指示の完了状態保持テスト");
 		update.getLines().get(0).setShipInstructionLineId(completed.getLines().get(0).getShipInstructionLineId());
 
 		service.save(update);
@@ -172,23 +172,23 @@ public class ShipInstructionServiceTests {
 		ShipInstructionVO changed = service.get(instructionId);
 
 		assertNotNull(changed);
-		assertEquals("출하지시 완료 상태 유지 테스트", changed.getNote());
+		assertEquals("出荷指示の完了状態保持テスト", changed.getNote());
 		assertEquals("COMPLETED", changed.getProgressStatus());
 		assertStockQuantity(warehouse, item, "-3");
 
-		// 지시서 삭제 후에도 원판매와 재고는 유지
+		// 指示書削除後も元売上と在庫を保持
 		assertEquals(1, service.remove(selectedIds));
 		assertNull(service.get(instructionId));
 		assertNotNull(saleService.get(sale.getSaleId()));
 		assertStockQuantity(warehouse, item, "-3");
 
-		// 이미 삭제된 지시서는 다시 삭제하거나 상태를 변경할 수 없음
+		// 削除済み指示書は再削除や状態変更ができない
 		assertEquals(0, service.remove(selectedIds));
 		assertEquals(0, service.changeStatus(selectedIds, "IN_PROGRESS"));
 		assertStockQuantity(warehouse, item, "-3");
 	}
 
-	// 원판매 연결과 출하지시 수정·삭제에 따른 미지시 잔량 확인
+	// 元売上との紐付けと出荷指示更新・削除後の未指示残数を確認
 	@Test
 	public void testSaleLinkAndRemainingQuantity() {
 		ItemVO item = createItem();
@@ -197,7 +197,7 @@ public class ShipInstructionServiceTests {
 		WarehouseVO warehouse = createWarehouse();
 		warehouseMapper.insertSelectKey(warehouse);
 
-		// 원판매 3개 저장
+		// 元売上3個を保存
 		SaleVO sale = createSale(item, warehouse);
 		Long saleId = saleService.save(sale);
 		Long saleLineId = sale.getLines().get(0).getSaleLineId();
@@ -207,7 +207,7 @@ public class ShipInstructionServiceTests {
 		assertRemainingQuantity(saleId, "3");
 		assertStockQuantity(warehouse, item, "-3");
 
-		// 출하지시 2개 저장 → 미지시 잔량 1개
+		// 出荷指示2個を保存 → 未指示残数1個
 		ShipInstructionVO instruction = createInstruction(item, warehouse, saleLineId, "2");
 
 		Long instructionId = service.save(instruction);
@@ -219,11 +219,11 @@ public class ShipInstructionServiceTests {
 		assertRemainingQuantity(saleId, "1");
 		assertStockQuantity(warehouse, item, "-3");
 
-		// 완료 상태여도 지시한 수량은 잔량 계산에 포함
+		// 完了状態でも指示済み数量は残数計算に含める
 		assertEquals(1, service.changeStatus(Collections.singletonList(instructionId), "COMPLETED"));
 		assertRemainingQuantity(saleId, "1");
 
-		// 같은 지시 행의 수량을 1개로 수정 → 미지시 잔량 2개
+		// 同じ指示行の数量を1個に変更 → 未指示残数2個
 		saved.getLines().get(0).setQuantity(new BigDecimal("1"));
 		service.save(saved);
 
@@ -235,14 +235,14 @@ public class ShipInstructionServiceTests {
 		assertRemainingQuantity(saleId, "2");
 		assertStockQuantity(warehouse, item, "-3");
 
-		// 지시서 삭제 → 미지시 잔량 3개로 복원
+		// 指示書を削除 → 未指示残数3個へ復元
 		assertEquals(1, service.remove(Collections.singletonList(instructionId)));
 		assertNull(service.get(instructionId));
 		assertRemainingQuantity(saleId, "3");
 		assertStockQuantity(warehouse, item, "-3");
 	}
 
-	// 원본 전표 선택 조회에서 사용하는 미지시 잔량 확인
+	// 元伝票選択で使用する未指示残数を確認
 	private void assertRemainingQuantity(Long saleId, String expectedQuantity) {
 
 		List<SaleLookupLineVO> lines = saleLookupMapper.getLines(saleId);
@@ -251,13 +251,13 @@ public class ShipInstructionServiceTests {
 		assertEquals(0, new BigDecimal(expectedQuantity).compareTo(lines.get(0).getRemainingQuantity()));
 	}
 
-	// 테스트 출하지시서 생성
+	// テスト出荷指示書を生成
 	private ShipInstructionVO createInstruction(ItemVO item, WarehouseVO warehouse, Long saleLineId, String quantity) {
 
 		ShipInstructionVO instruction = new ShipInstructionVO();
 		instruction.setBusinessDate(LocalDate.now().toString());
 		instruction.setWarehouseId(warehouse.getWarehouseId());
-		instruction.setNote("출하지시 Service 테스트");
+		instruction.setNote("出荷指示Serviceテスト");
 
 		ShipInstructionLineVO line = new ShipInstructionLineVO();
 		line.setItemId(item.getItemId());
@@ -272,12 +272,12 @@ public class ShipInstructionServiceTests {
 		return instruction;
 	}
 
-	// 원본으로 사용할 테스트 판매 생성
+	// 元伝票に使用するテスト売上を生成
 	private SaleVO createSale(ItemVO item, WarehouseVO warehouse) {
 		SaleVO sale = new SaleVO();
 		sale.setBusinessDate(LocalDate.now().toString());
 		sale.setWarehouseId(warehouse.getWarehouseId());
-		sale.setNote("출하지시 원판매 테스트");
+		sale.setNote("出荷指示の元売上テスト");
 
 		SaleLineVO line = new SaleLineVO();
 		line.setItemId(item.getItemId());
@@ -292,7 +292,7 @@ public class ShipInstructionServiceTests {
 		return sale;
 	}
 
-	// 현재 재고 확인
+	// 現在の在庫を確認
 	private void assertStockQuantity(WarehouseVO warehouse, ItemVO item, String expectedQuantity) {
 
 		StockVO stock = stockMapper.read(warehouse.getWarehouseId(), item.getItemId());
@@ -301,30 +301,30 @@ public class ShipInstructionServiceTests {
 		assertEquals(0, new BigDecimal(expectedQuantity).compareTo(stock.getQuantity()));
 	}
 
-	// 테스트 품목 생성
+	// テスト品目を生成
 	private ItemVO createItem() {
 		String token = createToken();
 
 		ItemVO item = new ItemVO();
 		item.setItemCode("SITEST" + token);
-		item.setItemName("출하지시 테스트 품목 " + token);
+		item.setItemName("出荷指示テスト品目 " + token);
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 		item.setInboundPrice(BigDecimal.ZERO);
 		item.setOutboundPrice(new BigDecimal("1000"));
 
 		return item;
 	}
 
-	// 테스트 창고 생성
+	// テスト倉庫を生成
 	private WarehouseVO createWarehouse() {
 		String token = createToken();
 
 		WarehouseVO warehouse = new WarehouseVO();
 		warehouse.setWarehouseCode("SIWTEST" + token);
-		warehouse.setWarehouseName("출하지시 테스트 창고 " + token);
-		warehouse.setWarehouseType("창고");
+		warehouse.setWarehouseName("出荷指示テスト倉庫 " + token);
+		warehouse.setWarehouseType("倉庫");
 
 		return warehouse;
 	}

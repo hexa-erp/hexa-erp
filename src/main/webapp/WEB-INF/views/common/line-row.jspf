@@ -1,7 +1,7 @@
 <%@ page pageEncoding="UTF-8"%>
 <tr data-line-row>
 	<td class="text-center"><input type="checkbox" class="line-select"
-		aria-label="품목행 선택"></td>
+		aria-label="品目行の選択"></td>
 	<td><span data-line-number>${rowIndex+1}</span> <input
 		type="hidden" data-field="${lineIdField}"
 		name="lines[${rowIndex}].${lineIdField}"
@@ -18,25 +18,25 @@
 	<td><div class="input-group">
 			<input type="text" data-field="itemCode"
 				name="lines[${rowIndex}].itemCode"
-				value="<c:out value='${row.itemCode}'/>" readonly aria-label="품목코드">
+				value="<c:out value='${row.itemCode}'/>" readonly aria-label="品目コード">
 			<button type="button" class="btn btn-sm" data-line-pick
-				aria-label="품목 선택">선택</button>
+				aria-label="品目 選択">選択</button>
 		</div></td>
 	<td class="item-name"><input type="text" data-field="itemName"
 		name="lines[${rowIndex}].itemName"
 		value="<c:out value='${row.itemName}'/>" maxlength="100"
-		aria-label="품목명"></td>
+		aria-label="品目名"></td>
 	<td><input type="text" data-field="specification"
 		name="lines[${rowIndex}].specification"
 		value="<c:out value='${row.specification}'/>" maxlength="100"
-		aria-label="규격"></td>
+		aria-label="規格"></td>
 	<td class="number"><input type="number" data-field="quantity"
 		name="lines[${rowIndex}].quantity"
-		value="<c:out value='${row.quantity}'/>" step="0.001" aria-label="수량"></td>
+		value="<c:out value='${row.quantity}'/>" step="0.001" aria-label="数量"></td>
 	<c:if test="${priced}">
 		<td class="number"><input type="number" data-field="unitPrice"
 			name="lines[${rowIndex}].unitPrice"
-			value="<c:out value='${row.unitPrice}'/>" step="0.01" aria-label="단가"></td>
+			value="<c:out value='${row.unitPrice}'/>" step="0.01" aria-label="単価"></td>
 		<td class="text-right"><input type="hidden"
 			data-field="supplyAmount" name="lines[${rowIndex}].supplyAmount"
 			value="<c:out value='${row.supplyAmount}'/>"> <output
@@ -55,7 +55,7 @@
 	</c:if>
 	<td class="line-note"><input type="text" data-field="note"
 		name="lines[${rowIndex}].note" value="<c:out value='${row.note}'/>"
-		maxlength="500" aria-label="행 비고"></td>
+		maxlength="500" aria-label="行の備考"></td>
 	<c:if test="${priced}">
 		<td class="text-right"><input type="hidden"
 			data-field="totalAmount" name="lines[${rowIndex}].totalAmount"

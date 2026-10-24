@@ -1,8 +1,8 @@
 <%@ page pageEncoding="UTF-8"%>
 
-<div class="pagination" role="navigation" aria-label="목록 페이지 이동">
-	<span class="muted pagination-summary">총 <c:out
-			value="${totalCount}" />건 · 페이지당 <c:out value="${pageSize}" />개
+<div class="pagination" role="navigation" aria-label="一覧のページ移動">
+	<span class="muted pagination-summary">全 <c:out
+			value="${totalCount}" />件・1ページ <c:out value="${pageSize}" />件
 	</span>
 	<div class="pagination-pages">
 		<c:forEach var="p" begin="1" end="${totalPages}">

@@ -27,7 +27,7 @@ public class QuotationLookupController {
 	public Map<String, Object> quotationSources(@RequestParam(name = "keyword", defaultValue = "") String keyword,
 			@RequestParam(name = "progressStatus", defaultValue = "") String progressStatus,
 			@RequestParam(name = "page", defaultValue = "1") int page) {
-		log.info("견적서 불러오기 조회");
+		log.info("見積書の読込候補を取得");
 		LookupCriteria criteria = new LookupCriteria();
 		criteria.setKeyword(keyword);
 		criteria.setPageNum(page);

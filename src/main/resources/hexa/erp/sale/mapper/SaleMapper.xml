@@ -6,7 +6,7 @@
 
 <mapper namespace="hexa.erp.sale.mapper.SaleMapper">
 
-	<!-- 판매 기본정보 조회 컬럼 -->
+	<!-- 売上ヘッダー情報の取得列 -->
 	<sql id="headerColumns">
 		h.SALE_ID,
 		h.SALE_NO,
@@ -45,9 +45,9 @@
 		|| CASE
 		WHEN COUNT(*) > 1
 		THEN
-		' 외 '
+		' ほか '
 		|| TO_CHAR(COUNT(*) - 1)
-		|| '건'
+		|| '件'
 		ELSE ''
 		END
 		FROM SALE_LINE l
@@ -66,7 +66,7 @@
 		) AS TOTAL_AMOUNT
 	</sql>
 
-	<!-- 판매 기본정보 조회 테이블 -->
+	<!-- 売上ヘッダー情報の参照テーブル -->
 	<sql id="headerTables">
 		FROM SALE h
 		LEFT JOIN BIZ_PARTNER p
@@ -77,7 +77,7 @@
 		ON a.ASSIGNEE_ID = h.ASSIGNEE_ID
 	</sql>
 
-	<!-- 판매 목록 검색 조건 -->
+	<!-- 売上一覧の検索条件 -->
 	<sql id="searchCondition">
 		WHERE h.DELETED_YN = 'N'
 
@@ -115,7 +115,7 @@
 		</if>
 	</sql>
 
-	<!-- 판매 목록 조회 -->
+	<!-- 売上一覧を取得する。 -->
 	<select id="getListWithPaging"
 		parameterType="hexa.erp.sale.domain.SaleCriteria"
 		resultType="hexa.erp.sale.domain.SaleVO">
@@ -165,7 +165,7 @@
 		SALE_ID DESC
 	</select>
 
-	<!-- 판매 전체 건수 조회 -->
+	<!-- 売上の総件数を取得する。 -->
 	<select id="getTotalCount"
 		parameterType="hexa.erp.sale.domain.SaleCriteria" resultType="int">
 
@@ -174,7 +174,7 @@
 		<include refid="searchCondition" />
 	</select>
 
-	<!-- 판매 기본정보 한 건 조회 -->
+	<!-- 売上ヘッダー情報を1件取得する。 -->
 	<select id="read" parameterType="long"
 		resultType="hexa.erp.sale.domain.SaleVO">
 
@@ -185,7 +185,7 @@
 		AND h.DELETED_YN = 'N'
 	</select>
 
-	<!-- 판매 상세행 조회 -->
+	<!-- 売上明細行を取得する。 -->
 	<select id="getLines" parameterType="long"
 		resultType="hexa.erp.sale.domain.SaleLineVO">
 
@@ -216,7 +216,7 @@
 		ORDER BY l.SALE_LINE_ID ASC
 	</select>
 
-	<!-- 신규 판매 기본정보 등록 -->
+	<!-- 新規売上のヘッダー情報を登録する。 -->
 	<insert id="insertSelectKey"
 		parameterType="hexa.erp.sale.domain.SaleVO">
 
@@ -269,7 +269,7 @@
 		)
 	</insert>
 
-	<!-- 기존 판매 기본정보 수정 -->
+	<!-- 既存売上のヘッダー情報を更新する。 -->
 	<update id="update" parameterType="hexa.erp.sale.domain.SaleVO">
 
 		UPDATE SALE
@@ -290,7 +290,7 @@
 		AND DELETED_YN = 'N'
 	</update>
 
-	<!-- 신규 판매 상세행 등록 -->
+	<!-- 新規売上明細行を登録する。 -->
 	<insert id="insertLineSelectKey"
 		parameterType="hexa.erp.sale.domain.SaleLineVO">
 
@@ -333,7 +333,7 @@
 		)
 	</insert>
 
-	<!-- 기존 판매 상세행 수정 -->
+	<!-- 既存の売上明細行を更新する。 -->
 	<update id="updateLine"
 		parameterType="hexa.erp.sale.domain.SaleLineVO">
 
@@ -356,7 +356,7 @@
 		AND DELETED_YN = 'N'
 	</update>
 
-	<!-- 선택한 판매 상세행 삭제 처리 -->
+	<!-- 選択した売上明細行を削除する。 -->
 	<update id="removeSelectedLines">
 		UPDATE SALE_LINE
 		SET DELETED_YN = 'Y'
@@ -369,7 +369,7 @@
 		</foreach>
 	</update>
 
-	<!-- 선택한 판매 삭제 처리 -->
+	<!-- 選択した売上を削除する。 -->
 	<update id="remove">
 		UPDATE SALE
 		SET
@@ -383,7 +383,7 @@
 		</foreach>
 	</update>
 
-	<!-- 선택한 판매의 상세행 삭제 처리 -->
+	<!-- 選択した売上の明細行を削除する。 -->
 	<update id="removeLines">
 		UPDATE SALE_LINE
 		SET DELETED_YN = 'Y'
@@ -395,7 +395,7 @@
 		</foreach>
 	</update>
 
-	<!-- 선택한 판매 진행상태 변경 -->
+	<!-- 選択した売上の進行状態を変更する。 -->
 	<update id="changeStatus">
 		UPDATE SALE
 		SET

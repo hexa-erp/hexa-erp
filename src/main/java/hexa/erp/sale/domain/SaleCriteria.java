@@ -7,30 +7,30 @@ import lombok.ToString;
 @ToString
 public class SaleCriteria {
 
-	// 페이지 정보
+	// ページ情報
 	private int page = 1;
 	private int pageSize = 25;
 
-	// 검색 조건
+	// 検索条件
 	private String keyword = "";
 	private String progressStatus = "";
 
-	// 페이지 번호 보정
+	// ページ番号を補正する。
 	public void setPage(int page) {
 		this.page = Math.max(1, page);
 	}
 
-	// 페이지 크기 보정
+	// ページサイズを補正する。
 	public void setPageSize(int pageSize) {
 		this.pageSize = Math.max(1, pageSize);
 	}
 
-	// 검색어 보정
+	// 検索語を補正する。
 	public void setKeyword(String keyword) {
 		this.keyword = keyword == null ? "" : keyword.trim();
 	}
 
-	// 진행상태 보정
+	// 進行状態を補正する。
 	public void setProgressStatus(String progressStatus) {
 
 		this.progressStatus = progressStatus == null ? "" : progressStatus.trim();

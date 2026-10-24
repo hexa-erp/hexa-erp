@@ -2,11 +2,11 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 
-<%-- businessDate 연월별 전체 결과의 월계·총합계를 표시하며 페이지 분할하지 않는다.
-     단가 합계는 만들지 않고 서버의 잔량·잔여 공급가액·부가세를 사용한다.
-     monthGroups에는 조회된 행이 있는 월만 담고, 결과가 없으면 빈 목록을 전달한다.
-     각 묶음은 monthLabel, rows, totals를 가진다. --%>
-<c:set var="pageTitle" value="미판매 현황" />
+<%-- businessDateの年月別に全件の月計・総合計を表示し、ページ分割しない。
+     単価合計は作らず、サーバーが計算した残数量・残税抜金額・消費税を使う。
+     monthGroupsには照会結果のある月だけを入れ、結果がなければ空の一覧を渡す。
+     各グループはmonthLabel、rows、totalsを持つ。 --%>
+<c:set var="pageTitle" value="未売上一覧" />
 <c:set var="activeMenu" value="order" />
 <c:set var="workspacePage" value="true" />
 <c:set var="multiFilterPage" value="true" />
@@ -16,91 +16,90 @@
 	<c:choose>
 		<c:when test="${not reportResults}">
 			<div class="workspace-heading">
-				<h1>미판매 현황</h1>
-				<p class="workspace-hint">기준일자까지의 미판매 수량과 금액을 조회합니다.</p>
+				<h1>未売上一覧</h1>
+				<p class="workspace-hint">基準日までの未売上数量と金額を照会します。</p>
 			</div>
 
 			<form class="report-search" method="get" action="${ctx}/order/unsold">
 				<input type="hidden" name="view" value="results" />
 				<div class="form-grid report-fields">
-					<label class="field"><span>조회기간</span><select
+					<label class="field"><span>照会期間</span><select
 						name="datePreset" data-date-preset data-date-target="cutoffDate"><option
 								value="custom"
-								${search.datePreset eq 'custom' ? 'selected' : ''}>직접
-								입력</option>
+								${search.datePreset eq 'custom' ? 'selected' : ''}>直接入力</option>
 							<option value="today"
-								${search.datePreset eq 'today' ? 'selected' : ''}>금일</option>
+								${search.datePreset eq 'today' ? 'selected' : ''}>当日</option>
 							<option value="yesterday"
-								${search.datePreset eq 'yesterday' ? 'selected' : ''}>전일</option>
+								${search.datePreset eq 'yesterday' ? 'selected' : ''}>前日</option>
 							<option value="thisWeek"
-								${search.datePreset eq 'thisWeek' ? 'selected' : ''}>금주(~오늘)</option>
+								${search.datePreset eq 'thisWeek' ? 'selected' : ''}>今週（本日まで）</option>
 							<option value="lastWeek"
-								${search.datePreset eq 'lastWeek' ? 'selected' : ''}>전주</option>
+								${search.datePreset eq 'lastWeek' ? 'selected' : ''}>先週</option>
 							<option value="thisMonth"
-								${search.datePreset eq 'thisMonth' ? 'selected' : ''}>금월(~오늘)</option>
+								${search.datePreset eq 'thisMonth' ? 'selected' : ''}>今月（本日まで）</option>
 							<option value="lastMonth"
-								${search.datePreset eq 'lastMonth' ? 'selected' : ''}>전월</option></select></label>
-					<label class="field"><span>견적일자</span>
+								${search.datePreset eq 'lastMonth' ? 'selected' : ''}>先月</option></select></label>
+					<label class="field"><span>見積日付</span>
     				<div class="input-group">
        		 			<input type="date" name="startDate"
-            				value="<c:out value="${search.startDate}"/>" aria-label="조회 시작일" /><span>~</span><input
+							value="<c:out value="${search.startDate}"/>" aria-label="照会開始日" /><span>~</span><input
             				type="date" name="endDate"
-            				value="<c:out value="${search.endDate}"/>" aria-label="조회 종료일" />
+							value="<c:out value="${search.endDate}"/>" aria-label="照会終了日" />
     				</div></label>
-					<label class="field"><span>기준일자</span><input type="date"
+					<label class="field"><span>基準日</span><input type="date"
 						name="cutoffDate" value="<c:out value="${search.cutoffDate}"/>"
-						required /></label> <label class="field"><span>납기일자</span>
+						required /></label> <label class="field"><span>納期日</span>
 						<div class="input-group">
 							<input type="date" name="dueStartDate"
 								value="<c:out value="${search.dueStartDate}"/>"
-								aria-label="납기 시작일" /><span>~</span><input type="date"
+								aria-label="納期開始日" /><span>~</span><input type="date"
 								name="dueEndDate" value="<c:out value="${search.dueEndDate}"/>"
-								aria-label="납기 종료일" />
+								aria-label="納期終了日" />
 						</div></label>
 					<c:set var="multiKind" value="warehouse" />
-					<c:set var="multiLabel" value="출하창고" />
+					<c:set var="multiLabel" value="出荷倉庫" />
 					<%@ include file="../common/multi-filter.jspf"%>
 					<c:set var="multiKind" value="partner" />
-					<c:set var="multiLabel" value="거래처" />
+					<c:set var="multiLabel" value="取引先" />
 					<%@ include file="../common/multi-filter.jspf"%>
 					<c:set var="multiKind" value="item" />
-					<c:set var="multiLabel" value="품목" />
+					<c:set var="multiLabel" value="品目" />
 					<%@ include file="../common/multi-filter.jspf"%>
 					<c:set var="multiKind" value="assignee" />
-					<c:set var="multiLabel" value="담당자" />
+					<c:set var="multiLabel" value="担当者" />
 					<%@ include file="../common/multi-filter.jspf"%>
-					<label class="field"><span>규격</span><input type="text"
+					<label class="field"><span>規格</span><input type="text"
 						name="specification"
 						value="<c:out value="${search.specification}"/>" maxlength="100" /></label>
-					<label class="field"><span>미판매 수량</span>
+					<label class="field"><span>未売上 数量</span>
 						<div class="input-group">
 							<input type="number" name="minQuantity" step="0.001"
 								value="<c:out value="${search.minQuantity}"/>"
-								aria-label="최소 미판매 수량" /><span>~</span><input type="number"
+								aria-label="最小未売上数量" /><span>~</span><input type="number"
 								name="maxQuantity" step="0.001"
 								value="<c:out value="${search.maxQuantity}"/>"
-								aria-label="최대 미판매 수량" />
+								aria-label="最大未売上数量" />
 						</div></label>
 					<fieldset class="field field-wide">
-						<legend>진행상태</legend>
+						<legend>進捗状況</legend>
 						<div class="tabs">
 							<label><input type="radio" name="progressStatus" value=""
-								${search.progressStatus eq '' ? 'checked' : ''} /> 전체</label><label><input
+								${search.progressStatus eq '' ? 'checked' : ''} /> すべて</label><label><input
 								type="radio" name="progressStatus" value="UNCONFIRMED"
 								${search.progressStatus eq 'UNCONFIRMED' ? 'checked' : ''} />
-								미확인</label><label><input type="radio" name="progressStatus"
+								未確認</label><label><input type="radio" name="progressStatus"
 								value="IN_PROGRESS"
 								${search.progressStatus eq 'IN_PROGRESS' ? 'checked' : ''} />
-								진행중</label><label><input type="radio" name="progressStatus"
+								進行中</label><label><input type="radio" name="progressStatus"
 								value="COMPLETED"
-								${search.progressStatus eq 'COMPLETED' ? 'checked' : ''} /> 완료</label>
+								${search.progressStatus eq 'COMPLETED' ? 'checked' : ''} /> 完了</label>
 						</div>
 					</fieldset>
 
 				</div>
 				<div class="workspace-actions search-actions">
-					<button class="btn btn-primary" type="submit">검색</button>
-					<a class="btn" href="${ctx}/order/unsold">다시 작성</a>
+					<button class="btn btn-primary" type="submit">検索</button>
+					<a class="btn" href="${ctx}/order/unsold">リセット</a>
 				</div>
 			</form>
 		</c:when>
@@ -118,7 +117,7 @@
 				<c:param name="view" value="search" />
 			</c:url>
 			<div class="workspace-heading result-heading">
-				<h1>미판매 현황</h1>
+				<h1>未売上一覧</h1>
 				<form class="input-group list-keyword" method="get"
 					action="${ctx}/order/unsold">
 					<c:forEach var="resultParam" items="${search}">
@@ -130,34 +129,34 @@
 					</c:forEach>
 					<%@ include file="../common/multi-filter-hidden.jspf"%>
 					<input type="hidden" name="view" value="results" /> <label
-						class="sr-only" for="result-keyword">결과 내 검색어</label> <input
+						class="sr-only" for="result-keyword">結果内の検索語</label> <input
 						id="result-keyword" type="search" name="keyword"
 						value="<c:out value='${search.keyword}'/>"
-						placeholder="입력 후 [Enter]" />
-					<button class="btn btn-primary" type="submit">검색</button>
+						placeholder="入力後に［Enter］" />
+					<button class="btn btn-primary" type="submit">検索</button>
 				</form>
 			</div>
 			<div class="workspace-meta result-controls">
 				<div class="result-tools">
 					<a class="btn btn-primary"
-						href="<c:out value='${searchConditionsUrl}'/>">검색조건 변경</a><span
-						class="workspace-hint">조회 결과</span>
+						href="<c:out value='${searchConditionsUrl}'/>">検索条件を変更</a><span
+						class="workspace-hint">照会結果</span>
 				</div>
-				<span class="workspace-hint">일자·번호 오름차순 · 읽기 전용</span>
+				<span class="workspace-hint">日付・番号の昇順 · 閲覧専用</span>
 			</div>
 			<div class="table-wrap">
 				<table class="data-table workspace-table report-table">
 					<thead>
 						<tr>
-							<th class="col-date">일자-No.</th>
-							<th class="col-item">품목명(규격)</th>
-							<th class="text-right col-number">수량</th>
-							<th class="text-right col-number">미판매 수량</th>
-							<th class="text-right col-number">미판매 공급가액</th>
-							<th class="text-right col-number">미판매 부가세</th>
-							<th class="col-date">납기일자</th>
-							<th>거래처명</th>
-							<th class="note-cell">비고</th>
+							<th class="col-date">日付-No.</th>
+							<th class="col-item">品目名(規格)</th>
+							<th class="text-right col-number">数量</th>
+							<th class="text-right col-number">未売上 数量</th>
+							<th class="text-right col-number">未売上 税抜金額</th>
+							<th class="text-right col-number">未売上 消費税</th>
+							<th class="col-date">納期日</th>
+							<th>取引先名</th>
+							<th class="note-cell">備考</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -185,7 +184,7 @@
 							</c:forEach>
 							<tr class="report-subtotal">
 								<th scope="row" colspan="2"><c:out
-										value="${monthGroup.monthLabel}" /> 계</th>
+										value="${monthGroup.monthLabel}" /> 計</th>
 								<td class="text-right col-number"><fmt:formatNumber
 										value="${monthGroup.totals.quantity}" maxFractionDigits="3" /></td>
 								<td class="text-right col-number"><fmt:formatNumber
@@ -204,14 +203,14 @@
 						</c:forEach>
 						<c:if test="${empty monthGroups}">
 							<tr>
-								<td colspan="9" class="empty-state">조회된 미판매 현황 내역이 없습니다.</td>
+								<td colspan="9" class="empty-state">未売上の結果がありません。</td>
 							</tr>
 						</c:if>
 					</tbody>
 					<c:if test="${not empty monthGroups}">
 						<tfoot>
 							<tr class="report-grand-total">
-								<th scope="row" colspan="2">총합계</th>
+								<th scope="row" colspan="2">総合計</th>
 								<td class="text-right col-number"><fmt:formatNumber
 										value="${remainingTotals.quantity}" maxFractionDigits="3" /></td>
 								<td class="text-right col-number"><fmt:formatNumber

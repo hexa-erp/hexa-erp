@@ -7,11 +7,11 @@ import lombok.Data;
 @Data
 public class StockVO {
 
-	// 재고 식별 정보
+	// 在庫の識別情報
 	private Long warehouseId;
 	private Long itemId;
 
-	// 현재 재고 정보
+	// 現在庫情報
 	private BigDecimal quantity;
 	private String updatedAt;
 }

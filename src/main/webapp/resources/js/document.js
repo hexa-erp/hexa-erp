@@ -11,10 +11,10 @@
     sourceField = $section.attr('data-source-id-field'),
     priced = $section.attr('data-priced') === 'true';
   var originalRows = $body.html();
-  // 전표 ID가 있는지 확인해 신규 입력과 수정을 구분한다.
+  // 伝票IDの有無で新規入力と更新を区別する。
   var headerIdField = idField.replace(/LineId$/, 'Id');
   var isNew = !$form.find('input[name="' + headerIdField + '"]').val();
-  // '다시 작성'에 사용할 처음 선택값을 보관한다.
+  // リセットで使う初期選択値を保持する。
   var originalSelectors = $form.find(
     '[data-selector-field] input[name], [data-selector-field] [data-reference-code]'
   ).map(function() {
@@ -96,7 +96,7 @@
 
   function removeRow(row) {
     var id = field(row, idField).val();
-    // 저장된 상세행을 삭제할 때 해당 ID를 서버에 전달한다.
+    // 保存済み明細を削除するときは対象IDをサーバーへ渡す。
     if (id) {
       var $input = $(Hexa.node('input')).prop('type', 'hidden');
       $input.attr('name', 'removedLineIds').val(id);
@@ -150,7 +150,7 @@
       });
       if (window.HexaReference)
         window.HexaReference.refreshForm($form[0]);
-      // 처음 열었을 때의 품목 행으로 되돌린다.
+      // 初期表示時の品目行に戻す。
       $body.html(originalRows);
       $removed.empty();
       addInitialRows();
@@ -161,7 +161,7 @@
   var source = { type: '', keyword: '', status: '', doc: null };
   var sourceRows = [];
   var sourceRequestId = 0;
-  // 불러올 수량은 서버에서 계산한 remainingQuantity를 사용한다.
+  // 取込数量にはサーバーが計算したremainingQuantityを使う。
 
   function loadSources(page) {
     var requestId = ++sourceRequestId;
@@ -169,7 +169,7 @@
     sourceRows = [];
     $('#source-detail').prop('hidden', true);
     $('#source-pages').empty();
-    var $loading = $(Hexa.node('td', '조회 중입니다.', 'empty-state')).prop('colSpan', 8);
+    var $loading = $(Hexa.node('td', '照会中です。', 'empty-state')).prop('colSpan', 8);
     $('#source-body').empty().append($(Hexa.node('tr')).append($loading));
     Hexa.json('/lookup/sources/' + source.type
       + '?keyword=' + encodeURIComponent(source.keyword)
@@ -197,30 +197,30 @@
           Hexa.number(source.type === 'shipping-instruction' ? doc.totalQuantity : doc.totalAmount),
           'text-right'));
         [{
-          UNCONFIRMED: '미확인',
-          IN_PROGRESS: '진행중',
-          COMPLETED: '완료',
-          CONFIRMED: '확인'
+          UNCONFIRMED: '未確認',
+          IN_PROGRESS: '進行中',
+          COMPLETED: '完了',
+          CONFIRMED: '確認'
         }[doc.progressStatus]].forEach(function(value) {
           $tr.append(Hexa.node('td', value || '—'));
         });
         var $td = $(Hexa.node('td'));
-        var $button = $(Hexa.node('button', '품목 선택', 'btn btn-sm'));
+        var $button = $(Hexa.node('button', '品目 選択', 'btn btn-sm'));
         $button.prop('type', 'button').attr('data-source-index', i);
         $tr.append($td.append($button));
         $tbody.append($tr);
       });
       if (!data.rows.length) {
-        var $empty = $(Hexa.node('td', '검색 결과가 없습니다.', 'empty-state')).prop('colSpan', 8);
+        var $empty = $(Hexa.node('td', '検索結果がありません。', 'empty-state')).prop('colSpan', 8);
         $tbody.append($(Hexa.node('tr')).append($empty));
       }
       Hexa.pages($('#source-pages')[0], data, loadSources);
     }).catch(function() {
       if (requestId !== sourceRequestId)
         return;
-      var $error = $(Hexa.node('td', '목록을 불러오지 못했습니다. 다시 검색해 주세요.', 'empty-state')).prop('colSpan', 8);
+      var $error = $(Hexa.node('td', '一覧を取得できませんでした。再度検索してください。', 'empty-state')).prop('colSpan', 8);
       $('#source-body').empty().append($(Hexa.node('tr')).append($error));
-      Hexa.notice('원전표 목록을 불러오지 못했습니다.');
+      Hexa.notice('元伝票の一覧を取得できませんでした。');
     });
   }
 
@@ -235,7 +235,7 @@
     doc.lines.forEach(function(line, i) {
       var $tr = $(Hexa.node('tr')), $td = $(Hexa.node('td'));
       var $cb = $(Hexa.node('input')).prop('type', 'checkbox').val(String(i));
-      $cb.attr('aria-label', (line.itemName || '품목') + ' 선택');
+      $cb.attr('aria-label', (line.itemName || '品目') + ' 選択');
       $cb.prop('disabled', line.remainingQuantity == null || Number(line.remainingQuantity) <= 0);
       $tr.append($td.append($cb));
       [
@@ -254,17 +254,17 @@
 
   $('[data-source]').on('click.hexaDocument', function() {
     source = { type: $(this).attr('data-source'), keyword: '', status: '', doc: null };
-    var label = { quotation: '견적서', order: '주문서', sale: '판매', 'shipping-instruction': '출하지시서' }[source.type];
-    $('#source-title').text(label + ' 불러오기');
+    var label = { quotation: '見積書', order: '受注伝票', sale: '売上', 'shipping-instruction': '出荷指示書' }[source.type];
+    $('#source-title').text(label + ' 取り込み');
     $('#source-due-head').prop('hidden', source.type !== 'order');
-    $('#source-amount-head').text(source.type === 'shipping-instruction' ? '수량' : '금액합계');
+    $('#source-amount-head').text(source.type === 'shipping-instruction' ? '数量' : '金額合計');
     var $search = $('#source-search');
     $search.find('[name="keyword"]').val('');
     var $sel = $search.find('[name="progressStatus"]').empty();
-    [['', '전체'], ['UNCONFIRMED', '미확인']].concat(
+    [['', 'すべて'], ['UNCONFIRMED', '未確認']].concat(
       source.type === 'sale'
-        ? [['CONFIRMED', '확인']]
-        : [['IN_PROGRESS', '진행중'], ['COMPLETED', '완료']]
+        ? [['CONFIRMED', '確認']]
+        : [['IN_PROGRESS', '進行中'], ['COMPLETED', '完了']]
     ).filter(function(pair) {
       return !(source.type === 'shipping-instruction' && pair[0] === 'UNCONFIRMED');
     }).forEach(function(pair) {
@@ -283,20 +283,20 @@
 
   $('#source-apply').on('click.hexaDocument', function() {
     if (!source.doc) {
-      Hexa.notice('원전표를 선택한 뒤 품목을 선택해 주세요.');
+      Hexa.notice('元伝票を選択してから品目を選択してください。');
       return;
     }
     var selected = $('#source-lines input:checked:not(:disabled)').map(function() {
       return source.doc.lines[$(this).val()];
     }).get();
     if (!selected.length) {
-      Hexa.notice('불러올 품목을 선택해 주세요.');
+      Hexa.notice('取り込む品目を選択してください。');
       return;
     }
     if (selected.some(function(line) {
       return line.remainingQuantity == null;
     })) {
-      Hexa.notice('적용 가능 수량이 없습니다. 원전표 조회 API에서 잔량을 전달해야 합니다.');
+      Hexa.notice('適用可能な数量がありません。元伝票照会APIから残数量を取得する必要があります。');
       return;
     }
     $body.children('tr').filter(function() {

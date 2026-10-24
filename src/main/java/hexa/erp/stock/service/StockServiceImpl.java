@@ -19,22 +19,22 @@ import lombok.extern.log4j.Log4j;
 @RequiredArgsConstructor
 public class StockServiceImpl implements StockService {
 
-	// 재고 Mapper 연결
+	// 在庫Mapperの参照
 	private final StockMapper mapper;
 
-	// 전체 현재고 조회
+	// 現在庫の全件取得
 	@Override
 	public List<StockVO> getList() {
 		return mapper.getList();
 	}
 
-	// 사용 중인 창고 조회
+	// 利用中の倉庫を取得する。
 	@Override
 	public List<WarehouseLookupVO> getWarehouseList() {
 		return mapper.getWarehouseList();
 	}
 
-	// 판매 재고 증감
+	// 売上による在庫増減
 	@Override
 	@Transactional
 	public void applySaleMovement(StockMovementVO movement) {
@@ -42,7 +42,7 @@ public class StockServiceImpl implements StockService {
 		if (movement == null || movement.getSaleId() == null || movement.getSaleLineId() == null
 				|| movement.getWarehouseId() == null || movement.getItemId() == null
 				|| movement.getQuantityDelta() == null) {
-			throw new IllegalArgumentException("판매, 품목 행, 창고와 재고 증감량을 입력해 주세요.");
+			throw new IllegalArgumentException("売上、品目行、倉庫、在庫増減数量を入力してください。");
 		}
 
 		BigDecimal quantityDelta = movement.getQuantityDelta().setScale(3, RoundingMode.HALF_UP);
@@ -68,18 +68,18 @@ public class StockServiceImpl implements StockService {
 		mapper.addQuantity(movement);
 		mapper.insertMovement(movement);
 
-		log.info("판매 재고 증감: 창고 " + movement.getWarehouseId() + ", 품목 " + movement.getItemId() + ", 증감량 "
+		log.info("売上による在庫増減: 倉庫 " + movement.getWarehouseId() + "、品目 " + movement.getItemId() + "、増減数量 "
 				+ quantityDelta);
 	}
 
-	// 현재고와 변동 이력 저장
+	// 現在庫と在庫変動履歴を保存する。
 	@Override
 	@Transactional
 	public void adjust(StockVO stock) {
 		if (stock == null || stock.getWarehouseId() == null || stock.getItemId() == null
 				|| stock.getQuantity() == null) {
 
-			throw new IllegalArgumentException("창고, 품목, 조정 후 재고수량을 입력해 주세요.");
+			throw new IllegalArgumentException("倉庫、品目、調整後の在庫数量を入力してください。");
 		}
 
 		BigDecimal targetQuantity = stock.getQuantity().setScale(3, RoundingMode.HALF_UP);
@@ -110,6 +110,6 @@ public class StockServiceImpl implements StockService {
 			mapper.insertMovement(movement);
 		}
 
-		log.info("재고 조정: 창고 " + stock.getWarehouseId() + ", 품목 " + stock.getItemId() + ", 조정 후 수량 " + targetQuantity);
+		log.info("在庫調整: 倉庫 " + stock.getWarehouseId() + "、品目 " + stock.getItemId() + "、調整後数量 " + targetQuantity);
 	}
 }

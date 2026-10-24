@@ -16,7 +16,7 @@ import org.springframework.web.multipart.MultipartException;
 import hexa.erp.common.domain.ApiResponseVO;
 import lombok.extern.log4j.Log4j;
 
-/** JSP 반환 Controller의 오류 처리와 API의 JSON 오류 처리를 구분한다. */
+/** JSPを返すControllerのエラー処理と、APIのJSONエラー処理を分ける。 */
 @Log4j
 @RestControllerAdvice(annotations = RestController.class)
 public class ApiExceptionHandler {
@@ -33,34 +33,34 @@ public class ApiExceptionHandler {
 	@ExceptionHandler({ HttpMessageNotReadableException.class, BindException.class,
 			MethodArgumentTypeMismatchException.class })
 	public ResponseEntity<ApiResponseVO> handleBinding(Exception e) {
-		return error(HttpStatus.BAD_REQUEST, "입력값의 형식을 확인해 주세요. 수량과 단가는 숫자로 입력해 주세요.");
+		return error(HttpStatus.BAD_REQUEST, "入力形式を確認してください。数量と単価は数値で入力してください。");
 	}
 
 	@ExceptionHandler(DuplicateKeyException.class)
 	public ResponseEntity<ApiResponseVO> handleDuplicate(DuplicateKeyException e) {
-		return error(HttpStatus.CONFLICT, "이미 등록된 코드입니다. 다른 코드를 입력해 주세요.");
+		return error(HttpStatus.CONFLICT, "登録済みのコードです。別のコードを入力してください。");
 	}
 
 	@ExceptionHandler(MaxUploadSizeExceededException.class)
 	public ResponseEntity<ApiResponseVO> handleUploadSize(MaxUploadSizeExceededException e) {
-		return error(HttpStatus.PAYLOAD_TOO_LARGE, "이미지 파일은 5MB 이하로 선택해 주세요.");
+		return error(HttpStatus.PAYLOAD_TOO_LARGE, "5MB以下の画像ファイルを選択してください。");
 	}
 
 	@ExceptionHandler(MultipartException.class)
 	public ResponseEntity<ApiResponseVO> handleMultipart(MultipartException e) {
-		return error(HttpStatus.BAD_REQUEST, "이미지 업로드 요청을 확인해 주세요. 파일 크기는 5MB 이하여야 합니다.");
+		return error(HttpStatus.BAD_REQUEST, "画像アップロードのリクエストを確認してください。ファイルサイズは5MB以下にしてください。");
 	}
 
 	@ExceptionHandler(DataAccessException.class)
 	public ResponseEntity<ApiResponseVO> handleDatabase(DataAccessException e) {
-		log.error("API 데이터 처리 실패", e);
-		return error(HttpStatus.INTERNAL_SERVER_ERROR, "요청을 처리하지 못했습니다. 입력 내용을 확인한 뒤 다시 시도해 주세요.");
+		log.error("APIデータの処理に失敗しました", e);
+		return error(HttpStatus.INTERNAL_SERVER_ERROR, "リクエストを処理できませんでした。入力内容を確認してから再度お試しください。");
 	}
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponseVO> handleUnexpected(Exception e) {
-		log.error("API 요청 처리 실패", e);
-		return error(HttpStatus.INTERNAL_SERVER_ERROR, "요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+		log.error("APIリクエストの処理に失敗しました", e);
+		return error(HttpStatus.INTERNAL_SERVER_ERROR, "リクエストを処理できませんでした。しばらくしてから再度お試しください。");
 	}
 
 	private ResponseEntity<ApiResponseVO> error(HttpStatus status, String message) {

@@ -10,37 +10,37 @@ import hexa.erp.quotation.domain.QuotationVO;
 
 public interface QuotationMapper {
 
-	// 견적서 기본 정보 조회
+	// 見積書のヘッダー情報を取得する。
 	public QuotationVO read(Long quotationId);
 
-	// 견적서 품목 행 목록 조회
+	// 見積書の品目行一覧を取得する。
 	public List<QuotationLineVO> getLines(Long quotationId);
 
 	public int getTotalCount(QuotationCriteria criteria);
 
 	public List<QuotationVO> getListWithPaging(QuotationCriteria criteria);
 
-	// 견적서 기본 정보 입력
+	// 見積書のヘッダー情報を登録する。
 	public void insertSelectKey(QuotationVO quotation);
 
-	// 견적서 품목 행 입력
+	// 見積書の品目行を登録する。
 	public void insertLineSelectKey(QuotationLineVO line);
 
-	// 견적서 기본 정보 수정
+	// 見積書のヘッダー情報を更新する。
 	public int update(QuotationVO quotation);
 
-	// 견적서 품목 행 수정
+	// 見積書の品目行を更新する。
 	public int updateLine(QuotationLineVO line);
 
-	// 견적서 삭제 - 기본 정보
+	// 見積書のヘッダー情報を削除する。
 	public int remove(@Param("ids") List<Long> ids);
 
-	// 견저서 삭제 - 품목 행
+	// 見積書の品目行を削除する。
 	public int removeLines(@Param("ids") List<Long> ids);
 
-	// 품목행만 삭제
+	// 品目行のみ削除する。
 	public int removeSelectedLines(@Param("quotationId") Long quotationId, @Param("lineIds") List<Long> lineIds);
 
-	// 진행 상태 변경
+	// 進行状態を変更する。
 	public int changeStatus(@Param("ids") List<Long> ids, @Param("progressStatus") String progressStatus);
 }

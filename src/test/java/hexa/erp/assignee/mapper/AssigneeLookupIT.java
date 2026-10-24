@@ -18,9 +18,9 @@ import hexa.erp.assignee.service.AssigneeLookupService;
 import hexa.erp.common.domain.LookupCriteria;
 
 /**
- * 실제 localhost Oracle과 main의 db.properties로 수동 실행한다(기본 mvn test/package 제외).
- * mvn -Dtest=AssigneeLookupIT test ASSIGNEE SELECT만 수행한다. DDL·seed·DML은 실행하지
- * 않으며 0건도 정상이다.
+ * 実際のlocalhostのOracleとmainのdb.propertiesを使用して手動実行する（通常のmvn test/packageでは除外）。
+ * mvn -Dtest=AssigneeLookupIT test。ASSIGNEEへのSELECTのみ実行する。
+ * DDL・seed・DMLは実行せず、0件でも正常とする。
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "file:src/main/webapp/WEB-INF/spring/root-context.xml")
@@ -35,7 +35,7 @@ public class AssigneeLookupIT {
 		List<AssigneeLookupVO> rows = service.getList(criteria);
 		assertRows(rows);
 		if (!rows.isEmpty()) {
-			// 실제 코드로 바인딩 검색도 실행한다. seed 건수나 고정 담당자명은 가정하지 않는다.
+			// 実際のコードでバインド検索も実行する。seed件数や固定の担当者名は前提にしない。
 			criteria.setKeyword(rows.get(0).getAssigneeCode());
 			assertTrue(service.getTotal(criteria) >= 0);
 			assertRows(service.getList(criteria));

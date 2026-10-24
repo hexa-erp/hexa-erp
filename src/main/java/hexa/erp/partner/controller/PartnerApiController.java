@@ -31,17 +31,17 @@ public class PartnerApiController {
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> create(@RequestBody PartnerVO partner) {
 		if (partner.getPartnerId() != null) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "신규 거래처에는 식별자를 지정할 수 없습니다.");
+			throw new ApiException(HttpStatus.BAD_REQUEST, "新規取引先にIDを指定することはできません。");
 		}
 		validate(partner, true);
 		partner.setPartnerCode(partner.getPartnerCode().trim());
 		try {
 			service.register(partner);
 		} catch (DuplicateKeyException e) {
-			throw new ApiException(HttpStatus.CONFLICT, "이미 등록된 거래처 코드입니다. 다른 코드를 입력해 주세요.");
+			throw new ApiException(HttpStatus.CONFLICT, "登録済みの取引先コードです。別のコードを入力してください。");
 		}
 		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(new ApiResponseVO("거래처를 등록했습니다.", partner.getPartnerId(), null));
+				.body(new ApiResponseVO("取引先を登録しました。", partner.getPartnerId(), null));
 	}
 
 	@PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -49,28 +49,28 @@ public class PartnerApiController {
 		partner.setPartnerId(id);
 		validate(partner, false);
 		if (!service.modify(partner)) {
-			throw new ApiException(HttpStatus.NOT_FOUND, "수정할 거래처가 없습니다.");
+			throw new ApiException(HttpStatus.NOT_FOUND, "更新対象の取引先がありません。");
 		}
-		return new ApiResponseVO("거래처를 수정했습니다.", id, null);
+		return new ApiResponseVO("取引先を更新しました。", id, null);
 	}
 
 	@PatchMapping(value = "/active", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ApiResponseVO changeActive(@RequestBody ActiveChangeVO change) {
 		ApiRequests.requireIds(change);
 		if (!"Y".equals(change.getActiveFlag()) && !"N".equals(change.getActiveFlag())) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "사용 여부를 확인해 주세요.");
+			throw new ApiException(HttpStatus.BAD_REQUEST, "利用状態を確認してください。");
 		}
 		int count = service.changeActive(change.getIds(), change.getActiveFlag());
 		if (count == 0) {
-			throw new ApiException(HttpStatus.NOT_FOUND, "변경할 거래처가 없습니다.");
+			throw new ApiException(HttpStatus.NOT_FOUND, "変更対象の取引先がありません。");
 		}
-		return new ApiResponseVO("거래처의 사용 여부를 변경했습니다.", null, count);
+		return new ApiResponseVO("取引先の利用状態を変更しました。", null, count);
 	}
 
 	private void validate(PartnerVO partner, boolean creating) {
 		if (!StringUtils.hasText(partner.getPartnerName())
 				|| (creating && !StringUtils.hasText(partner.getPartnerCode()))) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "거래처 코드와 상호를 입력해 주세요.");
+			throw new ApiException(HttpStatus.BAD_REQUEST, "取引先コードと取引先名を入力してください。");
 		}
 		partner.setPartnerName(partner.getPartnerName().trim());
 	}

@@ -29,7 +29,7 @@ public class QuotationMapperTests {
 	@Autowired
 	private QuotationMapper mapper;
 
-	// 일치하는 견적서가 없을 때 목록과 전체 건수 확인
+	// 一致する見積書がない場合の一覧と総件数を確認
 	@Test
 	public void testGetListWithPaging() {
 		QuotationCriteria criteria = new QuotationCriteria();

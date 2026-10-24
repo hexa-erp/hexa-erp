@@ -11,14 +11,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.ui.Model;
 
-/** 화면에 필요한 검색조건과 기본값을 만드는 도우미. */
+/** 画面に必要な検索条件と既定値を作成するヘルパー。 */
 public final class ViewModels {
 	private ViewModels() {
 	}
 
 	public static String notImplemented(HttpServletResponse response, Model model) {
 		response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
-		model.addAttribute("errorMessage", "아직 구현되지 않은 기능입니다. 실제 데이터는 변경되지 않았습니다.");
+		model.addAttribute("errorMessage", "この機能はまだ実装されていません。実際のデータは変更されていません。");
 		return "common/not-implemented";
 	}
 
@@ -45,7 +45,7 @@ public final class ViewModels {
 			String parameter = kind + "Ids";
 			if (Arrays.asList(kinds).contains(kind)) {
 				String[] values = request.getParameterValues(parameter);
-				// 반복 ID가 없으면 단일 ID를 읽는다.
+				// 複数IDが指定されていない場合は単一IDを取得する。
 				if (values == null && search.get(kind + "Id") != null) {
 					values = new String[] { search.get(kind + "Id") };
 				}
@@ -61,7 +61,7 @@ public final class ViewModels {
 				}
 				filterIds.put(parameter, ids);
 			}
-			// 여러 ID로 된 조건은 search 대신 filterIds로 전달한다.
+			// 複数IDの条件はsearchではなくfilterIdsで渡す。
 			search.remove(parameter);
 			search.remove(kind + "Id");
 			search.remove(kind + "Name");

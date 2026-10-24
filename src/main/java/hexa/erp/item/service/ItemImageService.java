@@ -7,12 +7,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface ItemImageService {
 
-	// 품목 이미지 저장
+	// 品目画像を保存する。
 	String store(MultipartFile imageFile) throws IOException;
 
-	// 품목 이미지 조회
+	// 品目画像を取得する。
 	File getFile(String imagePath, boolean thumbnail) throws IOException;
 
-	// 품목 이미지 삭제
+	// 品目画像を削除する。
 	void delete(String imagePath);
 }

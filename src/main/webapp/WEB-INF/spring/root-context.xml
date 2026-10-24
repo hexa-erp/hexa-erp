@@ -8,7 +8,7 @@
           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
           http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd">
-	<!-- DB·Mapper·Service·트랜잭션은 root-context.xml, Controller는 servlet-context.xml에서 설정한다. -->
+	<!-- DB・Mapper・Service・トランザクションはroot-context.xml、Controllerはservlet-context.xmlで設定する。 -->
 	<context:property-placeholder
 		location="classpath:db.properties, classpath:upload.properties" />
 
@@ -27,18 +27,18 @@
 		<constructor-arg ref="hikariConfig" />
 	</bean>
 
-	<!-- DataSource → SqlSessionFactory → Mapper: 같은 연결 풀로 Mapper SQL을 실행한다. -->
+	<!-- DataSource → SqlSessionFactory → Mapper：同じ接続プールでMapperのSQLを実行する。 -->
 	<bean id="sqlSessionFactory"
 		class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="dataSource" />
 		<property name="configLocation"
 			value="classpath:mybatis-config.xml" />
-		<!-- src/main/resources/hexa/erp/업무/mapper/의 *Mapper.xml을 읽는다. -->
+		<!-- src/main/resources/hexa/erp/業務/mapper/の*Mapper.xmlを読み込む。 -->
 		<property name="mapperLocations"
 			value="classpath*:hexa/erp/*/mapper/*Mapper.xml" />
 	</bean>
 
-	<!-- 아래 mapper 패키지의 인터페이스를 자동 등록한다. -->
+	<!-- 以下のmapperパッケージのインターフェースを自動登録する。 -->
 	<mybatis-spring:scan
 		base-package="hexa.erp.assignee.mapper,
 			hexa.erp.partner.mapper,
@@ -66,12 +66,12 @@
 			hexa.erp.stock.service,
 			hexa.erp.common.service" />
 
-	<!-- MyBatis와 같은 DataSource를 사용해야 commit·rollback이 함께 적용된다. -->
+	<!-- MyBatisと同じDataSourceを使用することで、commit・rollbackを一括適用する。 -->
 	<bean id="transactionManager"
 		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
-	<!-- Service의 @Transactional 처리를 활성화한다. -->
+	<!-- Serviceの@Transactionalによるトランザクション処理を有効にする。 -->
 	<tx:annotation-driven
 		transaction-manager="transactionManager" />
 </beans>

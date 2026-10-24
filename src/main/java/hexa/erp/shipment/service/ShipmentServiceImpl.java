@@ -69,24 +69,24 @@ public class ShipmentServiceImpl implements ShipmentService {
 	@Transactional
 	public Long save(ShipmentVO shipment) {
 		if (shipment == null || isBlank(shipment.getBusinessDate())) {
-			throw new IllegalArgumentException("출하 일자를 입력해 주세요.");
+			throw new IllegalArgumentException("出荷日を入力してください。");
 		}
 		try {
 			shipment.setBusinessDate(LocalDate.parse(shipment.getBusinessDate().trim()).toString());
 		} catch (DateTimeParseException e) {
-			throw new IllegalArgumentException("출하 일자를 올바르게 입력해 주세요.");
+			throw new IllegalArgumentException("正しい出荷日を入力してください。");
 		}
 		if (shipment.getWarehouseId() == null) {
-			throw new IllegalArgumentException("출하창고를 선택해 주세요.");
+			throw new IllegalArgumentException("出荷倉庫を選択してください。");
 		}
 
 		ShipmentVO existing = null;
 		if (shipment.getShipmentId() != null) {
 			existing = mapper.read(shipment.getShipmentId());
 			if (existing == null) {
-				throw new IllegalArgumentException("수정할 출하전표를 찾을 수 없습니다.");
+				throw new IllegalArgumentException("更新対象の出荷伝票が見つかりません。");
 			}
-			// 전표번호와 진행상태는 수정 화면에서 바꾸지 않으므로 기존 값을 유지한다.
+			// 更新画面では伝票番号と進行状態を変更しないため、既存の値を維持する。
 			shipment.setShipmentNo(existing.getShipmentNo());
 			shipment.setProgressStatus(existing.getProgressStatus());
 		} else {
@@ -94,7 +94,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 		}
 		fillHeaderNames(shipment, existing);
 		if (isBlank(shipment.getWarehouseName())) {
-			throw new IllegalArgumentException("선택한 출하창고를 찾을 수 없습니다.");
+			throw new IllegalArgumentException("選択した出荷倉庫が見つかりません。");
 		}
 
 		List<Long> removedLineIds = cleanIds(shipment.getRemovedLineIds());
@@ -102,13 +102,13 @@ public class ShipmentServiceImpl implements ShipmentService {
 		Set<Long> lineIds = new HashSet<>();
 		if (shipment.getLines() != null) {
 			for (ShipmentLineVO line : shipment.getLines()) {
-				// 품목을 고르지 않은 빈 행은 저장하지 않는다.
+				// 品目が選択されていない空行は保存しない。
 				if (line == null || line.getItemId() == null) {
 					continue;
 				}
 				if (line.getShipmentLineId() != null) {
 					if (!lineIds.add(line.getShipmentLineId()) || removedLineIds.contains(line.getShipmentLineId())) {
-						throw new IllegalArgumentException("중복되거나 삭제 표시된 품목 행을 확인해 주세요.");
+						throw new IllegalArgumentException("重複または削除指定された品目行を確認してください。");
 					}
 				}
 				prepareLine(line);
@@ -116,28 +116,28 @@ public class ShipmentServiceImpl implements ShipmentService {
 			}
 		}
 		if (lines.isEmpty()) {
-			throw new IllegalArgumentException("출하 품목을 한 개 이상 선택해 주세요.");
+			throw new IllegalArgumentException("出荷品目を1件以上選択してください。");
 		}
 		shipment.setLines(lines);
 
 		if (existing == null) {
 			mapper.insertSelectKey(shipment);
 		} else if (mapper.update(shipment) != 1) {
-			throw new IllegalArgumentException("수정할 출하전표를 찾을 수 없습니다.");
+			throw new IllegalArgumentException("更新対象の出荷伝票が見つかりません。");
 		}
 		if (!removedLineIds.isEmpty()) {
 			mapper.removeSelectedLines(shipment.getShipmentId(), removedLineIds);
 		}
-		// 행 ID가 없으면 새 행, 있으면 이 전표에 속한 기존 행만 수정한다.
+		// 行IDがなければ新規行を登録し、あればこの伝票に属する既存行のみ更新する。
 		for (ShipmentLineVO line : lines) {
 			line.setShipmentId(shipment.getShipmentId());
 			if (line.getShipmentLineId() == null) {
 				mapper.insertLineSelectKey(line);
 			} else if (mapper.updateLine(line) != 1) {
-				throw new IllegalArgumentException("출하전표에 속하지 않거나 삭제된 품목 행입니다.");
+				throw new IllegalArgumentException("この出荷伝票に属していないか、削除済みの品目行です。");
 			}
 		}
-		log.info("출하전표 저장: " + shipment.getShipmentId());
+		log.info("出荷伝票の保存: " + shipment.getShipmentId());
 		return shipment.getShipmentId();
 	}
 
@@ -150,7 +150,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 		}
 		int count = mapper.remove(ids);
 		mapper.removeLines(ids);
-		log.info("출하전표 삭제: " + count + "건");
+		log.info("出荷伝票の削除: " + count + "件");
 		return count;
 	}
 
@@ -161,18 +161,18 @@ public class ShipmentServiceImpl implements ShipmentService {
 			return 0;
 		}
 		if (!"CONFIRMED".equals(progressStatus) && !"UNCONFIRMED".equals(progressStatus)) {
-			throw new IllegalArgumentException("진행상태는 미확인, 확인 중에서 선택해 주세요.");
+			throw new IllegalArgumentException("進行状態は未確認、確認のいずれかを選択してください。");
 		}
-		log.info("출하전표 진행상태 변경: " + progressStatus);
+		log.info("出荷伝票の進行状態変更: " + progressStatus);
 		return mapper.changeStatus(ids, progressStatus);
 	}
 
-	// 품목명이 비어 있으면 품목 마스터에서 채우고, 수량은 소수점 3자리로 맞춘다.
+	// 品目名が空の場合は品目マスターから補完し、数量は小数第3位にそろえる。
 	private void prepareLine(ShipmentLineVO line) {
 		if (isBlank(line.getItemName())) {
 			ItemLookupVO item = itemLookupService.get(line.getItemId());
 			if (item == null) {
-				throw new IllegalArgumentException("선택한 품목을 찾을 수 없습니다.");
+				throw new IllegalArgumentException("選択した品目が見つかりません。");
 			}
 			line.setItemName(item.getItemName());
 		}
@@ -180,7 +180,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 		line.setQuantity(quantity.setScale(3, RoundingMode.HALF_UP));
 	}
 
-	// 이름이 비어 있으면 같은 ID의 기존 전표 이름을 우선 쓰고, 없으면 마스터에서 조회한다.
+	// 名前が空の場合は同じIDの既存伝票の名前を優先し、なければマスターから取得する。
 	private void fillHeaderNames(ShipmentVO shipment, ShipmentVO existing) {
 		if (shipment.getPartnerId() == null) {
 			shipment.setPartnerName(null);
@@ -221,7 +221,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 		return value == null || value.trim().isEmpty();
 	}
 
-	// null과 중복 ID를 제거하고 순서는 유지한다.
+	// nullと重複IDを除去し、順序を維持する。
 	private List<Long> cleanIds(List<Long> values) {
 		Set<Long> ids = new LinkedHashSet<>();
 		if (values != null) {

@@ -29,8 +29,8 @@ public class LookupCriteriaTest {
 		LookupCriteria criteria = new LookupCriteria();
 		criteria.setKeyword("  00001  ");
 		assertEquals("00001", criteria.getKeyword());
-		criteria.setKeyword("  김 담당자  ");
-		assertEquals("김 담당자", criteria.getKeyword());
+		criteria.setKeyword("  佐藤 担当者  ");
+		assertEquals("佐藤 担当者", criteria.getKeyword());
 		criteria.setKeyword(null);
 		assertEquals("", criteria.getKeyword());
 		criteria.setKeyword("   ");

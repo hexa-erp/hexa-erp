@@ -50,7 +50,7 @@ public class SaleServiceImpl implements SaleService {
 
 	private final StockService stockService;
 
-	// 판매 목록 조회
+	// 売上一覧を取得する。
 	@Override
 	public List<SaleVO> getList(SaleCriteria criteria) {
 
@@ -61,7 +61,7 @@ public class SaleServiceImpl implements SaleService {
 		return mapper.getListWithPaging(criteria);
 	}
 
-	// 판매 전체 건수 조회
+	// 売上の総件数を取得する。
 	@Override
 	public int getTotal(SaleCriteria criteria) {
 
@@ -72,7 +72,7 @@ public class SaleServiceImpl implements SaleService {
 		return mapper.getTotalCount(criteria);
 	}
 
-	// 판매 한 건 조회
+	// 売上を1件取得する。
 	@Override
 	public SaleVO get(Long saleId) {
 		if (saleId == null) {
@@ -88,22 +88,22 @@ public class SaleServiceImpl implements SaleService {
 		return sale;
 	}
 
-	// 판매 저장
+	// 売上を保存する。
 	@Override
 	@Transactional
 	public Long save(SaleVO sale) {
 		if (sale == null || isBlank(sale.getBusinessDate())) {
-			throw new IllegalArgumentException("판매 일자를 입력해 주세요.");
+			throw new IllegalArgumentException("売上日を入力してください。");
 		}
 
 		try {
 			sale.setBusinessDate(LocalDate.parse(sale.getBusinessDate().trim()).toString());
 		} catch (DateTimeParseException e) {
-			throw new IllegalArgumentException("판매 일자를 올바르게 입력해 주세요.");
+			throw new IllegalArgumentException("正しい売上日を入力してください。");
 		}
 
 		if (sale.getWarehouseId() == null) {
-			throw new IllegalArgumentException("출하창고를 선택해 주세요.");
+			throw new IllegalArgumentException("出荷倉庫を選択してください。");
 		}
 
 		SaleVO existing = null;
@@ -114,7 +114,7 @@ public class SaleServiceImpl implements SaleService {
 			existing = mapper.read(sale.getSaleId());
 
 			if (existing == null) {
-				throw new IllegalArgumentException("수정할 판매 전표를 찾을 수 없습니다.");
+				throw new IllegalArgumentException("更新対象の売上伝票が見つかりません。");
 			}
 
 			sale.setSaleNo(existing.getSaleNo());
@@ -130,7 +130,7 @@ public class SaleServiceImpl implements SaleService {
 
 		if (isBlank(sale.getWarehouseName())) {
 
-			throw new IllegalArgumentException("선택한 출하창고를 찾을 수 없습니다.");
+			throw new IllegalArgumentException("選択した出荷倉庫が見つかりません。");
 		}
 
 		List<Long> removedLineIds = cleanIds(sale.getRemovedLineIds());
@@ -151,7 +151,7 @@ public class SaleServiceImpl implements SaleService {
 					boolean removed = removedLineIds.contains(line.getSaleLineId());
 
 					if (duplicated || removed) {
-						throw new IllegalArgumentException("중복되거나 삭제 표시된 품목 행을 확인해 주세요.");
+						throw new IllegalArgumentException("重複または削除指定された品目行を確認してください。");
 					}
 				}
 
@@ -165,7 +165,7 @@ public class SaleServiceImpl implements SaleService {
 		if (existing == null) {
 			mapper.insertSelectKey(sale);
 		} else if (mapper.update(sale) != 1) {
-			throw new IllegalArgumentException("수정할 판매 전표를 찾을 수 없습니다.");
+			throw new IllegalArgumentException("更新対象の売上伝票が見つかりません。");
 		}
 
 		if (!removedLineIds.isEmpty()) {
@@ -178,26 +178,26 @@ public class SaleServiceImpl implements SaleService {
 			if (line.getSaleLineId() == null) {
 				mapper.insertLineSelectKey(line);
 			} else if (mapper.updateLine(line) != 1) {
-				throw new IllegalArgumentException("판매 전표에 속하지 않거나 삭제된 품목 행입니다.");
+				throw new IllegalArgumentException("この売上伝票に属していないか、削除済みの品目行です。");
 			}
 		}
 
 		List<SaleLineVO> savedLines = mapper.getLines(sale.getSaleId());
 
 		if (savedLines.isEmpty()) {
-			throw new IllegalArgumentException("판매 품목을 한 개 이상 선택해 주세요.");
+			throw new IllegalArgumentException("売上品目を1件以上選択してください。");
 		}
 
 		applyStockChanges(existing, previousLines, sale, savedLines);
 
 		sale.setLines(savedLines);
 
-		log.info("판매 전표 저장: " + sale.getSaleId());
+		log.info("売上伝票の保存: " + sale.getSaleId());
 
 		return sale.getSaleId();
 	}
 
-	// 선택한 판매 삭제
+	// 選択した売上を削除する。
 	@Override
 	@Transactional
 	public int remove(List<Long> selectedIds) {
@@ -236,12 +236,12 @@ public class SaleServiceImpl implements SaleService {
 			count++;
 		}
 
-		log.info("판매 전표 삭제: " + count + "건");
+		log.info("売上伝票の削除: " + count + "件");
 
 		return count;
 	}
 
-	// 선택한 판매 진행상태 변경
+	// 選択した売上の進行状態を変更する。
 	@Override
 	public int changeStatus(List<Long> selectedIds, String progressStatus) {
 
@@ -252,15 +252,15 @@ public class SaleServiceImpl implements SaleService {
 		}
 
 		if (!"UNCONFIRMED".equals(progressStatus) && !"CONFIRMED".equals(progressStatus)) {
-			throw new IllegalArgumentException("진행상태는 미확인, 확인 중에서 선택해 주세요.");
+			throw new IllegalArgumentException("進行状態は未確認、確認のいずれかを選択してください。");
 		}
 
-		log.info("판매 전표 진행상태 변경: " + progressStatus);
+		log.info("売上伝票の進行状態変更: " + progressStatus);
 
 		return mapper.changeStatus(ids, progressStatus);
 	}
 
-	// 판매 수정에 따른 재고 반영
+	// 売上の更新内容を在庫に反映する。
 	private void applyStockChanges(SaleVO existing, List<SaleLineVO> previousLines, SaleVO sale,
 			List<SaleLineVO> savedLines) {
 
@@ -291,7 +291,7 @@ public class SaleServiceImpl implements SaleService {
 		}
 	}
 
-	// 재고 증감 요청
+	// 在庫増減のリクエスト
 	private void applyStockDelta(Long saleId, SaleLineVO line, Long warehouseId, BigDecimal quantityDelta) {
 
 		if (quantityDelta.compareTo(BigDecimal.ZERO) == 0) {
@@ -309,7 +309,7 @@ public class SaleServiceImpl implements SaleService {
 		stockService.applySaleMovement(movement);
 	}
 
-	// 판매 상세 금액 계산
+	// 売上明細の金額を計算する。
 	private void prepareLine(SaleLineVO line) {
 
 		if (isBlank(line.getItemName())) {
@@ -317,7 +317,7 @@ public class SaleServiceImpl implements SaleService {
 			ItemLookupVO item = itemLookupService.get(line.getItemId());
 
 			if (item == null) {
-				throw new IllegalArgumentException("선택한 품목을 찾을 수 없습니다.");
+				throw new IllegalArgumentException("選択した品目が見つかりません。");
 			}
 
 			line.setItemName(item.getItemName());
@@ -342,7 +342,7 @@ public class SaleServiceImpl implements SaleService {
 		line.setTotalAmount(supplyAmount.add(vatAmount));
 	}
 
-	// 거래처와 창고 및 담당자명 보완
+	// 取引先名・倉庫名・担当者名を補完する。
 	private void fillHeaderNames(SaleVO sale, SaleVO existing) {
 
 		if (sale.getPartnerId() == null) {
@@ -385,12 +385,12 @@ public class SaleServiceImpl implements SaleService {
 		}
 	}
 
-	// 빈 문자열 확인
+	// 空文字かどうかを確認する。
 	private boolean isBlank(String value) {
 		return value == null || value.trim().isEmpty();
 	}
 
-	// 중복 ID 제거
+	// 重複IDを除去する。
 	private List<Long> cleanIds(List<Long> values) {
 
 		Set<Long> ids = new LinkedHashSet<>();

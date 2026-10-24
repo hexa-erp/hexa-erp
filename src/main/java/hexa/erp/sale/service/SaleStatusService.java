@@ -3,9 +3,9 @@ package hexa.erp.sale.service;
 import hexa.erp.sale.domain.SaleStatusCriteria;
 import hexa.erp.sale.domain.SaleStatusVO;
 
-/** 판매 현황 업무 로직. */
+/** 売上集計の業務ロジック。 */
 public interface SaleStatusService {
-	/** 검색 결과를 월별로 묶고 합계를 계산해 반환한다. */
+	/** 検索結果を月別にまとめ、合計を計算して返す。 */
 	SaleStatusVO getStatus(SaleStatusCriteria criteria);
 
 }

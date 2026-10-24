@@ -27,7 +27,7 @@
 		<level value="info" />
 	</logger>
 
-	<!-- JDBC 로그에 실행 SQL과 소요 시간을 표시한다. -->
+	<!-- JDBCログに実行SQLと処理時間を表示する。 -->
 	<logger name="jdbc.sqltiming">
 		<level value="info" />
 	</logger>

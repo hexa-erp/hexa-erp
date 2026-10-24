@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 import lombok.Data;
 
-//주문서 품목 행 
+//受注伝票の品目行
 @Data
 public class SalesOrderLineVO {
 

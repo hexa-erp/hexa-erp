@@ -22,7 +22,7 @@ public class WarehouseLookupServiceTest {
 		WarehouseLookupVO row = new WarehouseLookupVO();
 		row.setWarehouseId(42L);
 		row.setWarehouseCode("00001");
-		row.setWarehouseName("테스트 창고");
+		row.setWarehouseName("テスト倉庫");
 		row.setActiveFlag("Y");
 		final List<WarehouseLookupVO> rows = Collections.singletonList(row);
 		WarehouseLookupServiceImpl service = new WarehouseLookupServiceImpl();
@@ -54,7 +54,7 @@ public class WarehouseLookupServiceTest {
 
 	@Test
 	public void mapperFailureIsNotReplacedWithEmptyResults() {
-		final RuntimeException failure = new IllegalStateException("테스트용 조회 실패");
+		final RuntimeException failure = new IllegalStateException("テスト用取得失敗");
 		WarehouseLookupServiceImpl service = new WarehouseLookupServiceImpl();
 		service.setMapper(new WarehouseLookupMapper() {
 			@Override
@@ -74,19 +74,19 @@ public class WarehouseLookupServiceTest {
 		});
 		try {
 			service.get(42L);
-			fail("단건 조회 오류를 숨기면 안 된다.");
+			fail("1件取得のエラーを隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
 		try {
 			service.getTotal(new LookupCriteria());
-			fail("건수 오류를 숨기면 안 된다.");
+			fail("件数取得エラーを隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
 		try {
 			service.getList(new LookupCriteria());
-			fail("목록 오류를 숨기면 안 된다.");
+			fail("一覧取得エラーを隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}

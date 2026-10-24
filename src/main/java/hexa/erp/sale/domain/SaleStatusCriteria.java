@@ -6,16 +6,16 @@ import java.util.List;
 
 import lombok.Data;
 
-/** 판매 현황 검색 조건. 값이 비어 있는 조건은 검색에 적용하지 않는다. */
+/** 売上集計の検索条件。空の条件は検索に使用しない。 */
 @Data
 public class SaleStatusCriteria {
-	// 날짜는 YYYY-MM-DD 형식이며, 종료일 당일까지 포함한다.
+	// 日付形式はYYYY-MM-DDとし、終了日当日まで含める。
 	private String startDate;
 	private String endDate;
 	private String keyword;
 	private String progressStatus;
 	private String specification;
-	// 수량·금액 범위 조건. min은 이상, max는 이하로 비교한다.
+	// 数量・金額の範囲条件。min以上、max以下で比較する。
 	private BigDecimal minQuantity;
 	private BigDecimal maxQuantity;
 	private BigDecimal minUnitPrice;
@@ -24,7 +24,7 @@ public class SaleStatusCriteria {
 	private BigDecimal maxSupplyAmount;
 	private BigDecimal minVatAmount;
 	private BigDecimal maxVatAmount;
-	// 필터 선택창에서 고른 ID 목록. 같은 목록 안에서는 OR로 검색한다.
+	// フィルター選択画面で選んだID一覧。同じ一覧内ではOR条件で検索する。
 	private List<String> warehouseIds = new ArrayList<>();
 	private List<String> partnerIds = new ArrayList<>();
 	private List<String> itemIds = new ArrayList<>();

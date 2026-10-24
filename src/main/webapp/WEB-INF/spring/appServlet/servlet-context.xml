@@ -7,12 +7,12 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
                http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
                http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
-	<!-- @Controller 매핑과 @ResponseBody 변환을 활성화한다. -->
+	<!-- @Controllerのマッピングと@ResponseBodyの変換を有効にする。 -->
 	<annotation-driven ignore-default-model-on-redirect="true" />
 
 	<resources mapping="/resources/**" location="/resources/" />
 
-	<!-- "master/warehouse" 반환값을 /WEB-INF/views/master/warehouse.jsp로 연결한다. -->
+	<!-- 戻り値"master/warehouse"を/WEB-INF/views/master/warehouse.jspに対応させる。 -->
 	<beans:bean
 		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
 		<beans:property name="prefix" value="/WEB-INF/views/" />
@@ -21,7 +21,7 @@
 			value="text/html;charset=UTF-8" />
 	</beans:bean>
 
-	<!-- Controller를 등록한다. Service·Mapper는 root-context.xml에서 등록한다. -->
+	<!-- Controllerを登録する。Service・Mapperはroot-context.xmlで登録する。 -->
 	<context:component-scan base-package="hexa.erp.common.controller" />
 	<context:component-scan base-package="hexa.erp.assignee.controller" />
 	<context:component-scan base-package="hexa.erp.partner.controller" />
@@ -33,7 +33,7 @@
 	<context:component-scan base-package="hexa.erp.shipinstruction.controller" />
 	<context:component-scan base-package="hexa.erp.shipment.controller" />
 
-	<!-- 업로드 크기 제한은 web.xml의 multipart-config를 따른다. -->
+	<!-- アップロードサイズの上限はweb.xmlのmultipart-configに従う。 -->
 	<beans:bean id="multipartResolver"
 		class="org.springframework.web.multipart.support.StandardServletMultipartResolver" />
 </beans:beans>

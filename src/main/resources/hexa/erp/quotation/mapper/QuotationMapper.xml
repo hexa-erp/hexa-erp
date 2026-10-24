@@ -23,7 +23,7 @@
 		l.quotation_line_id)
 		||
 		case when count(*) &gt; 1
-		then ' 외 ' || TO_CHAR(count(*) - 1) || '건'
+		then ' ほか ' || TO_CHAR(count(*) - 1) || '件'
 		else
 		'' end
 		from quotation_line l

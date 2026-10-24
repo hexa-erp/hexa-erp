@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%-- 수정 시 전표·상세행·원전표 상세행 ID를 함께 보낸다. 코드는 표시·검색에 사용한다. --%>
-<c:set var="pageTitle" value="주문서 입력" />
+<%-- 更新時は伝票・明細・元伝票明細のIDを一緒に送信する。コードは表示・検索に使う。 --%>
+<c:set var="pageTitle" value="受注入力" />
 <c:set var="activeMenu" value="order" />
 <%@ include file="../common/header.jsp"%>
 <c:url var="documentListUrl" value="/order/list">
@@ -11,15 +11,15 @@
 	<div class="page-heading editor-heading">
 		<div>
 			<h1>
-				주문서
+				受注伝票
 				<c:choose>
-					<c:when test="${not empty form.salesOrderId}">수정</c:when>
-					<c:otherwise>입력</c:otherwise>
+					<c:when test="${not empty form.salesOrderId}">編集</c:when>
+					<c:otherwise>入力</c:otherwise>
 				</c:choose>
 			</h1>
-			<p class="muted">직접 입력하거나 견적서의 상세 품목을 불러올 수 있습니다.</p>
+			<p class="muted">直接入力するか、見積書の明細品目を取り込めます。</p>
 		</div>
-		<a class="btn" href="<c:out value='${documentListUrl}'/>">목록</a>
+		<a class="btn" href="<c:out value='${documentListUrl}'/>">一覧</a>
 	</div>
 	<form id="document-form" data-document-form
 		data-api-document="salesOrder" data-api-base="/api/orders"
@@ -33,13 +33,13 @@
 			type="hidden" name="progressStatus"
 			value="<c:out value="${form.progressStatus}"/>" />
 		<div class="form-panel form-grid editor-fields">
-			<label class="field"><span>일자 *</span><input type="date"
+			<label class="field"><span>日付 *</span><input type="date"
 				name="businessDate" value="<c:out value="${form.businessDate}"/>"
-				required /></label> <label class="field"><span>주문서 번호</span><input
-				value="<c:out value="${form.salesOrderNo}"/>" placeholder="저장 시 발급"
-				readonly aria-label="전표번호" /></label>
+				required /></label> <label class="field"><span>受注伝票 番号</span><input
+				value="<c:out value="${form.salesOrderNo}"/>" placeholder="保存時に採番"
+				readonly aria-label="伝票番号" /></label>
 			<div class="field reference-field">
-				<span id="partner-label">거래처</span>
+				<span id="partner-label">取引先</span>
 				<div class="input-group reference-picker" data-selector-field
 					data-code-selector="partner" role="group"
 					aria-labelledby="partner-label">
@@ -48,10 +48,10 @@
 						id="partner-code" class="reference-code"
 						data-reference-code="partnerCode"
 						value="<c:out value="${form.partnerCode}"/>" maxlength="30"
-						placeholder="거래처 코드" aria-label="거래처 코드" autocomplete="off"
-						spellcheck="false" title="코드 입력 후 Enter 또는 돋보기로 검색" />
+						placeholder="取引先 コード" aria-label="取引先 コード" autocomplete="off"
+						spellcheck="false" title="コード入力後にEnterキーまたは検索アイコンで検索" />
 					<button class="btn reference-search" type="button"
-						data-pick="partner" aria-label="거래처 선택" title="거래처 검색">
+						data-pick="partner" aria-label="取引先 選択" title="取引先 検索">
 						<svg viewBox="0 0 20 20" width="16" height="16" fill="none"
 							stroke="currentColor" stroke-width="1.7" aria-hidden="true"
 							focusable="false">
@@ -60,11 +60,11 @@
 					</button>
 					<input type="text" class="reference-name" readonly
 						name="partnerName" value="<c:out value="${form.partnerName}"/>"
-						maxlength="100" placeholder="거래처명" aria-label="거래처명" />
+						maxlength="100" placeholder="取引先名" aria-label="取引先名" />
 				</div>
 			</div>
 			<div class="field reference-field">
-				<span id="assignee-label">담당자</span>
+				<span id="assignee-label">担当者</span>
 				<div class="input-group reference-picker" data-selector-field
 					data-code-selector="assignee" role="group"
 					aria-labelledby="assignee-label">
@@ -73,10 +73,10 @@
 						id="assignee-code" class="reference-code"
 						data-reference-code="assigneeCode"
 						value="<c:out value="${form.assigneeCode}"/>" maxlength="30"
-						placeholder="담당자 코드" aria-label="담당자 코드" autocomplete="off"
-						spellcheck="false" title="코드 입력 후 Enter 또는 돋보기로 검색" />
+						placeholder="担当者 コード" aria-label="担当者 コード" autocomplete="off"
+						spellcheck="false" title="コード入力後にEnterキーまたは検索アイコンで検索" />
 					<button class="btn reference-search" type="button"
-						data-pick="assignee" aria-label="담당자 선택" title="담당자 검색">
+						data-pick="assignee" aria-label="担当者 選択" title="担当者 検索">
 						<svg viewBox="0 0 20 20" width="16" height="16" fill="none"
 							stroke="currentColor" stroke-width="1.7" aria-hidden="true"
 							focusable="false">
@@ -85,11 +85,11 @@
 					</button>
 					<input type="text" class="reference-name" readonly
 						name="assigneeName" value="<c:out value="${form.assigneeName}"/>"
-						maxlength="100" placeholder="담당자명" aria-label="담당자명" />
+						maxlength="100" placeholder="担当者名" aria-label="担当者名" />
 				</div>
 			</div>
 			<div class="field reference-field">
-				<span id="warehouse-label">출하창고 <span class="required">*</span></span>
+				<span id="warehouse-label">出荷倉庫 <span class="required">*</span></span>
 				<div class="input-group reference-picker" data-selector-field
 					data-code-selector="warehouse" role="group"
 					aria-labelledby="warehouse-label">
@@ -98,10 +98,10 @@
 						type="text" id="warehouse-code" class="reference-code"
 						data-reference-code="warehouseCode"
 						value="<c:out value="${form.warehouseCode}"/>" maxlength="30"
-						placeholder="창고 코드" aria-label="창고 코드" autocomplete="off"
-						spellcheck="false" title="코드 입력 후 Enter 또는 돋보기로 검색" />
+						placeholder="倉庫 コード" aria-label="倉庫 コード" autocomplete="off"
+						spellcheck="false" title="コード入力後にEnterキーまたは検索アイコンで検索" />
 					<button class="btn reference-search" type="button"
-						data-pick="warehouse" aria-label="출하창고 선택" title="출하창고 검색">
+						data-pick="warehouse" aria-label="出荷倉庫 選択" title="出荷倉庫 検索">
 						<svg viewBox="0 0 20 20" width="16" height="16" fill="none"
 							stroke="currentColor" stroke-width="1.7" aria-hidden="true"
 							focusable="false">
@@ -111,37 +111,36 @@
 					<input type="text" class="reference-name" readonly
 						name="warehouseName"
 						value="<c:out value="${form.warehouseName}"/>" maxlength="100"
-						placeholder="창고명" aria-label="창고명" required />
+						placeholder="倉庫名" aria-label="倉庫名" required />
 				</div>
 			</div>
-			<label class="field"><span>납기일자</span><input type="date"
+			<label class="field"><span>納期日</span><input type="date"
 				name="dueDate" value="<c:out value="${form.dueDate}"/>" /></label> <label
-				class="field field-wide"><span>비고</span> <textarea
+				class="field field-wide"><span>備考</span> <textarea
 					name="note" maxlength="500" rows="2"><c:out
 						value="${form.note}" /></textarea></label>
 		</div>
 		<div class="toolbar editor-source-tools">
-			<button class="btn" type="button" data-source="quotation">견적서
-				불러오기</button>
-			<span class="muted">필요한 견적 품목을 선택해서 가져오세요.</span>
+			<button class="btn" type="button" data-source="quotation">見積書
+				取り込み</button>
+			<span class="muted">必要な見積品目を選択して取り込んでください。</span>
 		</div>
 		<c:set var="lineIdField" value="salesOrderLineId" />
 		<c:set var="sourceIdField" value="quotationLineId" />
 		<c:set var="priced" value="true" />
 		<%@ include file="../common/lines.jsp"%>
 		<div class="toolbar editor-actions">
-			<button class="btn btn-primary" type="submit">저장</button>
-			<button class="btn" type="reset">다시 작성</button>
-			<a class="btn" href="<c:out value='${documentListUrl}'/>">목록</a>
+			<button class="btn btn-primary" type="submit">保存</button>
+			<button class="btn" type="reset">リセット</button>
+			<a class="btn" href="<c:out value='${documentListUrl}'/>">一覧</a>
 			<c:if test="${not empty form.salesOrderId}">
 				<a class="btn"
-					href="${ctx}/order/statement?id=<c:out value="${form.salesOrderId}"/>">주문서
-					전표 조회</a>
+					href="${ctx}/order/statement?id=<c:out value="${form.salesOrderId}"/>">受注伝票
+					伝票 照会</a>
 			</c:if>
 			<c:if test="${not empty form.salesOrderId}">
 				<button class="btn" type="button"
-					data-notice-action="마지막으로 변경한 시각: <c:out value='${form.updatedAt}' default='-'/>">최종
-					이력</button>
+					data-notice-action="最終更新日時: <c:out value='${form.updatedAt}' default='-'/>">更新履歴</button>
 			</c:if>
 		</div>
 	</form>

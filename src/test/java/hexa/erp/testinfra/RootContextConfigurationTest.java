@@ -49,7 +49,7 @@ import hexa.erp.item.mapper.ItemLookupMapper;
 import hexa.erp.item.service.ItemLookupService;
 import hexa.erp.item.service.ItemLookupServiceImpl;
 
-/** Oracle 없이 업무별 스캔·XML 로딩·빈 주입을 검사한다. 테스트 DataSource는 연결을 금지한다. */
+/** Oracleなしで業務別スキャン・XML読み込み・Bean注入を検証する。テストDataSourceへの接続は禁止する。 */
 public class RootContextConfigurationTest {
 	private static final String ROOT_XML = "src/main/webapp/WEB-INF/spring/root-context.xml";
 	private static final String MAPPER_PATTERN = "classpath*:hexa/erp/*/mapper/*Mapper.xml";
@@ -101,7 +101,7 @@ public class RootContextConfigurationTest {
 			assertTrue(locations.contains(
 					new ClassPathResource("hexa/erp/item/mapper/ItemLookupMapper.xml").getURL().toExternalForm()));
 
-			// 테스트 XML이 있어도 업무 Mapper 검색에는 포함되면 안 된다.
+			// テストXMLが存在しても業務Mapperの検索に含めてはならない。
 			Resource probe = new ClassPathResource("hexa/erp/testinfra/ConnectionProbeMapper.xml");
 			assertTrue(probe.exists());
 			assertFalse(locations.contains(probe.getURL().toExternalForm()));
@@ -117,7 +117,7 @@ public class RootContextConfigurationTest {
 			root.setAllowBeanDefinitionOverriding(false);
 			loadRootDefinitions(root);
 
-			// 테스트 컨텍스트에서만 실제 연결 풀 생성을 막는다.
+			// テストコンテキストでのみ実際の接続プール作成を防ぐ。
 			root.removeBeanDefinition("dataSource");
 			root.removeBeanDefinition("hikariConfig");
 			root.getBeanFactory().registerSingleton("dataSource", source);
@@ -177,7 +177,7 @@ public class RootContextConfigurationTest {
 				assertTrue(type.getPackage().getName().endsWith(".mapper"));
 			}
 		} finally {
-			assertEquals("DB 연결을 한 번도 열면 안 된다.", 0, source.connectionAttempts);
+			assertEquals("DB接続を一度も開いてはならない。", 0, source.connectionAttempts);
 		}
 	}
 
@@ -211,7 +211,7 @@ public class RootContextConfigurationTest {
 			String[] names = StringUtils.tokenizeToStringArray(attribute,
 					ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS);
 			for (String name : names) {
-				assertTrue("중복 스캔: " + name, packages.add(name));
+				assertTrue("スキャンの重複: " + name, packages.add(name));
 			}
 		}
 		return packages;
@@ -222,14 +222,14 @@ public class RootContextConfigurationTest {
 		assertNotNull(root.getBeanDefinition("sqlSessionFactory"));
 	}
 
-	/** 실수로 DB에 접근하면 즉시 실패한다. */
+	/** 誤ってDBへアクセスした場合は即座に失敗させる。 */
 	private static class NoConnectionDataSource extends AbstractDataSource {
 		private int connectionAttempts;
 
 		@Override
 		public Connection getConnection() throws SQLException {
 			connectionAttempts++;
-			throw new AssertionError("이 테스트는 실제 Connection을 사용하지 않는다.");
+			throw new AssertionError("このテストでは実際のConnectionを使用しない。");
 		}
 
 		@Override

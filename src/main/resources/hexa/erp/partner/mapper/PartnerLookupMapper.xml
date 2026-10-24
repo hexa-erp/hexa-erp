@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="hexa.erp.partner.mapper.PartnerLookupMapper">
-	<!-- 목록과 건수의 검색조건이 달라지지 않도록 공유한다. -->
+	<!-- 一覧と件数で検索条件が一致するように共有する。 -->
 	<sql id="searchCondition">
 		WHERE p.ACTIVE_FLAG = 'Y'
 		<if test="keyword != null and keyword != ''">
@@ -13,7 +13,7 @@
 		</if>
 	</sql>
 
-	<!-- Oracle 11g는 정렬 후 ROWNUM 상·하한으로 페이지를 나눈다. -->
+	<!-- Oracle 11gではソート後にROWNUMの上限・下限でページ分割する。 -->
 	<select id="getListWithPaging"
 		parameterType="hexa.erp.common.domain.LookupCriteria"
 		resultType="hexa.erp.partner.domain.PartnerLookupVO">

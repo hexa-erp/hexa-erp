@@ -18,9 +18,9 @@ import hexa.erp.warehouse.service.WarehouseLookupService;
 import hexa.erp.common.domain.LookupCriteria;
 
 /**
- * 실제 localhost Oracle과 main의 db.properties로 수동 실행한다(기본 mvn test/package 제외).
- * mvn -Dtest=WarehouseLookupIT test WAREHOUSE SELECT만 수행한다. DDL·seed·DML은 실행하지
- * 않으며 0건도 정상이다.
+ * 実際のlocalhostのOracleとmainのdb.propertiesを使用して手動実行する（通常のmvn test/packageでは除外）。
+ * mvn -Dtest=WarehouseLookupIT test。WAREHOUSEへのSELECTのみ実行する。
+ * DDL・seed・DMLは実行せず、0件でも正常とする。
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "file:src/main/webapp/WEB-INF/spring/root-context.xml")
@@ -35,7 +35,7 @@ public class WarehouseLookupIT {
 		List<WarehouseLookupVO> rows = service.getList(criteria);
 		assertRows(rows);
 		if (!rows.isEmpty()) {
-			// 실제 코드로 바인딩 검색도 실행한다. seed 건수나 고정 창고명은 가정하지 않는다.
+			// 実際のコードでバインド検索も実行する。seed件数や固定の倉庫名は前提にしない。
 			criteria.setKeyword(rows.get(0).getWarehouseCode());
 			assertTrue(service.getTotal(criteria) >= 0);
 			assertRows(service.getList(criteria));

@@ -94,7 +94,7 @@
 			</exclusions>
 		</dependency>
 
-		<!-- 웹 화면: Servlet·JSP API는 Tomcat이 제공(provided), JSTL은 WAR에 포함. -->
+		<!-- 画面: Servlet・JSP APIはTomcatが提供（provided）し、JSTLはWARに含める。 -->
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
@@ -171,7 +171,7 @@
 	<build>
 		<finalName>hexa-erp</finalName>
 		<plugins>
-			<!-- Controller 요청 바인딩에 사용할 메서드 매개변수 이름을 보존한다. -->
+			<!-- Controllerのリクエストバインドで使うメソッドのパラメーター名を保持する。 -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -188,7 +188,7 @@
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>3.3.1</version>
 			</plugin>
-			<!-- *IT는 기본 실행에서 제외하고 -Dtest로 지정한다. -->
+			<!-- *ITは通常の実行から除外し、-Dtestで指定する。 -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>

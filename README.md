@@ -7,142 +7,150 @@
 
 <br>
 
-## 프로젝트 소개
+## プロジェクト概要
 
-Spring MVC 기반의 판매·재고 관리 ERP 팀 프로젝트입니다.
-기초등록, 견적, 주문, 판매, 출하지시, 출하, 재고 업무를 다룹니다.
+Spring MVCを基盤とした売上・在庫管理ERPのチーム開発プロジェクトです。
+マスター登録、見積、受注、売上、出荷指示、出荷、在庫の各業務を扱います。
 
-### 업무 흐름
+### 業務の流れ
 
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/flow-dark.png">
-    <img src="docs/images/flow.png" alt="업무 흐름: 거래처·창고·품목을 기초등록해 두고 전표 작성 시 선택하며, 전표는 견적서, 주문서, 판매(재고 차감), 출하지시서, 출하 순서로 진행" width="820">
-  </picture>
-</p>
+```mermaid
+flowchart TB
+    subgraph master[マスター登録]
+        direction LR
+        partner[取引先登録]
+        warehouse[倉庫登録]
+        item[品目登録]
+    end
+    subgraph documents[伝票の流れ]
+        direction LR
+        quotation[見積書] --> order[受注伝票] --> sale[売上<br/>在庫減算] --> instruction[出荷指示書] --> shipment[出荷]
+    end
+    master -->|伝票作成時に選択| documents
+```
 
 <br>
 
-## 기술 스택
+## 技術スタック
 
-| 구분 | 기술 |
+| 区分 | 技術 |
 | --- | --- |
-| 백엔드 | <img src="docs/images/stack/java.png" alt="Java 8" height="96"> <img src="docs/images/stack/spring.png" alt="Spring MVC" height="96"> <img src="docs/images/stack/mybatis.png" alt="MyBatis" height="96"> <img src="docs/images/stack/hikari.png" alt="HikariCP" height="96"> |
-| 화면 | <img src="docs/images/stack/jsp.png" alt="JSP" height="96"> <img src="docs/images/stack/jstl.png" alt="JSTL" height="96"> <img src="docs/images/stack/javascript.png" alt="JavaScript" height="96"> <img src="docs/images/stack/jquery.png" alt="jQuery" height="96"> <img src="docs/images/stack/html5.png" alt="HTML5" height="96"> <img src="docs/images/stack/css3.png" alt="CSS3" height="96"> |
+| バックエンド | <img src="docs/images/stack/java.png" alt="Java 8" height="96"> <img src="docs/images/stack/spring.png" alt="Spring MVC" height="96"> <img src="docs/images/stack/mybatis.png" alt="MyBatis" height="96"> <img src="docs/images/stack/hikari.png" alt="HikariCP" height="96"> |
+| 画面 | <img src="docs/images/stack/jsp.png" alt="JSP" height="96"> <img src="docs/images/stack/jstl.png" alt="JSTL" height="96"> <img src="docs/images/stack/javascript.png" alt="JavaScript" height="96"> <img src="docs/images/stack/jquery.png" alt="jQuery" height="96"> <img src="docs/images/stack/html5.png" alt="HTML5" height="96"> <img src="docs/images/stack/css3.png" alt="CSS3" height="96"> |
 | DB | <img src="docs/images/stack/oracle.png" alt="Oracle 11g XE" height="96"> |
-| 개발·배포 | <img src="docs/images/stack/maven.png" alt="Maven" height="96"> <img src="docs/images/stack/tomcat.png" alt="Tomcat 9" height="96"> <img src="docs/images/stack/sts.png" alt="STS" height="96"> <img src="docs/images/stack/git.png" alt="Git" height="96"> <img src="docs/images/stack/github.png" alt="GitHub" height="96"> |
+| 開発・デプロイ | <img src="docs/images/stack/maven.png" alt="Maven" height="96"> <img src="docs/images/stack/tomcat.png" alt="Tomcat 9" height="96"> <img src="docs/images/stack/sts.png" alt="STS" height="96"> <img src="docs/images/stack/git.png" alt="Git" height="96"> <img src="docs/images/stack/github.png" alt="GitHub" height="96"> |
 
 <details>
-<summary>버전 정보</summary>
+<summary>バージョン情報</summary>
 <br>
 
-| 구분 | 기술 |
+| 区分 | 技術 |
 | --- | --- |
-| 백엔드 | Java 8, Spring MVC 5.0.7, MyBatis 3.4.6, HikariCP 2.7.4 |
-| 화면 | JSP / JSTL, jQuery 3.7.1 |
+| バックエンド | Java 8, Spring MVC 5.0.7, MyBatis 3.4.6, HikariCP 2.7.4 |
+| 画面 | JSP / JSTL, jQuery 3.7.1 |
 | DB | Oracle 11g XE |
-| 개발·배포 | Maven WAR, Tomcat 9, Eclipse / STS, Git / GitHub |
+| 開発・デプロイ | Maven WAR, Tomcat 9, Eclipse / STS, Git / GitHub |
 
 </details>
 
 <br>
 
-## Branch 컨벤션
+## ブランチ規約
 
 ```
-main: 최종 배포 버전
-dev: 개발 통합 브랜치 (다음 배포 준비)
-feature/기능명: 기능 구현 (예: feature/partner)
+main: リリース版
+dev: 開発統合ブランチ（次回リリースの準備）
+feature/機能名: 機能開発（例: feature/partner）
 ```
 
 <br>
 
-## 기능별 브랜치
+## 機能別ブランチ
 
-| 기능 | 브랜치 |
+| 機能 | ブランチ |
 | ----------- | ------------------------------- |
-| 거래처 등록 | `feature/partner` |
-| 창고 등록 | `feature/warehouse` |
-| 품목 등록 | `feature/item` |
-| 견적서 입력 | `feature/quotation-input` |
-| 견적서 조회 | `feature/quotation-list` |
-| 견적서 현황 | `feature/quotation-status` |
-| 미주문 현황 | `feature/quotation-unordered` |
-| 주문서 입력 | `feature/salesorder-input` |
-| 주문서 조회 | `feature/salesorder-list` |
-| 주문서 현황 | `feature/salesorder-status` |
-| 미판매 현황 | `feature/salesorder-unsold` |
-| 판매 입력 | `feature/sale-input` |
-| 판매 조회 | `feature/sale-list` |
-| 판매 현황 | `feature/sale-status` |
-| 판매 단가 일괄 변경 | `feature/sale-bulk-price` |
-| 출하지시서 입력 | `feature/shipinstruction-input` |
-| 출하지시서 조회 | `feature/shipinstruction-list` |
-| 출하 입력 | `feature/shipment-input` |
-| 출하 조회 | `feature/shipment-list` |
+| 取引先登録 | `feature/partner` |
+| 倉庫登録 | `feature/warehouse` |
+| 品目登録 | `feature/item` |
+| 見積入力 | `feature/quotation-input` |
+| 見積一覧 | `feature/quotation-list` |
+| 見積集計 | `feature/quotation-status` |
+| 未受注一覧 | `feature/quotation-unordered` |
+| 受注入力 | `feature/salesorder-input` |
+| 受注一覧 | `feature/salesorder-list` |
+| 受注集計 | `feature/salesorder-status` |
+| 未売上一覧 | `feature/salesorder-unsold` |
+| 売上入力 | `feature/sale-input` |
+| 売上一覧 | `feature/sale-list` |
+| 売上集計 | `feature/sale-status` |
+| 売上単価一括変更 | `feature/sale-bulk-price` |
+| 出荷指示入力 | `feature/shipinstruction-input` |
+| 出荷指示一覧 | `feature/shipinstruction-list` |
+| 出荷入力 | `feature/shipment-input` |
+| 出荷一覧 | `feature/shipment-list` |
 
 <br>
 
-## 기능 개발 시작 방법
+## 機能開発の始め方
 
-1. `dev` 브랜치로 이동합니다.
-2. `dev` 브랜치를 최신 상태로 Pull 합니다.
-3. `dev`에서 자신의 `feature/기능명` 브랜치를 생성합니다.
-4. 기능 개발 후 Commit 및 Push 합니다.
-5. GitHub에서 `feature/기능명 → dev` Pull Request를 생성합니다.
-6. Merge가 끝난 후 다음 기능은 다시 최신 `dev`에서 새 브랜치를 만들어 시작합니다.
+1. `dev`ブランチに切り替えます。
+2. `dev`ブランチをPullして最新の状態にします。
+3. `dev`から自分の`feature/機能名`ブランチを作成します。
+4. 機能開発後にCommit・Pushします。
+5. GitHubで`feature/機能名 → dev`のPull Requestを作成します。
+6. Merge後、次の機能は最新の`dev`から新しいブランチを作成して開発します。
 
 <br>
 
-## PR 컨벤션
+## PR規約
 
-PR 제목은 Commit 메시지와 동일하게 `type: subject` 형식으로 작성합니다.
+PRのタイトルはCommitメッセージと同じ`type: subject`形式で記入します。
 
-예시
+例
 
 ```text
-feat: 견적서 입력 기능 구현
-fix: 판매 단가 계산 오류 수정
+feat: 見積入力機能を実装
+fix: 売上単価計算の不具合を修正
 ```
 <br>
 
-## Commit 컨벤션
+## Commit規約
 
 ```
 type: subject
 
-body (선택)
+body（任意）
 ```
 
-예시
+例
 
 ```
-feat: 견적서 입력 화면 구현
+feat: 見積入力画面を実装
 
-- 견적서 저장 기능 추가
-- 품목 선택 시 단가 자동 입력
+- 見積書の保存機能を追加
+- 品目選択時に単価を自動入力
 ```
 
 <br>
 
 ### type
 
-| type | 언제 쓰나요 |
+| type | 用途 |
 | --- | --- |
-| feat | 새 기능 추가 |
-| fix | 버그 수정 |
-| refactor | 기능 변화 없이 코드 정리 |
-| style | 공백, 들여쓰기 등 포맷만 변경 |
-| docs | README 등 문서 수정 |
-| chore | 설정, 라이브러리 추가 등 기타 작업 |
+| feat | 機能の追加 |
+| fix | 不具合の修正 |
+| refactor | 動作を変えずにコードを整理 |
+| style | 空白・インデントなど書式のみの変更 |
+| docs | READMEなどのドキュメントの修正 |
+| chore | 設定・ライブラリーの追加などその他の作業 |
 
-* 여러 작업이 섞이면 가장 중요한 type 하나만 쓴다.
+* 複数の変更が含まれる場合は、最も重要なtypeを1つだけ選びます。
 
 ### subject
 
-* 무엇을 했는지 간단하게 작성한다.
-* 끝에 마침표를 붙이지 않는다.
+* 変更内容を簡潔に記入します。
+* 末尾に句点を付けません。
 
-### body (선택)
+### body（任意）
 
-* 필요할 때만 쓰고, 각 줄은 `-`로 시작한다.
+* 必要な場合のみ記入し、各行を`-`で始めます。
