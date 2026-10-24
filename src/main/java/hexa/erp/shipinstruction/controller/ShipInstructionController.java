@@ -45,7 +45,7 @@ public class ShipInstructionController {
 		search.put("progressStatus", criteria.getProgressStatus());
 		search.put("page", String.valueOf(criteria.getPage()));
 		search.put("pageSize", String.valueOf(criteria.getPageSize()));
-		
+
 		model.addAttribute("shipInstructionList", service.getList(criteria));
 		model.addAttribute("search", search);
 		model.addAttribute("page", criteria.getPage());
@@ -107,9 +107,10 @@ public class ShipInstructionController {
 	}
 
 	@PostMapping("/delete")
-	public String delete(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds, HttpServletRequest request, RedirectAttributes rttr) {
+	public String delete(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds,
+			HttpServletRequest request, RedirectAttributes rttr) {
 		log.info("출하지시서 삭제 요청");
-		if(selectedIds == null || selectedIds.isEmpty()) {
+		if (selectedIds == null || selectedIds.isEmpty()) {
 			rttr.addFlashAttribute("errorMessage", "삭제할 출하지시서를 선택해 주세요.");
 		} else {
 			try {
@@ -125,9 +126,11 @@ public class ShipInstructionController {
 	}
 
 	@PostMapping("/change-status")
-	public String changeStatus(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds, @RequestParam(value = "nextProgressStatus", defaultValue = "") String nextProgressStatus, HttpServletRequest request, RedirectAttributes rttr) {
+	public String changeStatus(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds,
+			@RequestParam(value = "nextProgressStatus", defaultValue = "") String nextProgressStatus,
+			HttpServletRequest request, RedirectAttributes rttr) {
 		log.info("출하지시서 진행 상태 변경 요청");
-		if(selectedIds == null || selectedIds.isEmpty()) {
+		if (selectedIds == null || selectedIds.isEmpty()) {
 			rttr.addFlashAttribute("errorMessage", "진행상태를 변경할 출하지시서를 선택해 주세요.");
 		} else {
 			try {
@@ -136,7 +139,7 @@ public class ShipInstructionController {
 				}
 			} catch (IllegalArgumentException e) {
 				rttr.addFlashAttribute("errorMessage", e.getMessage());
-			} catch (DataAccessException e) {	
+			} catch (DataAccessException e) {
 				log.error("출하지시서 진행 상태 변경 실패", e);
 				rttr.addFlashAttribute("errorMessage", "출하지시서의 진행상태를 변경하지 못했습니다.");
 			}

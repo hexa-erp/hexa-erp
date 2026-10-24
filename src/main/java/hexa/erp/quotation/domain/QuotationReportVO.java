@@ -13,8 +13,8 @@ import lombok.Data;
 public class QuotationReportVO {
 
 	private List<Map<String, Object>> monthGroups = new ArrayList<>();
-	
-	//모든 달을 더한 총 합계
+
+	// 모든 달을 더한 총 합계
 	private Map<String, BigDecimal> totals = new LinkedHashMap<>();
 
 }

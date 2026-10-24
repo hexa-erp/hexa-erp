@@ -7,13 +7,13 @@ import hexa.erp.partner.domain.PartnerVO;
 
 public interface PartnerService {
 
-    List<PartnerVO> getList(PartnerCriteria criteria);
+	List<PartnerVO> getList(PartnerCriteria criteria);
 
-    int getTotal(PartnerCriteria criteria);
+	int getTotal(PartnerCriteria criteria);
 
-    void register(PartnerVO partner);
+	void register(PartnerVO partner);
 
-    boolean modify(PartnerVO partner);
+	boolean modify(PartnerVO partner);
 
-    int changeActive(List<Long> ids, String activeFlag);
+	int changeActive(List<Long> ids, String activeFlag);
 }

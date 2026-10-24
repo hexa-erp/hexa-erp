@@ -13,27 +13,27 @@ public class SalesOrderVO {
 	private String salesOrderNo;
 	private String businessDate;
 	private String dueDate;
-	
+
 	private Long partnerId;
 	private String partnerCode;
 	private String partnerName;
-	
+
 	private Long warehouseId;
 	private String warehouseCode;
 	private String warehouseName;
-	
+
 	private Long assigneeId;
 	private String assigneeCode;
 	private String assigneeName;
-	
+
 	private String note;
 	private String progressStatus = "IN_PROGRESS";
 	private String updatedAt;
 	private String deletedYn;
-	
+
 	private String itemSummary;
 	private BigDecimal totalAmount;
-	
+
 	private List<SalesOrderLineVO> lines = new ArrayList<>();
 	private List<Long> removedLineIds = new ArrayList<>();
 }

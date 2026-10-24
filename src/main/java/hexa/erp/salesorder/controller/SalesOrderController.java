@@ -42,69 +42,69 @@ import lombok.extern.log4j.Log4j;
 public class SalesOrderController {
 	@Setter(onMethod_ = @Autowired)
 	private FilterSelectionService filterSelectionService;
-	
+
 	@Setter(onMethod_ = @Autowired)
 	private SalesOrderService service;
-	
+
 	@Setter(onMethod_ = @Autowired)
 	private SalesOrderReportService reportService;
 
-	//주문서 목록 조회 및 페이징
+	// 주문서 목록 조회 및 페이징
 	@GetMapping("/list")
 	public String list(SalesOrderCriteria criteria, @RequestParam Map<String, String> params, Model model) {
 		log.info("주문서 목록 조회 요청");
-		
-		//페이징 처리
+
+		// 페이징 처리
 		int totalCount = service.getTotal(criteria);
-        int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
-        criteria.setPage(Math.min(criteria.getPage(), totalPages));
-        
-        //검색 조건, 페이징 상태 유지
-        Map<String, String> search = ViewModels.search(params);
-        search.put("keyword", criteria.getKeyword());
-        search.put("progressStatus", criteria.getProgressStatus());
-        search.put("page", String.valueOf(criteria.getPage()));
-        search.put("pageSize", String.valueOf(criteria.getPageSize()));
-        
-        model.addAttribute("orderList", service.getList(criteria));
-        model.addAttribute("search", search);
-        model.addAttribute("page", criteria.getPage());
-        model.addAttribute("pageSize", criteria.getPageSize());
-        model.addAttribute("totalPages", totalPages);
-        model.addAttribute("totalCount", totalCount);
-        model.addAttribute("basePath", "/order/list");
-        model.addAttribute("activeMenu", "order");
-        model.addAttribute("pageTitle", "주문서 조회");
-        
-        return "order/list";
+		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
+		criteria.setPage(Math.min(criteria.getPage(), totalPages));
+
+		// 검색 조건, 페이징 상태 유지
+		Map<String, String> search = ViewModels.search(params);
+		search.put("keyword", criteria.getKeyword());
+		search.put("progressStatus", criteria.getProgressStatus());
+		search.put("page", String.valueOf(criteria.getPage()));
+		search.put("pageSize", String.valueOf(criteria.getPageSize()));
+
+		model.addAttribute("orderList", service.getList(criteria));
+		model.addAttribute("search", search);
+		model.addAttribute("page", criteria.getPage());
+		model.addAttribute("pageSize", criteria.getPageSize());
+		model.addAttribute("totalPages", totalPages);
+		model.addAttribute("totalCount", totalCount);
+		model.addAttribute("basePath", "/order/list");
+		model.addAttribute("activeMenu", "order");
+		model.addAttribute("pageTitle", "주문서 조회");
+
+		return "order/list";
 	}
 
-	//주문서 신규 입력 및 기존 주문서 조회
+	// 주문서 신규 입력 및 기존 주문서 조회
 	@GetMapping("/form")
-	public String form(@RequestParam(value = "id", required = false) Long id, @RequestParam Map<String, String> params, @RequestParam(value = "salesOrderId", required = false) Long salesOrderId, 
-			HttpServletRequest request, Model model, RedirectAttributes rttr) {
+	public String form(@RequestParam(value = "id", required = false) Long id, @RequestParam Map<String, String> params,
+			@RequestParam(value = "salesOrderId", required = false) Long salesOrderId, HttpServletRequest request,
+			Model model, RedirectAttributes rttr) {
 		log.info("주문서 입력 화면 요청");
-		
-		Long documentId = id == null? salesOrderId : id;
+
+		Long documentId = id == null ? salesOrderId : id;
 		SalesOrderVO form;
-		
-		//신규 주문서 입력 시 기본값 설정
+
+		// 신규 주문서 입력 시 기본값 설정
 		if (documentId == null) {
 			form = new SalesOrderVO();
-			
+
 			form.setBusinessDate(LocalDate.now().toString());
 			form.setProgressStatus("IN_PROGRESS");
-		}
-		else {
-			//기존 주문서 조회
+		} else {
+			// 기존 주문서 조회
 			form = service.get(documentId);
 			if (form == null) {
 				rttr.addFlashAttribute("errorMessage", "조회할 주문서가 없습니다.");
-				
+
 				return PostRedirects.toList("/order/list", request);
 			}
 		}
-		
+
 		model.addAttribute("form", form);
 		model.addAttribute("mode", "create");
 		model.addAttribute("isEdit", false);
@@ -113,17 +113,18 @@ public class SalesOrderController {
 		return "order/form";
 	}
 
-	//주문서 현황 조회
+	// 주문서 현황 조회
 	@GetMapping("/status")
-	public String status(SalesOrderReportCriteria criteria, BindingResult bindingResult, @RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
+	public String status(SalesOrderReportCriteria criteria, BindingResult bindingResult,
+			@RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
 		log.info("주문서 현황 조회 요청");
-		
-		//검색 조건 및 필터 설정
+
+		// 검색 조건 및 필터 설정
 		prepareReportSearch(criteria, params, request, model);
-		
+
 		SalesOrderReportVO report = new SalesOrderReportVO();
-		
-		//주문서 현황 조회
+
+		// 주문서 현황 조회
 		if ("results".equals(params.get("view"))) {
 			if (bindingResult.hasErrors()) {
 				model.addAttribute("errorMessage", "검색조건의 수량과 금액을 확인해 주세요.");
@@ -132,7 +133,7 @@ public class SalesOrderController {
 					report = reportService.getStatus(criteria);
 				} catch (DataAccessException e) {
 					log.error("주문서 현황 조회 실패", e);
-					
+
 					model.addAttribute("errorMessage", "현황을 조회하지 못했습니다. 검색조건을 확인해 주세요.");
 				}
 			}
@@ -145,54 +146,55 @@ public class SalesOrderController {
 		return "order/status";
 	}
 
-	//주문서 전표 조회
+	// 주문서 전표 조회
 	@GetMapping("/statement")
-	public String statement(@RequestParam(value = "id", required = false) Long id, HttpServletResponse response, Model model) {
+	public String statement(@RequestParam(value = "id", required = false) Long id, HttpServletResponse response,
+			Model model) {
 		log.info("주문서 전표 조회 요청");
-		
+
 		SalesOrderVO form = id == null ? null : service.get(id);
-        if (form == null) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            form = new SalesOrderVO();
-        }
-        
-        //주문서 품목별 금액을 더해서 전표 전체 합계 계산
-        Map<String, BigDecimal> totals = new LinkedHashMap<>();
-        totals.put("supplyAmount", BigDecimal.ZERO);
-        totals.put("vatAmount", BigDecimal.ZERO);
-        totals.put("totalAmount", BigDecimal.ZERO);
-        
-        for (SalesOrderLineVO line : form.getLines()) {
-            totals.put("supplyAmount", totals.get("supplyAmount").add(line.getSupplyAmount()));
-            totals.put("vatAmount", totals.get("vatAmount").add(line.getVatAmount()));
-            totals.put("totalAmount", totals.get("totalAmount").add(line.getTotalAmount()));
-        }
-        
-        model.addAttribute("form", form);
-        model.addAttribute("statementTotals", totals);
-        model.addAttribute("activeMenu", "order");
-        model.addAttribute("pageTitle", "주문서 전표");
-        
-        return "order/statement";
+		if (form == null) {
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			form = new SalesOrderVO();
+		}
+
+		// 주문서 품목별 금액을 더해서 전표 전체 합계 계산
+		Map<String, BigDecimal> totals = new LinkedHashMap<>();
+		totals.put("supplyAmount", BigDecimal.ZERO);
+		totals.put("vatAmount", BigDecimal.ZERO);
+		totals.put("totalAmount", BigDecimal.ZERO);
+
+		for (SalesOrderLineVO line : form.getLines()) {
+			totals.put("supplyAmount", totals.get("supplyAmount").add(line.getSupplyAmount()));
+			totals.put("vatAmount", totals.get("vatAmount").add(line.getVatAmount()));
+			totals.put("totalAmount", totals.get("totalAmount").add(line.getTotalAmount()));
+		}
+
+		model.addAttribute("form", form);
+		model.addAttribute("statementTotals", totals);
+		model.addAttribute("activeMenu", "order");
+		model.addAttribute("pageTitle", "주문서 전표");
+
+		return "order/statement";
 
 	}
 
-	//미판매 현황 조회
+	// 미판매 현황 조회
 	@GetMapping("/unsold")
-	public String unsold(SalesOrderReportCriteria criteria, BindingResult bindingResult, @RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
+	public String unsold(SalesOrderReportCriteria criteria, BindingResult bindingResult,
+			@RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
 		log.info("미판매 현황 조회 요청");
-		
+
 		if (!StringUtils.hasText(criteria.getCutoffDate())) {
 			criteria.setCutoffDate(LocalDate.now().toString());
 			params.put("cutoffDate", criteria.getCutoffDate());
 		}
-		
-		//검색조건 및 필터 설정
+
+		// 검색조건 및 필터 설정
 		prepareReportSearch(criteria, params, request, model);
 		SalesOrderReportVO report = new SalesOrderReportVO();
-		
-		
-		//미판매 현황 조회
+
+		// 미판매 현황 조회
 		if ("results".equals(params.get("view"))) {
 			if (bindingResult.hasErrors()) {
 				model.addAttribute("errorMessage", "검색조건의 수량과 금액을 확인해 주세요.");
@@ -201,7 +203,7 @@ public class SalesOrderController {
 					report = reportService.getUnsold(criteria);
 				} catch (DataAccessException e) {
 					log.error("미판매 현황 조회 실패", e);
-					
+
 					model.addAttribute("errorMessage", "미판매 현황을 조회하지 못했습니다. 검색조건을 확인해 주세요.");
 				}
 			}
@@ -213,93 +215,93 @@ public class SalesOrderController {
 		return "order/unsold";
 	}
 
-	//주문서 신규 등록 및 수정
+	// 주문서 신규 등록 및 수정
 	@PostMapping("/save")
-	public String save(SalesOrderVO salesOrder, BindingResult bindingResult, HttpServletRequest request, RedirectAttributes rttr) {
+	public String save(SalesOrderVO salesOrder, BindingResult bindingResult, HttpServletRequest request,
+			RedirectAttributes rttr) {
 		log.info("견적서 저장 요청");
-		
-		//신규 등록 및 수정 구분
+
+		// 신규 등록 및 수정 구분
 		boolean editing = salesOrder.getSalesOrderId() != null;
-		
+
 		if (bindingResult.hasErrors()) {
 			rttr.addFlashAttribute("errorMessage", "품목의 수량과 단가 등을 입력해 주세요.");
-		}
-		else {
+		} else {
 			try {
-				//주문서 저장
+				// 주문서 저장
 				service.save(salesOrder);
-			} catch(IllegalArgumentException e) {
+			} catch (IllegalArgumentException e) {
 				rttr.addFlashAttribute("errorMessage", e.getMessage());
-			} 
-			catch(DataAccessException e){
+			} catch (DataAccessException e) {
 				log.error("주문서 저장 실패", e);
-				rttr.addFlashAttribute("errorMessage","주문서를 저장하지 못했습니다.");
+				rttr.addFlashAttribute("errorMessage", "주문서를 저장하지 못했습니다.");
 			}
 		}
-		
+
 		return PostRedirects.afterDocumentSave("/order", editing, request);
 	}
-	
 
-	//주문서 삭제
+	// 주문서 삭제
 	@PostMapping("/delete")
-	public String delete(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds, 
+	public String delete(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds,
 			HttpServletRequest request, RedirectAttributes rttr) {
 		log.info("주문서 삭제 요청");
-		
+
 		if (selectedIds == null || selectedIds.isEmpty()) {
-            rttr.addFlashAttribute("errorMessage", "삭제할 주문서를 선택해 주세요.");
-        } else {
-            try {
-                if (service.remove(selectedIds) == 0) {
-                    rttr.addFlashAttribute("errorMessage", "삭제할 주문서가 없습니다.");
-                }
-            } catch (DataAccessException e) {
-                log.error("주문서 삭제 실패", e);
-                rttr.addFlashAttribute("errorMessage", "주문서를 삭제하지 못했습니다.");
-            }
-        }
-		
-        return PostRedirects.toList("/order/list", request);
+			rttr.addFlashAttribute("errorMessage", "삭제할 주문서를 선택해 주세요.");
+		} else {
+			try {
+				if (service.remove(selectedIds) == 0) {
+					rttr.addFlashAttribute("errorMessage", "삭제할 주문서가 없습니다.");
+				}
+			} catch (DataAccessException e) {
+				log.error("주문서 삭제 실패", e);
+				rttr.addFlashAttribute("errorMessage", "주문서를 삭제하지 못했습니다.");
+			}
+		}
+
+		return PostRedirects.toList("/order/list", request);
 	}
 
-	//주문서 상태 변경
+	// 주문서 상태 변경
 	@PostMapping("/change-status")
 	public String changeStatus(@RequestParam(value = "selectedIds", required = false) List<Long> selectedIds,
-			@RequestParam(value = "nextProgressStatus", defaultValue = "") String nextProgressStatus, 
+			@RequestParam(value = "nextProgressStatus", defaultValue = "") String nextProgressStatus,
 			HttpServletRequest request, RedirectAttributes rttr) {
 		log.info("주문서 진행 상태 변경 요청");
-		
+
 		if (selectedIds == null || selectedIds.isEmpty()) {
-            rttr.addFlashAttribute("errorMessage", "진행상태를 변경할 주문서를 선택해 주세요.");
-        } else {
-            try {
-                if (service.changeStatus(selectedIds, nextProgressStatus) == 0) {
-                    rttr.addFlashAttribute("errorMessage", "변경할 주문서가 없습니다.");
-                }
-            } catch (IllegalArgumentException e) {
-                rttr.addFlashAttribute("errorMessage", e.getMessage());
-            } catch (DataAccessException e) {
-                log.error("주문서 진행 상태 변경 실패", e);
-                rttr.addFlashAttribute("errorMessage", "주문서의 진행상태를 변경하지 못했습니다.");
-            }
-        }
-		
-        return PostRedirects.toList("/order/list", request);
-    }
-	
-	//검색 조건 및 필터 
-	private void prepareReportSearch(SalesOrderReportCriteria criteria, Map<String, String> params, HttpServletRequest request, Model model) {
+			rttr.addFlashAttribute("errorMessage", "진행상태를 변경할 주문서를 선택해 주세요.");
+		} else {
+			try {
+				if (service.changeStatus(selectedIds, nextProgressStatus) == 0) {
+					rttr.addFlashAttribute("errorMessage", "변경할 주문서가 없습니다.");
+				}
+			} catch (IllegalArgumentException e) {
+				rttr.addFlashAttribute("errorMessage", e.getMessage());
+			} catch (DataAccessException e) {
+				log.error("주문서 진행 상태 변경 실패", e);
+				rttr.addFlashAttribute("errorMessage", "주문서의 진행상태를 변경하지 못했습니다.");
+			}
+		}
+
+		return PostRedirects.toList("/order/list", request);
+	}
+
+	// 검색 조건 및 필터
+	private void prepareReportSearch(SalesOrderReportCriteria criteria, Map<String, String> params,
+			HttpServletRequest request, Model model) {
 		Map<String, String> search = ViewModels.search(params);
 		search.remove("page");
 		search.remove("pageSize");
-			
-		Map<String, List<String>> filterIds = ViewModels.filters(request, search, model, "warehouse", "partner", "item", "assignee");
+
+		Map<String, List<String>> filterIds = ViewModels.filters(request, search, model, "warehouse", "partner", "item",
+				"assignee");
 		criteria.setWarehouseIds(filterIds.get("warehouseIds"));
 		criteria.setPartnerIds(filterIds.get("partnerIds"));
 		criteria.setItemIds(filterIds.get("itemIds"));
 		criteria.setAssigneeIds(filterIds.get("assigneeIds"));
-			
+
 		model.addAttribute("filterSelections", filterSelectionService.getSelections(filterIds));
 		model.addAttribute("search", search);
 	}

@@ -30,295 +30,217 @@ import lombok.extern.log4j.Log4j;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration({
-    "file:src/main/webapp/WEB-INF/spring/root-context.xml",
-    "file:src/main/webapp/WEB-INF/spring/appServlet/servlet-context.xml"
-})
+@ContextConfiguration({ "file:src/main/webapp/WEB-INF/spring/root-context.xml",
+		"file:src/main/webapp/WEB-INF/spring/appServlet/servlet-context.xml" })
 @Transactional
 @Rollback
 @Log4j
 public class PartnerControllerTests {
 
-    @Autowired
-    private WebApplicationContext context;
+	@Autowired
+	private WebApplicationContext context;
 
-    @Autowired
-    private PartnerMapper mapper;
+	@Autowired
+	private PartnerMapper mapper;
 
-    private MockMvc mockMvc;
+	private MockMvc mockMvc;
 
-    @Before
-    public void setup() {
-        mockMvc = MockMvcBuilders
-            .webAppContextSetup(context)
-            .build();
-    }
+	@Before
+	public void setup() {
+		mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+	}
 
-    // 거래처 목록 요청과 Model 데이터 확인
-    @Test
-    public void testList() throws Exception {
-        MvcResult result = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .get("/master/partner")
-                    .param("page", "1")
-                    .param("pageSize", "50")
-                    .param("keyword", "")
-                    .param("includeInactive", "N")
-            )
-            .andReturn();
+	// 거래처 목록 요청과 Model 데이터 확인
+	@Test
+	public void testList() throws Exception {
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/master/partner").param("page", "1")
+				.param("pageSize", "50").param("keyword", "").param("includeInactive", "N")).andReturn();
 
-        String viewName = result.getModelAndView().getViewName();
-        Object partnerList = result.getModelAndView()
-            .getModelMap()
-            .get("partnerList");
+		String viewName = result.getModelAndView().getViewName();
+		Object partnerList = result.getModelAndView().getModelMap().get("partnerList");
 
-        log.info("========== CONTROLLER LIST TEST ==========");
-        log.info("HTTP STATUS: " + result.getResponse().getStatus());
-        log.info("VIEW NAME: " + viewName);
-        log.info("MODEL MAP: "
-            + result.getModelAndView().getModelMap());
-        log.info("PARTNER LIST: " + partnerList);
+		log.info("========== CONTROLLER LIST TEST ==========");
+		log.info("HTTP STATUS: " + result.getResponse().getStatus());
+		log.info("VIEW NAME: " + viewName);
+		log.info("MODEL MAP: " + result.getModelAndView().getModelMap());
+		log.info("PARTNER LIST: " + partnerList);
 
-        assertEquals(200, result.getResponse().getStatus());
-        assertEquals("master/partner", viewName);
-        assertNotNull(partnerList);
-    }
+		assertEquals(200, result.getResponse().getStatus());
+		assertEquals("master/partner", viewName);
+		assertNotNull(partnerList);
+	}
 
-    // 대표자명 검색 요청 결과 확인
-    @Test
-    public void testSearch() throws Exception {
-        PartnerVO partner = createPartner();
-        mapper.insertSelectKey(partner);
+	// 대표자명 검색 요청 결과 확인
+	@Test
+	public void testSearch() throws Exception {
+		PartnerVO partner = createPartner();
+		mapper.insertSelectKey(partner);
 
-        MvcResult result = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .get("/master/partner")
-                    .param("page", "1")
-                    .param("pageSize", "50")
-                    .param("keyword", partner.getRepresentative())
-                    .param("includeInactive", "Y")
-            )
-            .andReturn();
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/master/partner").param("page", "1")
+				.param("pageSize", "50").param("keyword", partner.getRepresentative()).param("includeInactive", "Y"))
+				.andReturn();
 
-        List<PartnerVO> partnerList = getPartnerList(result);
-        PartnerVO searchedPartner = findById(
-            partnerList,
-            partner.getPartnerId()
-        );
+		List<PartnerVO> partnerList = getPartnerList(result);
+		PartnerVO searchedPartner = findById(partnerList, partner.getPartnerId());
 
-        log.info("========== CONTROLLER SEARCH TEST ==========");
-        log.info("SEARCH KEYWORD: " + partner.getRepresentative());
-        log.info("HTTP STATUS: " + result.getResponse().getStatus());
-        log.info("LIST SIZE: " + partnerList.size());
-        log.info("SEARCHED PARTNER: " + searchedPartner);
+		log.info("========== CONTROLLER SEARCH TEST ==========");
+		log.info("SEARCH KEYWORD: " + partner.getRepresentative());
+		log.info("HTTP STATUS: " + result.getResponse().getStatus());
+		log.info("LIST SIZE: " + partnerList.size());
+		log.info("SEARCHED PARTNER: " + searchedPartner);
 
-        assertEquals(200, result.getResponse().getStatus());
-        assertNotNull(searchedPartner);
-    }
+		assertEquals(200, result.getResponse().getStatus());
+		assertNotNull(searchedPartner);
+	}
 
-    // 거래처 등록 요청과 DB 저장 결과 확인
-    @Test
-    public void testRegister() throws Exception {
-        PartnerVO partner = createPartner();
+	// 거래처 등록 요청과 DB 저장 결과 확인
+	@Test
+	public void testRegister() throws Exception {
+		PartnerVO partner = createPartner();
 
-        MvcResult result = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .post("/master/partner/save")
-                    .param("partnerCode", partner.getPartnerCode())
-                    .param("partnerName", partner.getPartnerName())
-                    .param("businessNo", partner.getBusinessNo())
-                    .param("representative", partner.getRepresentative())
-                    .param("businessType", partner.getBusinessType())
-                    .param("businessItem", partner.getBusinessItem())
-                    .param("phone", partner.getPhone())
-                    .param("mobile", partner.getMobile())
-                    .param("email", partner.getEmail())
-                    .param("postalCode", partner.getPostalCode())
-                    .param("address", partner.getAddress())
-                    .param("note", partner.getNote())
-            )
-            .andReturn();
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/master/partner/save")
+				.param("partnerCode", partner.getPartnerCode()).param("partnerName", partner.getPartnerName())
+				.param("businessNo", partner.getBusinessNo()).param("representative", partner.getRepresentative())
+				.param("businessType", partner.getBusinessType()).param("businessItem", partner.getBusinessItem())
+				.param("phone", partner.getPhone()).param("mobile", partner.getMobile())
+				.param("email", partner.getEmail()).param("postalCode", partner.getPostalCode())
+				.param("address", partner.getAddress()).param("note", partner.getNote())).andReturn();
 
-        String viewName = result.getModelAndView().getViewName();
+		String viewName = result.getModelAndView().getViewName();
 
-        PartnerCriteria criteria = createCriteria(partner.getPartnerCode());
-        List<PartnerVO> savedList = mapper.getListWithPaging(criteria);
+		PartnerCriteria criteria = createCriteria(partner.getPartnerCode());
+		List<PartnerVO> savedList = mapper.getListWithPaging(criteria);
 
-        log.info("========== CONTROLLER REGISTER TEST ==========");
-        log.info("HTTP STATUS: " + result.getResponse().getStatus());
-        log.info("VIEW NAME: " + viewName);
-        log.info("PARTNER CODE: " + partner.getPartnerCode());
-        log.info("SAVED LIST SIZE: " + savedList.size());
-        savedList.forEach(row -> log.info("SAVED PARTNER: " + row));
+		log.info("========== CONTROLLER REGISTER TEST ==========");
+		log.info("HTTP STATUS: " + result.getResponse().getStatus());
+		log.info("VIEW NAME: " + viewName);
+		log.info("PARTNER CODE: " + partner.getPartnerCode());
+		log.info("SAVED LIST SIZE: " + savedList.size());
+		savedList.forEach(row -> log.info("SAVED PARTNER: " + row));
 
-        assertEquals(302, result.getResponse().getStatus());
-        assertTrue(viewName.startsWith("redirect:/master/partner"));
-        assertFalse(savedList.isEmpty());
-    }
+		assertEquals(302, result.getResponse().getStatus());
+		assertTrue(viewName.startsWith("redirect:/master/partner"));
+		assertFalse(savedList.isEmpty());
+	}
 
-    // 거래처 수정 요청과 DB 변경 결과 확인
-    @Test
-    public void testModify() throws Exception {
-        PartnerVO partner = createPartner();
-        mapper.insertSelectKey(partner);
+	// 거래처 수정 요청과 DB 변경 결과 확인
+	@Test
+	public void testModify() throws Exception {
+		PartnerVO partner = createPartner();
+		mapper.insertSelectKey(partner);
 
-        String changedName = "컨트롤러 수정 거래처 " + createToken();
+		String changedName = "컨트롤러 수정 거래처 " + createToken();
 
-        MvcResult result = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .post("/master/partner/save")
-                    .param("partnerId", String.valueOf(partner.getPartnerId()))
-                    .param("partnerCode", partner.getPartnerCode())
-                    .param("partnerName", changedName)
-                    .param("businessNo", partner.getBusinessNo())
-                    .param("representative", partner.getRepresentative())
-                    .param("businessType", partner.getBusinessType())
-                    .param("businessItem", partner.getBusinessItem())
-                    .param("phone", "02-9999-9999")
-                    .param("mobile", partner.getMobile())
-                    .param("email", partner.getEmail())
-                    .param("postalCode", partner.getPostalCode())
-                    .param("address", partner.getAddress())
-                    .param("note", partner.getNote())
-            )
-            .andReturn();
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/master/partner/save")
+				.param("partnerId", String.valueOf(partner.getPartnerId()))
+				.param("partnerCode", partner.getPartnerCode()).param("partnerName", changedName)
+				.param("businessNo", partner.getBusinessNo()).param("representative", partner.getRepresentative())
+				.param("businessType", partner.getBusinessType()).param("businessItem", partner.getBusinessItem())
+				.param("phone", "02-9999-9999").param("mobile", partner.getMobile()).param("email", partner.getEmail())
+				.param("postalCode", partner.getPostalCode()).param("address", partner.getAddress())
+				.param("note", partner.getNote())).andReturn();
 
-        PartnerCriteria criteria = createCriteria(changedName);
+		PartnerCriteria criteria = createCriteria(changedName);
 
-        PartnerVO changedPartner = findById(
-            mapper.getListWithPaging(criteria),
-            partner.getPartnerId()
-        );
+		PartnerVO changedPartner = findById(mapper.getListWithPaging(criteria), partner.getPartnerId());
 
-        log.info("========== CONTROLLER MODIFY TEST ==========");
-        log.info("HTTP STATUS: " + result.getResponse().getStatus());
-        log.info("VIEW NAME: "
-            + result.getModelAndView().getViewName());
-        log.info("PARTNER ID: " + partner.getPartnerId());
-        log.info("CHANGED PARTNER: " + changedPartner);
+		log.info("========== CONTROLLER MODIFY TEST ==========");
+		log.info("HTTP STATUS: " + result.getResponse().getStatus());
+		log.info("VIEW NAME: " + result.getModelAndView().getViewName());
+		log.info("PARTNER ID: " + partner.getPartnerId());
+		log.info("CHANGED PARTNER: " + changedPartner);
 
-        assertEquals(302, result.getResponse().getStatus());
-        assertNotNull(changedPartner);
-        assertEquals(changedName, changedPartner.getPartnerName());
-        assertEquals("02-9999-9999", changedPartner.getPhone());
-    }
+		assertEquals(302, result.getResponse().getStatus());
+		assertNotNull(changedPartner);
+		assertEquals(changedName, changedPartner.getPartnerName());
+		assertEquals("02-9999-9999", changedPartner.getPhone());
+	}
 
-    // 거래처 사용중단 요청과 상태 변경 결과 확인
-    @Test
-    public void testChangeActive() throws Exception {
-        PartnerVO partner = createPartner();
-        mapper.insertSelectKey(partner);
+	// 거래처 사용중단 요청과 상태 변경 결과 확인
+	@Test
+	public void testChangeActive() throws Exception {
+		PartnerVO partner = createPartner();
+		mapper.insertSelectKey(partner);
 
-        MvcResult result = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .post("/master/partner/active")
-                    .param("ids", String.valueOf(partner.getPartnerId()))
-                    .param("activeFlag", "N")
-            )
-            .andReturn();
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/master/partner/active")
+				.param("ids", String.valueOf(partner.getPartnerId())).param("activeFlag", "N")).andReturn();
 
-        PartnerCriteria criteria = createCriteria(partner.getPartnerCode());
+		PartnerCriteria criteria = createCriteria(partner.getPartnerCode());
 
-        PartnerVO changedPartner = findById(
-            mapper.getListWithPaging(criteria),
-            partner.getPartnerId()
-        );
+		PartnerVO changedPartner = findById(mapper.getListWithPaging(criteria), partner.getPartnerId());
 
-        log.info("========== CONTROLLER CHANGE ACTIVE TEST ==========");
-        log.info("HTTP STATUS: " + result.getResponse().getStatus());
-        log.info("VIEW NAME: "
-            + result.getModelAndView().getViewName());
-        log.info("PARTNER ID: " + partner.getPartnerId());
-        log.info("ACTIVE FLAG: " + changedPartner.getActiveFlag());
+		log.info("========== CONTROLLER CHANGE ACTIVE TEST ==========");
+		log.info("HTTP STATUS: " + result.getResponse().getStatus());
+		log.info("VIEW NAME: " + result.getModelAndView().getViewName());
+		log.info("PARTNER ID: " + partner.getPartnerId());
+		log.info("ACTIVE FLAG: " + changedPartner.getActiveFlag());
 
-        assertEquals(302, result.getResponse().getStatus());
-        assertNotNull(changedPartner);
-        assertEquals("N", changedPartner.getActiveFlag());
-    }
+		assertEquals(302, result.getResponse().getStatus());
+		assertNotNull(changedPartner);
+		assertEquals("N", changedPartner.getActiveFlag());
+	}
 
-    // 필수값 누락 안내 메시지 확인
-    @Test
-    public void testSaveValidation() throws Exception {
-        MvcResult result = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .post("/master/partner/save")
-                    .param("partnerCode", "")
-                    .param("partnerName", "")
-            )
-            .andReturn();
+	// 필수값 누락 안내 메시지 확인
+	@Test
+	public void testSaveValidation() throws Exception {
+		MvcResult result = mockMvc.perform(
+				MockMvcRequestBuilders.post("/master/partner/save").param("partnerCode", "").param("partnerName", ""))
+				.andReturn();
 
-        String viewName = result.getModelAndView().getViewName();
-        Object errorMessage = result.getFlashMap().get("errorMessage");
+		String viewName = result.getModelAndView().getViewName();
+		Object errorMessage = result.getFlashMap().get("errorMessage");
 
-        log.info("========== CONTROLLER VALIDATION TEST ==========");
-        log.info("HTTP STATUS: " + result.getResponse().getStatus());
-        log.info("VIEW NAME: " + viewName);
-        log.info("ERROR MESSAGE: " + errorMessage);
+		log.info("========== CONTROLLER VALIDATION TEST ==========");
+		log.info("HTTP STATUS: " + result.getResponse().getStatus());
+		log.info("VIEW NAME: " + viewName);
+		log.info("ERROR MESSAGE: " + errorMessage);
 
-        assertEquals(302, result.getResponse().getStatus());
-        assertTrue(viewName.startsWith("redirect:/master/partner"));
-        assertEquals(
-            "거래처 코드와 상호를 입력해 주세요.",
-            errorMessage
-        );
-    }
+		assertEquals(302, result.getResponse().getStatus());
+		assertTrue(viewName.startsWith("redirect:/master/partner"));
+		assertEquals("거래처 코드와 상호를 입력해 주세요.", errorMessage);
+	}
 
-    @SuppressWarnings("unchecked")
-    private List<PartnerVO> getPartnerList(MvcResult result) {
-        return (List<PartnerVO>) result
-            .getModelAndView()
-            .getModelMap()
-            .get("partnerList");
-    }
+	@SuppressWarnings("unchecked")
+	private List<PartnerVO> getPartnerList(MvcResult result) {
+		return (List<PartnerVO>) result.getModelAndView().getModelMap().get("partnerList");
+	}
 
-    private PartnerCriteria createCriteria(String keyword) {
-        PartnerCriteria criteria = new PartnerCriteria();
+	private PartnerCriteria createCriteria(String keyword) {
+		PartnerCriteria criteria = new PartnerCriteria();
 
-        criteria.setPage(1);
-        criteria.setPageSize(50);
-        criteria.setKeyword(keyword);
-        criteria.setIncludeInactive("Y");
+		criteria.setPage(1);
+		criteria.setPageSize(50);
+		criteria.setKeyword(keyword);
+		criteria.setIncludeInactive("Y");
 
-        return criteria;
-    }
+		return criteria;
+	}
 
-    private PartnerVO findById(List<PartnerVO> list, Long partnerId) {
-        return list.stream()
-            .filter(partner -> partnerId.equals(partner.getPartnerId()))
-            .findFirst()
-            .orElse(null);
-    }
+	private PartnerVO findById(List<PartnerVO> list, Long partnerId) {
+		return list.stream().filter(partner -> partnerId.equals(partner.getPartnerId())).findFirst().orElse(null);
+	}
 
-    private PartnerVO createPartner() {
-        String token = createToken();
+	private PartnerVO createPartner() {
+		String token = createToken();
 
-        PartnerVO partner = new PartnerVO();
-        partner.setPartnerCode("TEST" + token);
-        partner.setPartnerName("컨트롤러 테스트 거래처 " + token);
-        partner.setBusinessNo("BN" + token);
-        partner.setRepresentative("컨트롤러 테스트 대표자 " + token);
-        partner.setBusinessType("서비스업");
-        partner.setBusinessItem("소프트웨어");
-        partner.setPhone("PHONE" + token);
-        partner.setMobile("MOBILE" + token);
-        partner.setEmail("controller" + token + "@hexa.test");
-        partner.setPostalCode("12345");
-        partner.setAddress("컨트롤러 테스트 주소 " + token);
-        partner.setNote("컨트롤러 테스트 적요 " + token);
+		PartnerVO partner = new PartnerVO();
+		partner.setPartnerCode("TEST" + token);
+		partner.setPartnerName("컨트롤러 테스트 거래처 " + token);
+		partner.setBusinessNo("BN" + token);
+		partner.setRepresentative("컨트롤러 테스트 대표자 " + token);
+		partner.setBusinessType("서비스업");
+		partner.setBusinessItem("소프트웨어");
+		partner.setPhone("PHONE" + token);
+		partner.setMobile("MOBILE" + token);
+		partner.setEmail("controller" + token + "@hexa.test");
+		partner.setPostalCode("12345");
+		partner.setAddress("컨트롤러 테스트 주소 " + token);
+		partner.setNote("컨트롤러 테스트 적요 " + token);
 
-        return partner;
-    }
+		return partner;
+	}
 
-    private String createToken() {
-        return UUID.randomUUID()
-            .toString()
-            .replace("-", "")
-            .substring(0, 12);
-    }
+	private String createToken() {
+		return UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+	}
 }

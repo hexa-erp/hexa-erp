@@ -10,7 +10,8 @@
 	<select id="getList" resultType="hexa.erp.stock.domain.StockVO">
 
 		SELECT
-		WAREHOUSE_ID AS warehouseId,
+		WAREHOUSE_ID AS
+		warehouseId,
 		ITEM_ID AS itemId,
 		QUANTITY AS quantity,
 		TO_CHAR(
@@ -45,12 +46,15 @@
 
 		SELECT
 		WAREHOUSE_ID AS warehouseId,
-		WAREHOUSE_CODE AS warehouseCode,
+		WAREHOUSE_CODE AS
+		warehouseCode,
 		WAREHOUSE_NAME AS warehouseName,
-		WAREHOUSE_TYPE AS warehouseType,
+		WAREHOUSE_TYPE AS
+		warehouseType,
 		ACTIVE_FLAG AS activeFlag
 		FROM WAREHOUSE
-		WHERE ACTIVE_FLAG = 'Y'
+		WHERE ACTIVE_FLAG
+		= 'Y'
 		ORDER BY
 		WAREHOUSE_CODE,
 		WAREHOUSE_ID
@@ -80,9 +84,11 @@
 		UPDATE STOCK
 		SET
 		QUANTITY = #{quantity},
-		UPDATED_AT = LOCALTIMESTAMP
+		UPDATED_AT =
+		LOCALTIMESTAMP
 		WHERE WAREHOUSE_ID = #{warehouseId}
-		AND ITEM_ID = #{itemId}
+		AND ITEM_ID =
+		#{itemId}
 	</update>
 
 	<!-- 현재고 수량 증감 -->
@@ -94,7 +100,8 @@
 		QUANTITY = QUANTITY + #{quantityDelta},
 		UPDATED_AT = LOCALTIMESTAMP
 		WHERE WAREHOUSE_ID = #{warehouseId}
-		AND ITEM_ID = #{itemId}
+		AND
+		ITEM_ID = #{itemId}
 	</update>
 
 	<!-- 재고 변동 이력 등록 -->
