@@ -33,6 +33,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.util.StringUtils;
 
 import hexa.erp.assignee.domain.AssigneeLookupVO;
 import hexa.erp.common.domain.LookupCriteria;
@@ -171,8 +172,8 @@ public class AssigneeLookupMapperTest {
 				BeanDefinition definition = root.getBeanDefinition(name);
 				if ("org.springframework.context.support.PropertySourcesPlaceholderConfigurer"
 						.equals(definition.getBeanClassName())) {
-					assertArrayEquals(new String[] { "classpath:db.properties" },
-							(String[]) definition.getPropertyValues().get("locations"));
+					assertArrayEquals(new String[] { "classpath:db.properties", "classpath:upload.properties" },
+							StringUtils.trimArrayElements((String[]) definition.getPropertyValues().get("locations")));
 					assertEquals(Boolean.FALSE, definition.getPropertyValues().get("ignoreResourceNotFound"));
 					placeholders++;
 				}

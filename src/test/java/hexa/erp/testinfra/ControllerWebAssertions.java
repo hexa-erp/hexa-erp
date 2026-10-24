@@ -14,6 +14,7 @@ import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.method.HandlerMethod;
@@ -60,7 +61,11 @@ public final class ControllerWebAssertions {
 
 	public static void viewContracts(MockMvc mvc) throws Exception {
 		for (String[] route : VIEWS) {
-			MvcResult result = mvc.perform(get(route[0]).servletPath(route[0])).andReturn();
+			MockHttpServletRequestBuilder request = get(route[0]).servletPath(route[0]);
+			if (route[0].endsWith("/statement")) {
+				request.param("id", "1");
+			}
+			MvcResult result = mvc.perform(request).andReturn();
 			assertEquals(route[0], 200, result.getResponse().getStatus());
 			ModelAndView mv = result.getModelAndView();
 			assertNotNull(route[0], mv);
