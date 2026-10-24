@@ -122,6 +122,40 @@ public class SaleListServiceTests {
 		assertEquals(0, BigDecimal.ZERO.setScale(3).compareTo(afterStock.getQuantity()));
 	}
 
+	// 같은 판매를 다시 삭제해도 재고가 중복 복원되지 않는지 확인
+	@Test
+	public void testRemoveTwice() {
+		SaleVO sale = saveSale(createToken());
+
+		Long warehouseId = sale.getWarehouseId();
+		Long itemId = sale.getLines().get(0).getItemId();
+
+		List<Long> selectedIds = Collections.singletonList(sale.getSaleId());
+
+		// 판매 저장 후 재고는 -3
+		StockVO beforeStock = stockMapper.read(warehouseId, itemId);
+
+		assertNotNull(beforeStock);
+		assertEquals(0, new BigDecimal("-3").compareTo(beforeStock.getQuantity()));
+
+		// 첫 번째 삭제: 재고가 0으로 복원
+		int firstRemoveCount = service.remove(selectedIds);
+		StockVO firstStock = stockMapper.read(warehouseId, itemId);
+
+		assertEquals(1, firstRemoveCount);
+		assertNull(service.get(sale.getSaleId()));
+		assertNotNull(firstStock);
+		assertEquals(0, BigDecimal.ZERO.compareTo(firstStock.getQuantity()));
+
+		// 두 번째 삭제: 추가 삭제나 재고 복원이 발생하지 않음
+		int secondRemoveCount = service.remove(selectedIds);
+		StockVO secondStock = stockMapper.read(warehouseId, itemId);
+
+		assertEquals(0, secondRemoveCount);
+		assertNotNull(secondStock);
+		assertEquals(0, BigDecimal.ZERO.compareTo(secondStock.getQuantity()));
+	}
+
 	// 테스트 판매 저장
 	private SaleVO saveSale(String token) {
 		ItemVO item = createItem(token);
