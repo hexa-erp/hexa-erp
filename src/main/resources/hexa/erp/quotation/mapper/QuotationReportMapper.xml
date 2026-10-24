@@ -21,7 +21,7 @@
 		AND h.business_date &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
 	</if>
 	<if test="endDate != null and endDate.trim() != ''">
-		AND h.business_date &lt;= TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
+		AND h.business_date &lt; TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
 	</if>
 	<if test="quotationNo != null and quotationNo.trim() != ''">
 		AND UPPER(h.quotation_no) LIKE '%' || UPPER(TRIM(#{quotationNo})) || '%'

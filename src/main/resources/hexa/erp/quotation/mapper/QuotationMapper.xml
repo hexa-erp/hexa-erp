@@ -169,7 +169,7 @@
 
 <update id="removeSelectedLines">
 	update QUOTATION_LINE set deleted_yn = 'Y'
-	where quotation_id = #{quotationId}, deleted_yn = 'N'
+	where quotation_id = #{quotationId} AND deleted_yn = 'N'
 	and quotation_line_id in
 		<foreach collection="lineIds"
 			item="lineId"
