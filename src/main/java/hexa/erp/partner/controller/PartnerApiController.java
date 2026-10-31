@@ -28,6 +28,7 @@ public class PartnerApiController {
 
 	private final PartnerService service;
 
+	// IDのない取引先を新規登録し、登録済みのコードの場合はエラーを返す。
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> create(@RequestBody PartnerVO partner) {
 		if (partner.getPartnerId() != null) {
@@ -44,6 +45,7 @@ public class PartnerApiController {
 				.body(new ApiResponseVO("取引先を登録しました。", partner.getPartnerId(), null));
 	}
 
+	// IDがある場合は該当する取引先を更新し、更新対象行がない場合はエラーを返す。
 	@PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ApiResponseVO update(@PathVariable("id") Long id, @RequestBody PartnerVO partner) {
 		partner.setPartnerId(id);
@@ -56,6 +58,7 @@ public class PartnerApiController {
 
 	@PatchMapping(value = "/active", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ApiResponseVO changeActive(@RequestBody ActiveChangeVO change) {
+		// 未選択の場合は処理せず、変更件数が0の場合は変更対象がないことを通知する。
 		ApiRequests.requireIds(change);
 		if (!"Y".equals(change.getActiveFlag()) && !"N".equals(change.getActiveFlag())) {
 			throw new ApiException(HttpStatus.BAD_REQUEST, "利用状態を確認してください。");
@@ -67,6 +70,7 @@ public class PartnerApiController {
 		return new ApiResponseVO("取引先の利用状態を変更しました。", null, count);
 	}
 
+	// コード（新規登録時）または取引先名が空欄の場合は保存しない。
 	private void validate(PartnerVO partner, boolean creating) {
 		if (!StringUtils.hasText(partner.getPartnerName())
 				|| (creating && !StringUtils.hasText(partner.getPartnerCode()))) {

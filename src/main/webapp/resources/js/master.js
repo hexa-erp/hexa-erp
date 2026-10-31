@@ -2,6 +2,7 @@
 (function($) {
 	'use strict';
 	var photoObjectUrl = null;
+	// 新規登録時は倉庫区分「倉庫」、品目区分「商品」、入庫単価・出庫単価0を初期値とする。
 	var defaults = {
 		activeFlag : 'Y',
 		warehouseType : '倉庫',
@@ -40,6 +41,7 @@
 			// 現在の検索条件とページを維持して一覧を再照会する。
 			window.location.reload();
 		}, function(error) {
+			// 保存に失敗した場合はエラーを表示し、ポップアップの入力内容を保持する。
 			notify(error.message || 'リクエストを処理できませんでした。');
 		}).then(function() {
 			form._masterPending = false;
@@ -91,6 +93,7 @@
 					else
 						$input.val(initial == null ? '' : String(initial));
 				});
+		// 既存データの変更時はコードを変更できない。
 		var isEdit = value(form, kind + 'Id') !== '';
 		$(field(form, kind + 'Code')).prop('readOnly', isEdit).attr(
 				'placeholder', isEdit ? '' : 'コード入力');
@@ -107,6 +110,7 @@
 				labels[kind] + (isEdit ? ' 編集' : ' 登録'));
 	}
 
+	// 新規では空欄と初期値、変更では該当行の値を設定して登録ポップアップを開く。
 	function openForm(kind, record) {
 		var form = $('#' + kind + '-form')[0];
 		var initial = Object.assign({}, record || {});
@@ -122,6 +126,7 @@
 		window.Hexa.openModal(kind + '-form-modal');
 	}
 
+	// 品目・倉庫を選択すると、その組み合わせの現在庫を表示する。
 	function stockCurrent() {
 		var form = $('#stock-form')[0];
 		if (!form)
@@ -163,6 +168,7 @@
 					function(event) {
 						var $target = $(this);
 						event.preventDefault();
+						// 使用停止中のデータを含むかを切り替え、1ページ目から再照会する。
 						if ($target.is('[data-master-inactive-toggle]')) {
 							var searchForm = this.form;
 							var includeInactive = value(searchForm,
@@ -181,6 +187,7 @@
 							openForm($target.attr('data-master-edit'), Object
 									.assign({}, $record.prop('dataset')));
 						} else if ($target.is('[data-master-active]')) {
+							// 未選択の場合は送信せず、チェックした行の使用フラグをNまたはYに変更する。
 							var selectedForm = document.getElementById($target
 									.attr('data-selection-form'));
 							if (!$(selectedForm).find(
@@ -190,6 +197,7 @@
 									.attr('data-master-active'));
 							selectedForm.requestSubmit();
 						} else if ($target.is('[data-master-pick]')) {
+							// 担当者選択画面を開き、選択した担当者のIDと担当者名を入力欄に設定する。
 							var editForm = $target.closest('form')[0];
 							window.Hexa.pick($target.attr('data-master-pick'),
 									function(selected) {
@@ -199,6 +207,7 @@
 												selected.assigneeName);
 									});
 						} else if ($target.is('[data-stock-open]')) {
+							// 未選択なら空欄、1件選択なら該当品目で開く。2件以上または未保存の品目では開かない。
 							var item;
 							if ($target.attr('data-stock-open') === 'current') {
 								var itemForm = $('#item-form')[0];
@@ -239,6 +248,7 @@
 							releasePhoto();
 							showPhoto('');
 						} else if ($target.is('[data-item-image]')) {
+							// サムネイルを押下すると、元の画像を拡大表示する。
 							$('#item-image-full').attr(
 									{
 										src : $target.attr('data-item-image'),
@@ -250,6 +260,7 @@
 						}
 					});
 
+	// 担当者名を直接変更した場合は、担当者IDをクリアする。
 	$(document).on('input.hexaMaster', '#partner-form [name="assigneeName"]',
 			function() {
 				setValue(this.form, 'assigneeId', '');
@@ -266,6 +277,7 @@
 			showPhoto('');
 			return;
 		}
+		// 写真ファイルはJPG・JPEG・PNG・GIF形式、5MB以下に制限する。
 		if (!/\.(jpe?g|png|gif)$/i.test(file.name) || file.size > 5242880) {
 
 			$(this).val('');
@@ -301,6 +313,7 @@
 			}
 			if (id)
 				url += '/' + encodeURIComponent(id);
+			// IDがない場合は新規登録し、IDがある場合は該当データを更新する。
 			sendMaster(this, url, id ? 'PUT' : 'POST', data, multipart);
 		});
 

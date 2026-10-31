@@ -66,7 +66,7 @@ public class QuotationApiController {
 		return ResponseEntity.ok(new ApiResponseVO("見積書を更新しました。", id, null));
 	}
 
-	// 選択した見積書を削除する。
+	// 未選択の要求を拒否し、選択した基本情報と品目行に削除フラグを設定する。
 	@DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> delete(@RequestBody SelectedIdsVO form) {
 		int count = service.remove(ApiRequests.requireIds(form));
@@ -76,7 +76,7 @@ public class QuotationApiController {
 		return ResponseEntity.ok(new ApiResponseVO("見積書を削除しました。", null, count));
 	}
 
-	// 選択した見積書の進行状態を変更する。
+	// 選択IDと許可された進行状態を確認し、変更対象がない場合は案内を返す。
 	@PatchMapping(value = "/status", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> changeStatus(@RequestBody StatusChangeVO form) {
 		List<Long> ids = ApiRequests.requireIds(form);

@@ -15,7 +15,7 @@
   }
 
   function notice(message) {
-    $('#notice-message').text(String(message || 'この機能はまだ実装されていません。データは変更されません。'));
+    $('#notice-message').text(String(message || '処理を完了できませんでした。'));
     openModal('notice-modal');
   }
 
@@ -110,6 +110,7 @@
     'datePreset', 'startDate', 'endDate', 'view', 'warehouseIds', 'partnerIds', 'itemIds',
     'assigneeIds', 'warehouseId', 'partnerId', 'itemId', 'assigneeId'];
 
+  // 保存後の一覧・単価検索へ戻る際は、元の検索条件とページを引き継ぐ。
   function returnUrl(form, path, results) {
     var params = new URLSearchParams();
     $(form).serializeArray().forEach(function(entry) {
@@ -138,6 +139,7 @@
     request(url, method, payload, false).then(function(response) {
       success(response);
     }).catch(function(error) {
+      // 保存失敗時はAPIのエラーメッセージを表示し、現在の画面と入力値を維持する。
       notice(error.message);
     }).then(function() {
       $form.removeData('apiPending');
@@ -154,12 +156,14 @@
       var viewBase = $form.attr('data-api-view-base');
       payload.lines = payload.lines || [];
       payload.removedLineIds = payload.removedLineIds || [];
+      // 新規保存後は空の入力画面へ、更新保存後は元の検索条件の一覧へ遷移する。
       sendForm(form, apiBase + (id ? '/' + encodeURIComponent(id) : ''), id ? 'PUT' : 'POST',
         payload, function() {
           window.location.assign(id ? returnUrl(form, viewBase + '/list') : ctx + viewBase + '/form');
         });
       return;
     }
+    // 選択した伝票の状態変更・削除を実行する。未選択では送信せず、成功後は同じ条件の一覧を再取得する。
     if ($form.is('[data-api-selection]')) {
       var ids = $form.find('input[name="selectedIds"]:checked').map(function() {
         return this.value;
@@ -176,6 +180,7 @@
         deleting ? 'DELETE' : 'PATCH', body, function() { window.location.reload(); });
       return;
     }
+    // 選択した単価行だけをPATCHで保存し、元の検索条件・ページで再照会する。
     if ($form.is('[data-api-prices]')) {
       var prices = formPayload(form);
       prices.changes = (prices.changes || []).filter(function(row) { return row.selected; });
@@ -213,6 +218,7 @@
   };
   var labels = { partner: '取引先', warehouse: '倉庫', assignee: '担当者', item: '品目' };
 
+  // 現在の検索語を保持して共通選択一覧を25件ずつ取得し、該当なし・照会失敗をそれぞれ案内する。
   function loadPicker(page) {
     var $body = $('#picker-body').empty();
     picker.rows = [];
@@ -250,6 +256,7 @@
     });
   }
 
+  // 呼出元に応じた選択画面を開く。入力コードを初期検索語にし、未指定なら使用中の項目の1ページ目を照会する。
   function pick(type, callback, initialKeyword) {
     picker = {
       type: type,
@@ -275,12 +282,14 @@
     loadPicker(1);
   }
 
+  // 一覧の項目を選択すると選択画面を閉じ、ID・コード・名称などを呼出元へ渡す。
   $('#picker-body').on('click.hexaPicker', 'button[data-picker-index]', function() {
     var row = picker.rows[Number($(this).attr('data-picker-index'))];
     closeModal('picker-modal');
     picker.callback(row);
   });
 
+  // 検索ボタン・Enterでは、新しい検索語で1ページ目から照会する。
   $('#picker-search').on('submit.hexaPicker', function(e) {
     e.preventDefault();
     picker.keyword = $(this.elements.keyword).val().trim();
@@ -303,6 +312,7 @@
   $(document).on('click.hexaCommon', function(e) {
     var $target = $(e.target);
     var searchStatus = $target.closest('[data-search-status]')[0];
+    // 進行状態タブを切り替えた場合は、選択した状態の1ページ目を表示する。
     if (searchStatus) {
       var searchForm = searchStatus.form;
       if (!searchForm || !$(searchForm).is('[data-status-search]'))
@@ -341,6 +351,7 @@
       return;
     }
     var $close = $target.closest('[data-modal-close]');
+    // 選択を確定せずに閉じた場合は、呼出元の入力値を変更しない。
     if ($close.length) {
       closeModal($close.closest('dialog')[0]);
       return;
@@ -435,6 +446,7 @@
       e.preventDefault();
       return;
     }
+    // 選択削除は未選択を案内し、確認ダイアログで確定した場合だけ送信する。
     if ($(event.submitter).is('[data-confirm-delete]')) {
       if (!$form.find('input[name="selectedIds"]:checked').length) {
         e.preventDefault();
@@ -479,6 +491,8 @@
       + '-' + String(d.getDate()).padStart(2, '0');
   }
 
+  // 今日・昨日・今週・先週・今月・先月などの期間を開始日・終了日に設定する。直接入力は変更しない。
+  // 未受注・未売上画面に集計基準日がある場合は、選択した期間の終了日を設定する。
   function setDates(select) {
     var form = select.form, now = new Date(), start = new Date(now), end = new Date(now), v = $(select).val();
     if (v === 'custom' || v === '')

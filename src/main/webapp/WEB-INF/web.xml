@@ -41,7 +41,7 @@
 			<param-value>/WEB-INF/spring/appServlet/servlet-context.xml</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
-		<!-- アップロードファイルのサイズを制限する。実際のファイル保存処理は別途実装する。 -->
+		<!-- アップロードファイルのサイズを制限する。 -->
 		<multipart-config>
 			<max-file-size>5242880</max-file-size>
 			<max-request-size>6291456</max-request-size>

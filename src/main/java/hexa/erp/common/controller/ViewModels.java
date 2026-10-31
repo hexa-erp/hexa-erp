@@ -7,19 +7,12 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.ui.Model;
 
 /** 画面に必要な検索条件と既定値を作成するヘルパー。 */
 public final class ViewModels {
 	private ViewModels() {
-	}
-
-	public static String notImplemented(HttpServletResponse response, Model model) {
-		response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
-		model.addAttribute("errorMessage", "この機能はまだ実装されていません。実際のデータは変更されていません。");
-		return "common/not-implemented";
 	}
 
 	public static Map<String, String> search(Map<String, String> params) {

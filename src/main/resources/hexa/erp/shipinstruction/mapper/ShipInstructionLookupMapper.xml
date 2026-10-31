@@ -2,6 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper
 	namespace="hexa.erp.shipinstruction.mapper.ShipInstructionLookupMapper">
+	<!-- 読込候補は、削除されていない基本情報と品目行がある出荷指示書を対象とする。 -->
 	<sql id="searchCondition">
 		WHERE h.DELETED_YN = 'N'
 		AND EXISTS (
@@ -113,6 +114,7 @@
 		<include refid="searchCondition" />
 	</select>
 
+	<!-- 残数量は元の数量から、未削除の出荷・出荷明細の関連数量の合計を引いた値とし、負数の場合は0で返す。 -->
 	<select id="getLines"
 		resultType="hexa.erp.shipinstruction.domain.ShipInstructionLookupLineVO">
 		SELECT l.SHIP_INSTRUCTION_LINE_ID AS LINE_ID, l.ITEM_ID,

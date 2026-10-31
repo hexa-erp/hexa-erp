@@ -65,6 +65,7 @@
 							<td class="col-select"><input type="checkbox"
 								name="selectedIds" value="<c:out value="${row.shipmentId}"/>"
 								aria-label="伝票選択" /></td>
+							<%-- 「日付-No.」から該当伝票を更新状態で開き、現在の検索条件とページを引き継ぐ。 --%>
 							<td class="col-date"><c:url var="documentEditUrl"
 									value="/shipment/form">
 									<c:param name="id" value="${row.shipmentId}" />
@@ -94,7 +95,9 @@
 			</table>
 		</div>
 		<div class="workspace-actions">
+			<%-- 「新規」では出荷入力画面を新規状態で開く。 --%>
 			<a class="btn btn-primary" href="${ctx}/shipment/form">新規</a>
+			<%-- 状態を選択してチェックした伝票に適用する。未選択の場合は案内を表示し、送信しない。 --%>
 			<div class="action-dropdown">
 				<button class="btn" type="button" data-status-toggle
 					aria-expanded="false" aria-controls="status-options">
@@ -112,7 +115,7 @@
 			<input type="hidden" name="nextProgressStatus" value="" />
 			<button type="submit" name="operation" value="status"
 				data-status-submit hidden>状態を適用</button>
-			<%-- 削除ボタンは共通スクリプトからDELETEリクエストを送信する。 --%>
+			<%-- チェックした伝票を確認ダイアログの承認後に論理削除する。未選択の場合は送信しない。 --%>
 			<button class="btn btn-danger" type="submit" name="operation"
 				value="delete" data-confirm-delete
 				formaction="${ctx}/api/shipments" data-api-delete>選択 削除</button>

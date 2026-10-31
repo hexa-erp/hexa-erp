@@ -15,6 +15,7 @@ public class ShipInstructionLookupServiceImpl implements ShipInstructionLookupSe
 	@Setter(onMethod_ = @Autowired)
 	private ShipInstructionLookupMapper mapper;
 
+	// 出荷指示書読込ポップアップに、一覧と品目ごとの残数量を表示する。読込のみではDBを変更しない。
 	@Override
 	public List<ShipInstructionLookupVO> getList(LookupCriteria criteria, String progressStatus) {
 		List<ShipInstructionLookupVO> documents = mapper.getListWithPaging(criteria, progressStatus);

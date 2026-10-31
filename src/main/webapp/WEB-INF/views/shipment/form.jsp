@@ -5,6 +5,7 @@
 <c:set var="pageTitle" value="出荷入力" />
 <c:set var="activeMenu" value="shipment" />
 <%@ include file="../common/header.jsp"%>
+<%-- 「一覧」では照会画面へ戻る。更新画面から戻る場合は元の検索条件とページを保持する。 --%>
 <c:url var="documentListUrl" value="/shipment/list">
 	<%@ include file="../common/list-return-params.jspf"%>
 </c:url>
@@ -39,6 +40,7 @@
 				class="field"><span>出荷 番号</span><input
 				value="<c:out value="${form.shipmentNo}"/>" placeholder="保存時に採番"
 				readonly aria-label="伝票番号" /></label>
+			<%-- 取引先・担当者・出荷倉庫はコード入力後のEnterまたは検索ボタンで共通選択を開き、ID・コード・名称を設定する。 --%>
 			<div class="field reference-field">
 				<span id="partner-label">取引先</span>
 				<div class="input-group reference-picker" data-selector-field
@@ -129,19 +131,23 @@
 						value="${form.note}" /></textarea></label>
 		</div>
 
+		<%-- 出荷指示書読込では残数量が正の品目を選択し、元明細IDと残数量を入力行に反映する。空欄の取引先・担当者・倉庫・備考・配送先連絡先・郵便番号・住所を補完し、読込のみではDBを変更しない。 --%>
 		<div class="toolbar editor-source-tools">
 			<button class="btn" type="button" data-source="shipping-instruction">出荷指示書
 				取り込み</button>
 			<span class="muted">必要な明細品目を選択して取り込んでください。</span>
 		</div>
+		<%-- 品目行の追加・選択削除と数量合計を共通部品で扱う。保存済み行の削除IDはremovedLineIdsに保持する。 --%>
 		<c:set var="lineIdField" value="shipmentLineId" />
 		<c:set var="sourceIdField" value="shipInstructionLineId" />
 		<c:set var="priced" value="false" />
 		<%@ include file="../common/lines.jsp"%>
 		<div class="toolbar editor-actions">
 			<button class="btn btn-primary" type="submit">保存</button>
+			<%-- 再入力では画面を最初に開いた時点の値に戻す。 --%>
 			<button class="btn" type="reset">リセット</button>
 			<a class="btn" href="<c:out value='${documentListUrl}'/>">一覧</a>
+			<%-- 保存済みの伝票を編集する場合のみ、最終更新日時をYYYY-MM-DD HH:mm:ss形式で案内する。 --%>
 			<c:if test="${not empty form.shipmentId}">
 				<button class="btn" type="button"
 					data-notice-action="最終更新日時: <c:out value='${form.updatedAt}' default='-'/>">更新履歴</button>

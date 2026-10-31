@@ -51,7 +51,7 @@ public class QuotationController {
 	public String list(QuotationCriteria criteria, @RequestParam Map<String, String> params, Model model) {
 		log.info("見積一覧の取得リクエスト");
 
-		// ページ分割を行う。
+		// 選択したページを表示し、最終ページを超える番号は最終ページ番号に補正する。
 		int totalCount = service.getTotal(criteria);
 		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
 		criteria.setPage(Math.min(criteria.getPage(), totalPages));
@@ -86,14 +86,14 @@ public class QuotationController {
 		Long documentId = id == null ? quotationId : id;
 		QuotationVO form;
 
-		// 新規見積書の入力時に既定値を設定する。
+		// IDを指定せずに開いた場合は、本日の日付を設定した空の見積書を表示する。
 		if (documentId == null) {
 			form = new QuotationVO();
 
 			form.setBusinessDate(LocalDate.now().toString());
 			form.setProgressStatus("IN_PROGRESS");
 		} else {
-			// 既存の見積書を取得する。
+			// ID指定時は保存済みの基本情報と品目行を表示し、対象がなければ一覧に戻る。
 			form = service.get(documentId);
 			if (form == null) {
 				rttr.addFlashAttribute("errorMessage", "表示対象の見積書がありません。");
@@ -121,7 +121,8 @@ public class QuotationController {
 		prepareReportSearch(criteria, params, request, model);
 		QuotationReportVO report = new QuotationReportVO();
 
-		// 見積集計を取得する。
+		// 初期表示は検索条件画面とし、「検索」押下後に入力条件で品目行を照会する。
+		// 数量・金額を数値に変換できない場合、または照会に失敗した場合は案内を表示する。
 		if ("results".equals(params.get("view"))) {
 			if (bindingResult.hasErrors()) {
 				model.addAttribute("errorMessage", "検索条件の数量と金額を確認してください。");
@@ -142,7 +143,7 @@ public class QuotationController {
 		return "quotation/status";
 	}
 
-	// 見積書を取得する。
+	// 該当見積書の伝票出力画面を開く（照会専用）。
 	@GetMapping("/statement")
 	public String statement(@RequestParam(value = "id", required = false) Long id, HttpServletResponse response,
 			Model model) {
@@ -181,6 +182,7 @@ public class QuotationController {
 			@RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
 		log.info("未受注一覧の取得リクエスト");
 
+		// 初期表示では開始日・終了日を指定せず、基準日を当日の日付にする。
 		if (!StringUtils.hasText(criteria.getCutoffDate())) {
 			criteria.setCutoffDate(LocalDate.now().toString());
 			params.put("cutoffDate", criteria.getCutoffDate());
@@ -191,7 +193,8 @@ public class QuotationController {
 
 		QuotationReportVO report = new QuotationReportVO();
 
-		// 未受注一覧を取得する。
+		// 初期表示は検索条件画面とし、「検索」押下後に入力条件で品目行を照会する。
+		// 数量・金額を数値に変換できない場合、または照会に失敗した場合は案内を表示する。
 		if ("results".equals(params.get("view"))) {
 			if (bindingResult.hasErrors()) {
 				model.addAttribute("errorMessage", "検索条件の数量と金額を確認してください。");
@@ -226,6 +229,7 @@ public class QuotationController {
 		criteria.setItemIds(filterIds.get("itemIds"));
 		criteria.setAssigneeIds(filterIds.get("assigneeIds"));
 
+		// 共通選択画面で複数選択した条件を保持し、選択した値は名称で表示する。
 		model.addAttribute("filterSelections", filterSelectionService.getSelections(filterIds));
 		model.addAttribute("search", search);
 	}

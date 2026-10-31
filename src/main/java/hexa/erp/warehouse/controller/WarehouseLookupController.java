@@ -30,10 +30,12 @@ public class WarehouseLookupController {
 		LookupCriteria criteria = new LookupCriteria();
 		criteria.setKeyword(keyword);
 		criteria.setPageNum(page);
+		// 選択画面は1ページに25件ずつ表示する。
 		criteria.setAmount(25);
 
 		int totalCount = warehouseLookupService.getTotal(criteria);
 		int totalPages = (int) Math.max(1L, (totalCount + (long) criteria.getAmount() - 1) / criteria.getAmount());
+		// 最終ページを超える要求は最終ページ番号に補正する。
 		criteria.setPageNum(Math.min(criteria.getPageNum(), totalPages));
 
 		Map<String, Object> result = new LinkedHashMap<>();

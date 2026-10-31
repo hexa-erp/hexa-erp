@@ -123,6 +123,8 @@
 		<include refid="searchCondition" />
 	</select>
 
+	<!-- 受注書読込では、削除されていない売上・品目行の数量のみを元数量から差し引く。
+	     計算結果が負数の場合は0を返し、読込だけではDBを変更しない。 -->
 	<select id="getLines"
 		resultType="hexa.erp.salesorder.domain.SalesOrderLookupLineVO">
 		SELECT l.SALES_ORDER_LINE_ID AS LINE_ID, l.ITEM_ID,

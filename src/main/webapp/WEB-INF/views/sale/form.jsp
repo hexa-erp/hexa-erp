@@ -7,6 +7,7 @@
 
 <%@ include file="../common/header.jsp"%>
 
+<%-- 一覧へ戻る際は、編集元の検索条件とページを保持する。 --%>
 <c:url var="documentListUrl" value="/sale/list">
     <%@ include file="../common/list-return-params.jspf"%>
 </c:url>
@@ -248,6 +249,7 @@
             </label>
         </div>
 
+        <%-- 受注書の残数量を読み込み、選択した品目を追加する。読込だけではDBを変更しない。 --%>
         <div class="toolbar editor-source-tools">
             <button class="btn"
                 type="button"
@@ -262,6 +264,7 @@
 
         <%@ include file="../common/lines.jsp"%>
 
+        <%-- 保存は基本情報・品目行を送信し、再入力は初期表示時の値に戻す。納品書・最終更新日時は保存済み伝票のみ表示する。 --%>
         <div class="toolbar editor-actions">
             <button class="btn btn-primary"
                 type="submit">保存</button>

@@ -97,6 +97,7 @@
                             </td>
 
                             <td class="col-date">
+                                <%-- 日付-No.で該当売上を編集表示する。検索条件とページも併せて渡す。 --%>
                                 <c:url var="documentEditUrl" value="/sale/form">
                                     <c:param name="id"
                                         value="${row.saleId}" />
@@ -142,6 +143,7 @@
             </table>
         </div>
 
+        <%-- 新規入力、選択した売上の状態変更・確認後の論理削除を行う。処理後は同じ条件の一覧を表示する。 --%>
         <div class="workspace-actions">
             <a class="btn btn-primary"
                 href="${ctx}/sale/form">新規</a>

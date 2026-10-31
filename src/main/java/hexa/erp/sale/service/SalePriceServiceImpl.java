@@ -34,6 +34,7 @@ public class SalePriceServiceImpl implements SalePriceService {
 		return mapper.getTotalCount(criteria);
 	}
 
+	// 選択した全行を1つのトランザクションで処理する。単価・金額・最終更新日時のみ更新し、在庫は変更しない。
 	@Override
 	@Transactional
 	public int savePrices(List<SalePriceChangeVO> changes) {
@@ -45,6 +46,7 @@ public class SalePriceServiceImpl implements SalePriceService {
 				if (change == null || !change.isSelected()) {
 					continue;
 				}
+				// 伝票・明細IDがない行、単価が未入力の行、削除・変更により取得できない行は保存を中止する。
 				if (change.getSaleId() == null || change.getSaleLineId() == null) {
 					throw new IllegalArgumentException("売上明細行の情報を確認できません。再度検索してから選択してください。");
 				}
@@ -60,7 +62,7 @@ public class SalePriceServiceImpl implements SalePriceService {
 					throw new IllegalArgumentException("選択した売上または明細行は削除または変更されています。再度検索してください。");
 				}
 				// 数量は送信値ではなく、現在の売上明細行に保存されている値を使用する。
-				// 単価は小数第2位、金額は1円単位に四捨五入する。DB列の桁数と一致する。
+				// 単価は小数第2位、金額は整数単位でHALF_UPにより四捨五入する。DB列の桁数と一致する。
 				// 税抜金額 = 数量 × 単価、消費税 = 税抜金額 × 10%、合計 = 税抜金額 + 消費税
 				BigDecimal unitPrice = change.getUnitPrice().setScale(2, RoundingMode.HALF_UP);
 				BigDecimal supplyAmount = row.getQuantity().multiply(unitPrice).setScale(0, RoundingMode.HALF_UP);

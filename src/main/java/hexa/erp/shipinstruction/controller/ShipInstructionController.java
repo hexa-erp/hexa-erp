@@ -28,11 +28,13 @@ public class ShipInstructionController {
 	@Setter(onMethod_ = @Autowired)
 	private ShipInstructionService service;
 
+	// 削除されていない出荷指示書を日付・IDの降順で表示する。初期状態は全件・1ページ目（25件）とする。
 	@GetMapping("/list")
 	public String list(ShipInstructionCriteria criteria, @RequestParam Map<String, String> params, Model model) {
 		log.info("出荷指示一覧の取得リクエスト");
 		int totalCount = service.getTotal(criteria);
 		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
+		// 選択したページを表示し、最終ページを超える番号は最終ページ番号に補正する。
 		criteria.setPage(Math.min(criteria.getPage(), totalPages));
 		Map<String, String> search = ViewModels.search(params);
 		search.put("keyword", criteria.getKeyword());
@@ -60,11 +62,13 @@ public class ShipInstructionController {
 		Long documentId = id == null ? shipInstructionId : id;
 		ShipInstructionVO form;
 
+		// IDなしで開いた場合は、本日の日付を設定した空の出荷指示書を表示する。
 		if (documentId == null) {
 			form = new ShipInstructionVO();
 			form.setBusinessDate(LocalDate.now().toString());
 			form.setProgressStatus("IN_PROGRESS");
 		} else {
+			// IDを指定した場合は保存済みの基本情報と品目行を表示し、対象がなければ案内を表示して一覧に戻る。
 			form = service.get(documentId);
 			if (form == null) {
 				rttr.addFlashAttribute("errorMessage", "表示対象の出荷指示書がありません。");

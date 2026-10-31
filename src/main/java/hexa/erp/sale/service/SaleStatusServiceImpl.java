@@ -23,6 +23,7 @@ public class SaleStatusServiceImpl implements SaleStatusService {
 	@Setter(onMethod_ = @Autowired)
 	private SaleStatusMapper mapper;
 
+	// 照会結果全体をページ分割せずに月別にまとめ、数量・単価・供給価額・付加価値税・合計の月小計と総合計を表示する。
 	@Override
 	public SaleStatusVO getStatus(SaleStatusCriteria criteria) {
 		log.info("売上集計の明細行を取得");

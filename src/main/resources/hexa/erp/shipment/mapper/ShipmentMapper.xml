@@ -42,7 +42,9 @@
 		LEFT JOIN ASSIGNEE a ON a.ASSIGNEE_ID = h.ASSIGNEE_ID
 	</sql>
 
-	<!-- 一覧と件数で検索条件が一致するように共有する。 -->
+	<!-- 削除されていない出荷を対象に、指定した進行状態で絞り込む。
+	     明細に保存された品目名を大文字・小文字を区別せず部分一致検索し、複数行が一致しても伝票は1回だけ返す。
+	     一覧と件数で同じ検索条件を使用する。 -->
 	<sql id="searchCondition">
 		WHERE h.DELETED_YN = 'N'
 		<if test="progressStatus != null and progressStatus != ''">
@@ -62,7 +64,7 @@
 		</if>
 	</sql>
 
-	<!-- Oracle 11gではソート後にROWNUMの上限・下限でページ分割する。 -->
+	<!-- 日付の降順（同一の場合はIDの降順）で並べ、ROWNUMの上限・下限で指定ページを取得する。 -->
 	<select id="getListWithPaging"
 		parameterType="hexa.erp.shipment.domain.ShipmentCriteria"
 		resultType="hexa.erp.shipment.domain.ShipmentVO">
@@ -107,6 +109,7 @@
 		WHERE h.SHIPMENT_ID = #{shipmentId} AND h.DELETED_YN = 'N'
 	</select>
 
+	<!-- 削除されていない出荷・品目行だけを取得し、出荷指示書読込時の元明細IDも保持する。 -->
 	<select id="getLines" parameterType="long"
 		resultType="hexa.erp.shipment.domain.ShipmentLineVO">
 		SELECT l.SHIPMENT_LINE_ID, l.SHIPMENT_ID,
@@ -126,6 +129,7 @@
 		l.SHIPMENT_LINE_ID ASC
 	</select>
 
+	<!-- 新規の場合はシーケンスでIDを採番し、進行状態は確認済み（CONFIRMED）で保存する。 -->
 	<insert id="insertSelectKey"
 		parameterType="hexa.erp.shipment.domain.ShipmentVO">
 		<selectKey keyProperty="shipmentId" resultType="long"
@@ -244,6 +248,7 @@
 		</foreach>
 	</update>
 
+	<!-- チェックした出荷の進行状態と最終更新日時を変更する。 -->
 	<update id="changeStatus">
 		UPDATE SHIPMENT
 		SET PROGRESS_STATUS = #{progressStatus}, UPDATED_AT =

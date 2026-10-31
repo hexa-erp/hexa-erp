@@ -139,6 +139,7 @@
 		h WHERE h.SALE_ID = #{saleId} AND
 		h.DELETED_YN = 'N')
 	</update>
+	<!-- 単価保存時には売上の最終更新日時も更新する。 -->
 	<update id="updateSaleTimestamp">
 		UPDATE SALE SET UPDATED_AT = LOCALTIMESTAMP
 		WHERE

@@ -28,6 +28,7 @@ public class WarehouseApiController {
 
 	private final WarehouseService service;
 
+	// IDのない倉庫を新規登録し、登録済みのコードの場合はエラーを返す。
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> create(@RequestBody WarehouseVO warehouse) {
 		if (warehouse.getWarehouseId() != null) {
@@ -44,6 +45,7 @@ public class WarehouseApiController {
 				.body(new ApiResponseVO("倉庫を登録しました。", warehouse.getWarehouseId(), null));
 	}
 
+	// IDがある場合は該当する倉庫を更新し、更新対象行がない場合はエラーを返す。
 	@PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ApiResponseVO update(@PathVariable("id") Long id, @RequestBody WarehouseVO warehouse) {
 		warehouse.setWarehouseId(id);
@@ -56,6 +58,7 @@ public class WarehouseApiController {
 
 	@PatchMapping(value = "/active", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ApiResponseVO changeActive(@RequestBody ActiveChangeVO change) {
+		// 未選択の場合は処理せず、変更件数が0の場合は変更対象がないことを通知する。
 		ApiRequests.requireIds(change);
 		if (!"Y".equals(change.getActiveFlag()) && !"N".equals(change.getActiveFlag())) {
 			throw new ApiException(HttpStatus.BAD_REQUEST, "利用状態を確認してください。");
@@ -67,11 +70,13 @@ public class WarehouseApiController {
 		return new ApiResponseVO("倉庫の利用状態を変更しました。", null, count);
 	}
 
+	// コード（新規登録時）または倉庫名が空欄の場合は保存しない。
 	private void validate(WarehouseVO warehouse, boolean creating) {
 		if (!StringUtils.hasText(warehouse.getWarehouseName())
 				|| (creating && !StringUtils.hasText(warehouse.getWarehouseCode()))) {
 			throw new ApiException(HttpStatus.BAD_REQUEST, "倉庫コードと倉庫名を入力してください。");
 		}
+		// 区分が未選択、または倉庫・工場以外の場合は区分の選択を案内する。
 		if (!"倉庫".equals(warehouse.getWarehouseType()) && !"工場".equals(warehouse.getWarehouseType())) {
 			throw new ApiException(HttpStatus.BAD_REQUEST, "倉庫区分を選択してください。");
 		}

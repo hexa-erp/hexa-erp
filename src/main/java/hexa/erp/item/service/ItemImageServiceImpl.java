@@ -28,7 +28,7 @@ public class ItemImageServiceImpl implements ItemImageService {
 	@Value("${item.image-directory}")
 	private String imageDirectory;
 
-	// 品目画像とサムネイルを保存する。
+	// JPG・JPEG・PNG・GIF形式かつ5MB以下であることを確認して、品目画像を保存する。
 	@Override
 	public String store(MultipartFile imageFile) throws IOException {
 
@@ -69,6 +69,7 @@ public class ItemImageServiceImpl implements ItemImageService {
 			throw new IOException("画像の保存フォルダーを作成できません。");
 		}
 
+		// サーバーフォルダーに一意のファイル名（UUID）で保存する。
 		String imagePath = UUID.randomUUID().toString() + "." + extension;
 
 		File original = resolveFile(imagePath);
@@ -77,6 +78,7 @@ public class ItemImageServiceImpl implements ItemImageService {
 		try {
 			imageFile.transferTo(original);
 
+			// 一覧表示用に160×160の枠内に収まるサムネイルも作成する。
 			Thumbnails.of(image).size(160, 160).outputFormat("png").toFile(thumbnail);
 
 			return imagePath;

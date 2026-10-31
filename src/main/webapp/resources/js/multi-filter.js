@@ -268,6 +268,7 @@
 					$body.removeAttr('aria-busy');
 				});
 	}
+	// 複数選択画面は現在の選択値を仮選択として保持し、検索語の1ページ目を開く。
 	function open(box, opener) {
 		var $box = $(box);
 		var kind = $box.attr('data-multi-filter');
@@ -399,6 +400,7 @@
 		active.keyword = $(this.elements.keyword).val().trim();
 		load(1);
 	});
+	// 適用した項目の名称を検索条件へ表示し、選択したIDを送信値に設定する。
 	$('#multi-filter-apply').on('click.hexaMultiFilter', function() {
 		if (!active)
 			return;
@@ -407,6 +409,7 @@
 		$(box).find('[data-multi-query]').val('');
 		Hexa.closeModal($dialog[0]);
 	});
+	// 適用せずに閉じた場合は仮選択を破棄し、呼出元の検索条件を変更しない。
 	$dialog.on('close.hexaMultiFilter', function() {
 		// 選択ダイアログが再び開かれた場合、前回の閉じるイベントは無視する。
 		if ($dialog.prop('open'))

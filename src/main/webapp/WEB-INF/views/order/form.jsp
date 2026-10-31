@@ -4,6 +4,7 @@
 <c:set var="pageTitle" value="受注入力" />
 <c:set var="activeMenu" value="order" />
 <%@ include file="../common/header.jsp"%>
+<%-- 一覧へ戻る際は、元の検索条件とページを保持する。 --%>
 <c:url var="documentListUrl" value="/order/list">
 	<%@ include file="../common/list-return-params.jspf"%>
 </c:url>
@@ -120,6 +121,7 @@
 					name="note" maxlength="500" rows="2"><c:out
 						value="${form.note}" /></textarea></label>
 		</div>
+		<%-- 見積書読込で選択した残数量を品目行に追加し、元の見積明細IDを一緒に保持する。読込だけではDBを変更しない。 --%>
 		<div class="toolbar editor-source-tools">
 			<button class="btn" type="button" data-source="quotation">見積書
 				取り込み</button>
@@ -129,6 +131,7 @@
 		<c:set var="sourceIdField" value="quotationLineId" />
 		<c:set var="priced" value="true" />
 		<%@ include file="../common/lines.jsp"%>
+		<%-- リセットは画面を最初に開いた時点の値に戻す。伝票出力と最終更新日時の案内は保存済み伝票だけに表示する。 --%>
 		<div class="toolbar editor-actions">
 			<button class="btn btn-primary" type="submit">保存</button>
 			<button class="btn" type="reset">リセット</button>

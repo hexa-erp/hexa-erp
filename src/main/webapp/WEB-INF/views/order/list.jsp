@@ -6,6 +6,7 @@
 <c:set var="workspacePage" value="true" />
 <%@ include file="../common/header.jsp"%>
 <section class="erp-workspace document-workspace">
+	<%-- 進行状態は全件で開始する。タブ選択時は選択した状態の伝票を1ページ目から表示する。 --%>
 	<form method="get" action="${ctx}/order/list" class="list-search"
 		data-status-search>
 		<input type="hidden" name="progressStatus"
@@ -69,6 +70,7 @@
 							<td class="col-select"><input type="checkbox"
 								name="selectedIds" value="<c:out value="${row.salesOrderId}"/>"
 								aria-label="伝票選択" /></td>
+							<%-- 日付-No.から保存済み伝票を開き、現在の検索条件とページも引き継ぐ。 --%>
 							<td class="col-date"><c:url var="documentEditUrl"
 									value="/order/form">
 									<c:param name="id" value="${row.salesOrderId}" />
@@ -103,6 +105,8 @@
 			</table>
 		</div>
 
+		<%-- 新規は空の入力画面を開く。進行状態変更・選択削除はチェックした伝票を対象とする。
+		     削除は確認ダイアログで確定し、処理後は元の検索条件とページで一覧を再取得する。 --%>
 		<div class="workspace-actions">
 			<a class="btn btn-primary" href="${ctx}/order/form">新規</a>
 			<div class="action-dropdown">

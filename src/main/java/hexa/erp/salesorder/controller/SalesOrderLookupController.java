@@ -22,6 +22,7 @@ public class SalesOrderLookupController {
 	@Setter(onMethod_ = @Autowired)
 	private SalesOrderLookupService salesOrderLookupService;
 
+	// 読込ポップアップに伝票一覧を25件ずつ表示し、最終ページを超える指定は補正する。
 	@GetMapping("/sources/order")
 	@ResponseBody
 	public Map<String, Object> orderSources(@RequestParam(name = "keyword", defaultValue = "") String keyword,

@@ -14,6 +14,7 @@
 <section class="erp-workspace report-workspace">
 	<c:set var="reportResults" value="${param.view eq 'results'}" />
 	<c:choose>
+		<%-- 初期表示は検索条件画面とし、検索後は月別にまとめた結果を表示する。 --%>
 		<c:when test="${not reportResults}">
 			<div class="workspace-heading">
 				<h1>受注集計</h1>
@@ -119,12 +120,14 @@
 				</div>
 				<div class="workspace-actions search-actions">
 					<button class="btn btn-primary" type="submit">検索</button>
+					<%-- 検索条件を初期値に戻す。 --%>
 					<a class="btn" href="${ctx}/order/status">リセット</a>
 				</div>
 			</form>
 		</c:when>
 		<c:otherwise>
 
+			<%-- 詳細検索条件を保持し、結果内の検索語を空にして検索条件画面に戻る。 --%>
 			<c:url var="searchConditionsUrl" value="/order/status">
 				<c:forEach var="conditionParam" items="${search}">
 					<c:if
@@ -138,6 +141,7 @@
 			</c:url>
 			<div class="workspace-heading result-heading">
 				<h1>受注集計</h1>
+				<%-- 現在の条件を保持し、取引先名または品目名に部分一致する検索語で結果内を再検索する。 --%>
 				<form class="input-group list-keyword" method="get"
 					action="${ctx}/order/status">
 					<c:forEach var="resultParam" items="${search}">

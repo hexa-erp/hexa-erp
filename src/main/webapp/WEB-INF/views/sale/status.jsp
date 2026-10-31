@@ -114,6 +114,7 @@
 		</c:when>
 		<c:otherwise>
 
+			<%-- 詳細条件を保持し、結果内の検索語を空にして検索条件画面へ戻る。 --%>
 			<c:url var="searchConditionsUrl" value="/sale/status">
 				<c:forEach var="conditionParam" items="${search}">
 					<c:if
@@ -129,6 +130,7 @@
 				<h1>売上集計</h1>
 				<form class="input-group list-keyword" method="get"
 					action="${ctx}/sale/status">
+					<%-- 結果内検索では詳細条件を保持し、取引先名・品目名で結果を再検索する。 --%>
 					<c:forEach var="resultParam" items="${search}">
 						<c:if
 							test="${resultParam.key ne 'keyword' and resultParam.key ne 'page' and resultParam.key ne 'view'}">

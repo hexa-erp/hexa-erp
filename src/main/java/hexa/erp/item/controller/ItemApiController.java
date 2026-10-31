@@ -57,6 +57,7 @@ public class ItemApiController {
 		return item;
 	}
 
+	// 入庫単価・出庫単価などの型変換に失敗した場合は保存せず、入力値の確認を案内する。
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ApiResponseVO> create(@ModelAttribute ItemVO item, BindingResult bindingResult,
 			@RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
@@ -68,11 +69,12 @@ public class ItemApiController {
 			throw new ApiException(HttpStatus.BAD_REQUEST, "新規品目にIDを指定することはできません。");
 		}
 		save(item, imageFile, removeImage);
-		return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-				.buildAndExpand(item.getItemId()).toUri())
+		return ResponseEntity.created(
+				ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(item.getItemId()).toUri())
 				.body(new ApiResponseVO("品目を登録しました。", item.getItemId(), null));
 	}
 
+	// 既存品目も入力値を検証してから、指定されたIDの品目を更新する。
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ApiResponseVO update(@PathVariable("id") Long id, @ModelAttribute ItemVO item, BindingResult bindingResult,
 			@RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
@@ -87,6 +89,7 @@ public class ItemApiController {
 
 	@PatchMapping(value = "/active", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ApiResponseVO changeActive(@RequestBody ActiveChangeVO change) {
+		// 未選択の場合は処理せず、変更件数が0の場合は変更対象がないことを通知する。
 		ApiRequests.requireIds(change);
 		if (!"Y".equals(change.getActiveFlag()) && !"N".equals(change.getActiveFlag())) {
 			throw new ApiException(HttpStatus.BAD_REQUEST, "利用状態を確認してください。");
@@ -100,10 +103,12 @@ public class ItemApiController {
 
 	// DBへの保存が成功した場合のみ、変更前の画像を削除する。
 	private void save(ItemVO item, MultipartFile imageFile, String removeImage) {
+		// コード（新規登録時）または品目名が空欄の場合は保存しない。
 		if (!StringUtils.hasText(item.getItemName())
 				|| (item.getItemId() == null && !StringUtils.hasText(item.getItemCode()))) {
 			throw new ApiException(HttpStatus.BAD_REQUEST, "品目コードと品目名を入力してください。");
 		}
+		// 品目区分が未選択、または選択肢にない値の場合は区分の選択を案内する。
 		if (!Arrays.asList("原材料", "副資材", "製品", "半製品", "商品", "無形商品").contains(item.getItemType())) {
 			throw new ApiException(HttpStatus.BAD_REQUEST, "品目区分を選択してください。");
 		}
@@ -128,6 +133,7 @@ public class ItemApiController {
 			}
 			// リクエストのimagePathではなく、DBに保存されているパスを使用する。
 			item.setImagePath(oldImagePath);
+			// 「画像削除」が指定されても、新しい画像が同時に指定された場合は新しい画像を優先する。
 			if (imageFile != null && !imageFile.isEmpty()) {
 				uploadedPath = imageService.store(imageFile);
 				item.setImagePath(uploadedPath);
@@ -135,6 +141,7 @@ public class ItemApiController {
 				item.setImagePath(null);
 			}
 
+			// IDがない場合はシーケンス採番による新規登録、IDがある場合は既存品目の更新を行う。
 			if (item.getItemId() == null) {
 				item.setItemCode(item.getItemCode().trim());
 				service.register(item);
@@ -149,12 +156,13 @@ public class ItemApiController {
 				imageService.delete(oldImagePath);
 			}
 		} catch (DuplicateKeyException e) {
+			// コードが登録済みの場合は、別のコードの入力を案内する。
 			throw new ApiException(HttpStatus.CONFLICT, "登録済みの品目コードです。別のコードを入力してください。");
 		} catch (IOException e) {
 			log.warn("品目画像の保存に失敗しました", e);
-			throw new ApiException(HttpStatus.BAD_REQUEST,
-					"画像を保存できませんでした。JPG・PNG・GIFファイルと保存フォルダーを確認してください。");
+			throw new ApiException(HttpStatus.BAD_REQUEST, "画像を保存できませんでした。JPG・PNG・GIFファイルと保存フォルダーを確認してください。");
 		} finally {
+			// 保存失敗時は今回アップロードしたファイルを削除し、旧画像を残す。
 			if (!saved && uploadedPath != null) {
 				imageService.delete(uploadedPath);
 			}

@@ -8,6 +8,7 @@
 <section class="erp-workspace document-workspace">
 	<form method="get" action="${ctx}/shipping-instruction/list"
 		class="list-search" data-status-search>
+		<%-- 全件・進行中・完了から選択した進行状態の出荷指示書を、1ページ目から表示する。 --%>
 		<input type="hidden" name="progressStatus"
 			value="<c:out value='${search.progressStatus}'/>" /> <input
 			type="hidden" name="pageSize" value="25" />
@@ -41,6 +42,7 @@
 	</div>
 	<form id="document-list-actions" method="post" data-api-selection
 		data-api-base="/api/shipping-instructions" action="${ctx}/api/shipping-instructions/status">
+		<%-- 状態変更・選択削除の処理後は、元の検索条件とページで一覧を再取得する。 --%>
 		<%@ include file="../common/return-search.jspf"%>
 		<div class="table-wrap">
 			<table class="data-table workspace-table document-table">
@@ -63,6 +65,7 @@
 								name="selectedIds"
 								value="<c:out value="${row.shipInstructionId}"/>"
 								aria-label="伝票選択" /></td>
+							<%-- 「日付-No.」から該当伝票を更新状態で開き、現在の検索条件とページを引き継ぐ。 --%>
 							<td class="col-date"><c:url var="documentEditUrl"
 									value="/shipping-instruction/form">
 									<c:param name="id" value="${row.shipInstructionId}" />
@@ -93,7 +96,9 @@
 		</div>
 
 		<div class="workspace-actions">
+			<%-- 「新規」では出荷指示書入力画面を新規状態で開く。 --%>
 			<a class="btn btn-primary" href="${ctx}/shipping-instruction/form">新規</a>
+			<%-- 状態を選択してチェックした伝票に適用する。未選択の場合は案内を表示し、送信しない。 --%>
 			<div class="action-dropdown">
 				<button class="btn" type="button" data-status-toggle
 					aria-expanded="false" aria-controls="status-options">
@@ -110,6 +115,7 @@
 			<input type="hidden" name="nextProgressStatus" value="" />
 			<button type="submit" name="operation" value="status"
 				data-status-submit hidden>状態を適用</button>
+			<%-- チェックした伝票を確認ダイアログの承認後に論理削除する。未選択の場合は送信しない。 --%>
 			<button class="btn btn-danger" type="submit" name="operation"
 				value="delete" data-confirm-delete
 				formaction="${ctx}/api/shipping-instructions" data-api-delete>選択 削除</button>

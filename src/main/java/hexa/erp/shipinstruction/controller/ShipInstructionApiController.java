@@ -69,6 +69,7 @@ public class ShipInstructionApiController {
 	// 選択した出荷指示書を削除する。
 	@DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> delete(@RequestBody SelectedIdsVO form) {
+		// 未選択のリクエストは受け付けず、削除対象がない場合も案内を返す。
 		int count = service.remove(ApiRequests.requireIds(form));
 		if (count == 0) {
 			throw new ApiException(HttpStatus.NOT_FOUND, "削除対象の出荷指示書がありません。");
@@ -79,6 +80,7 @@ public class ShipInstructionApiController {
 	// 選択した出荷指示書の進行状態を変更する。
 	@PatchMapping(value = "/status", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> changeStatus(@RequestBody StatusChangeVO form) {
+		// 選択IDと進行状態を検証し、変更件数が0の場合は対象がないことを案内する。
 		List<Long> ids = ApiRequests.requireIds(form);
 		int count = service.changeStatus(ids, form.getProgressStatus());
 		if (count == 0) {

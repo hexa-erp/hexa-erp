@@ -6,9 +6,10 @@
 
 <mapper namespace="hexa.erp.item.mapper.ItemMapper">
 
-	<!-- 共通の検索条件 -->
+	<!-- 品目コードまたは品目名に部分一致する品目を検索する。大文字・小文字は区別しない。 -->
 	<sql id="searchCondition">
 		<where>
+			<!-- 通常は使用中のみを対象とし、「使用停止を含む」が選択された場合は使用停止中の品目も含める。 -->
 			<if test='includeInactive != "Y"'>
 				AND i.ACTIVE_FLAG = 'Y'
 			</if>
@@ -24,7 +25,7 @@
 		</where>
 	</sql>
 
-	<!-- 品目一覧を取得する。 -->
+	<!-- 品目コードの昇順（同一の場合は品目IDの昇順）で、指定ページの範囲を取得する。 -->
 	<select id="getListWithPaging"
 		parameterType="hexa.erp.item.domain.ItemCriteria"
 		resultType="hexa.erp.item.domain.ItemVO">
@@ -110,7 +111,7 @@
 		WHERE ITEM_ID = #{itemId}
 	</select>
 
-	<!-- 新規品目を登録する。 -->
+	<!-- シーケンスでIDを採番して、新規品目を使用中（Y）で登録する。 -->
 	<insert id="insertSelectKey"
 		parameterType="hexa.erp.item.domain.ItemVO">
 
@@ -149,7 +150,7 @@
 		)
 	</insert>
 
-	<!-- 既存の品目情報を更新する。 -->
+	<!-- IDに該当する品目を更新する。既存の品目コードは変更しない。 -->
 	<update id="update" parameterType="hexa.erp.item.domain.ItemVO">
 
 		UPDATE ITEM
@@ -166,7 +167,7 @@
 		WHERE ITEM_ID = #{itemId}
 	</update>
 
-	<!-- 品目の利用状態を変更する。 -->
+	<!-- チェックした品目の使用フラグをN（使用停止）またはY（使用再開）に変更する。 -->
 	<update id="changeActive">
 		UPDATE ITEM
 		SET

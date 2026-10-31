@@ -58,6 +58,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 		if (shipmentId == null) {
 			return null;
 		}
+		// 保存済みの基本情報と、削除されていない品目行をまとめて取得する。
 		ShipmentVO shipment = mapper.read(shipmentId);
 		if (shipment != null) {
 			shipment.setLines(mapper.getLines(shipmentId));
@@ -65,9 +66,11 @@ public class ShipmentServiceImpl implements ShipmentService {
 		return shipment;
 	}
 
+	// 基本情報と品目行の保存は1つのトランザクションで処理し、途中で失敗した場合はすべてロールバックする。
 	@Override
 	@Transactional
 	public Long save(ShipmentVO shipment) {
+		// 日付の空欄と形式を確認し、不正な場合は案内を表示して保存しない。
 		if (shipment == null || isBlank(shipment.getBusinessDate())) {
 			throw new IllegalArgumentException("出荷日を入力してください。");
 		}
@@ -76,6 +79,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 		} catch (DateTimeParseException e) {
 			throw new IllegalArgumentException("正しい出荷日を入力してください。");
 		}
+		// 出荷倉庫が空欄の場合は、出荷倉庫を選択するよう案内する。
 		if (shipment.getWarehouseId() == null) {
 			throw new IllegalArgumentException("出荷倉庫を選択してください。");
 		}
@@ -90,6 +94,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 			shipment.setShipmentNo(existing.getShipmentNo());
 			shipment.setProgressStatus(existing.getProgressStatus());
 		} else {
+			// 新規伝票の進行状態は確認済み（CONFIRMED）とする。
 			shipment.setProgressStatus("CONFIRMED");
 		}
 		fillHeaderNames(shipment, existing);
@@ -106,6 +111,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 				if (line == null || line.getItemId() == null) {
 					continue;
 				}
+				// 同じ明細IDの重複、または削除リストにも含まれる行はエラーとする。
 				if (line.getShipmentLineId() != null) {
 					if (!lineIds.add(line.getShipmentLineId()) || removedLineIds.contains(line.getShipmentLineId())) {
 						throw new IllegalArgumentException("重複または削除指定された品目行を確認してください。");
@@ -115,6 +121,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 				lines.add(line);
 			}
 		}
+		// 空行を除いた後に品目行が1件も残らない場合は、保存を中止する。
 		if (lines.isEmpty()) {
 			throw new IllegalArgumentException("出荷品目を1件以上選択してください。");
 		}
@@ -125,6 +132,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 		} else if (mapper.update(shipment) != 1) {
 			throw new IllegalArgumentException("更新対象の出荷伝票が見つかりません。");
 		}
+		// 削除リストにある既存の品目行は、明細を消去せず削除フラグを設定する。
 		if (!removedLineIds.isEmpty()) {
 			mapper.removeSelectedLines(shipment.getShipmentId(), removedLineIds);
 		}
@@ -141,6 +149,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 		return shipment.getShipmentId();
 	}
 
+	// チェックした出荷の基本情報と品目行に削除フラグを設定する。行自体は削除しない。
 	@Override
 	@Transactional
 	public int remove(List<Long> selectedIds) {
@@ -154,6 +163,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 		return count;
 	}
 
+	// 選択した出荷の進行状態と最終更新日時を変更する。選択可能な状態以外は受け付けない。
 	@Override
 	public int changeStatus(List<Long> selectedIds, String progressStatus) {
 		List<Long> ids = cleanIds(selectedIds);
@@ -176,6 +186,8 @@ public class ShipmentServiceImpl implements ShipmentService {
 			}
 			line.setItemName(item.getItemName());
 		}
+		// 数量が空欄の場合は0として処理し、小数3桁でHALF_UPにより四捨五入して保存する。
+		// 読込後に変更した数量は、残数量を超える値・0・負数も保存できる。
 		BigDecimal quantity = line.getQuantity() == null ? BigDecimal.ZERO : line.getQuantity();
 		line.setQuantity(quantity.setScale(3, RoundingMode.HALF_UP));
 	}

@@ -7,6 +7,7 @@
 <%@ include file="../common/header.jsp"%>
 
 <section class="erp-workspace master-workspace">
+    <%-- 検索ボタンまたは検索語入力後のEnter押下では、1ページ目から50件ずつ表示する。 --%>
     <form class="list-search" method="get"
         action="<c:url value='/master/warehouse'/>">
 
@@ -183,6 +184,7 @@
         <div class="modal-footer">
             <button class="btn btn-primary" type="submit">保存</button>
             <button class="btn" type="reset">リセット</button>
+            <%-- 「閉じる」・×ボタンでは保存せずにポップアップを閉じる。 --%>
             <button class="btn" type="button" data-modal-close>閉じる</button>
         </div>
     </form>

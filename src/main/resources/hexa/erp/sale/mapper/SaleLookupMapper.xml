@@ -99,6 +99,8 @@
 		<include refid="searchCondition" />
 	</select>
 
+	<!-- 出荷指示書への売上読込用に、品目別の元数量と残数量を取得する。
+	     残数量は売上数量から未削除の出荷指示書・明細の関連数量合計を差し引き、負数は0とする。 -->
 	<select id="getLines"
 		resultType="hexa.erp.sale.domain.SaleLookupLineVO">
 		SELECT l.SALE_LINE_ID AS LINE_ID, l.ITEM_ID, i.ITEM_CODE,

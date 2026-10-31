@@ -7,7 +7,7 @@ import lombok.ToString;
 @ToString
 public class WarehouseCriteria {
 
-	// 既定の検索条件
+	// 初期表示は1ページ目（50件）とし、「使用停止を含む」は未選択で開始する。
 	private int page = 1;
 	private int pageSize = 50;
 	private String keyword = "";

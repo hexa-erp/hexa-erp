@@ -79,10 +79,12 @@ public class QuotationServiceImpl implements QuotationService {
 		return mapper.getTotalCount(criteria);
 	}
 
+	// 基本情報と品目行の保存は1つのトランザクションで処理し、途中で失敗した場合はすべてロールバックする。
 	@Transactional
 	@Override
 	public Long save(QuotationVO quotation) {
 
+		// 見積日付が空欄、または日付形式が不正な場合は保存せず、入力を確認する案内を返す。
 		if (quotation == null || quotation.getBusinessDate() == null || quotation.getBusinessDate().trim().isEmpty()) {
 			throw new IllegalArgumentException("見積書の入力内容を確認してください。");
 		}
@@ -99,7 +101,7 @@ public class QuotationServiceImpl implements QuotationService {
 		List<Long> removedLineIds = cleanIds(quotation.getRemovedLineIds());
 		Set<Long> lineIds = new HashSet<>();
 
-		// 重複した品目行や削除指定された品目行を検証する。
+		// 品目が未選択の空行は保存しない。明細IDの重複や削除リストとの重複はエラーとする。
 		if (quotation.getLines() != null) {
 
 			for (QuotationLineVO line : quotation.getLines()) {
@@ -119,6 +121,7 @@ public class QuotationServiceImpl implements QuotationService {
 			}
 		}
 
+		// 空行を除いた結果、残る行がない場合は品目を1件以上選択するよう案内する。
 		if (lines.isEmpty()) {
 			throw new IllegalArgumentException("見積の品目を1件以上入力してください。");
 		}
@@ -150,6 +153,7 @@ public class QuotationServiceImpl implements QuotationService {
 				throw new IllegalArgumentException("更新対象の見積書が見つかりません。");
 			}
 
+			// 更新時は保存済みの番号・進行状態を保持し、基本情報を更新する。
 			quotation.setQuotationNo(existing.getQuotationNo());
 			quotation.setProgressStatus(existing.getProgressStatus());
 
@@ -162,7 +166,7 @@ public class QuotationServiceImpl implements QuotationService {
 				throw new IllegalArgumentException("更新対象の見積書が見つかりません。");
 			}
 
-			// 既存の品目行を削除する。
+			// 削除一覧の既存行に削除フラグを設定する。
 			if (!cleanIds(quotation.getRemovedLineIds()).isEmpty()) {
 				mapper.removeSelectedLines(quotation.getQuotationId(), quotation.getRemovedLineIds());
 			}
@@ -194,6 +198,7 @@ public class QuotationServiceImpl implements QuotationService {
 		return quotation.getQuotationId();
 	}
 
+	// チェックした見積書の基本情報と品目行に削除フラグを設定する。行は物理削除しない。
 	@Transactional
 	@Override
 	public int remove(List<Long> selectedIds) {
@@ -212,6 +217,7 @@ public class QuotationServiceImpl implements QuotationService {
 
 	}
 
+	// 選択した見積書を未確認・進行中・完了のいずれかに変更し、許可されていない状態は拒否する。
 	@Override
 	public int changeStatus(List<Long> selectedIds, String progressStatus) {
 
@@ -230,7 +236,7 @@ public class QuotationServiceImpl implements QuotationService {
 		return mapper.changeStatus(ids, progressStatus);
 	}
 
-	// 品目行を処理する。
+	// 品目名称が空の場合は選択画面のデータから補完し、数量・単価から保存する金額を計算する。
 	private void prepareLine(QuotationLineVO line) {
 
 		if (isBlank(line.getItemName())) {
@@ -246,14 +252,15 @@ public class QuotationServiceImpl implements QuotationService {
 		BigDecimal quantity = line.getQuantity() == null ? BigDecimal.ZERO : line.getQuantity();
 		BigDecimal unitPrice = line.getUnitPrice() == null ? BigDecimal.ZERO : line.getUnitPrice();
 
+		// 数量は小数第4位を四捨五入して小数第3位まで、単価は小数第3位を四捨五入して小数第2位までとする。
 		quantity = quantity.setScale(3, RoundingMode.HALF_UP);
 		unitPrice = unitPrice.setScale(2, RoundingMode.HALF_UP);
 
-		// 税抜金額を計算する。
+		// 供給価額（数量×単価）はウォン単位で四捨五入する。
 		BigDecimal supplyAmount = quantity.multiply(unitPrice);
 		supplyAmount = supplyAmount.setScale(0, RoundingMode.HALF_UP);
 
-		// 消費税を計算する。
+		// 付加価値税（供給価額×10%）はウォン単位で四捨五入する。
 		BigDecimal vatAmount = supplyAmount.multiply(new BigDecimal("0.1"));
 		vatAmount = vatAmount.setScale(0, RoundingMode.HALF_UP);
 
@@ -267,7 +274,7 @@ public class QuotationServiceImpl implements QuotationService {
 		line.setTotalAmount(totalAmount);
 	}
 
-	// 見積書のヘッダーに保存する名前を補完する。
+	// 取引先・担当者・倉庫の名称が空の場合は、既存伝票または選択画面のデータから補完する。
 	private void fillHeaderNames(QuotationVO quotation, QuotationVO existing) {
 
 		if (quotation.getPartnerId() == null) {

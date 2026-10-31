@@ -28,6 +28,7 @@ public class ShipmentController {
 	@Setter(onMethod_ = @Autowired)
 	private ShipmentService service;
 
+	// 削除されていない出荷を日付・IDの降順で表示する。初期状態は全件・1ページ目（25件）とする。
 	@GetMapping("/list")
 	public String list(ShipmentCriteria criteria, @RequestParam Map<String, String> params, Model model) {
 		log.info("出荷一覧の取得リクエスト");
@@ -60,11 +61,13 @@ public class ShipmentController {
 		// idまたはshipmentIdのいずれかが指定されていれば更新画面を表示する。
 		Long documentId = id == null ? shipmentId : id;
 		ShipmentVO form;
+		// IDなしで開いた場合は、本日の日付を設定した空の出荷を表示する。
 		if (documentId == null) {
 			form = new ShipmentVO();
 			form.setBusinessDate(LocalDate.now().toString());
 			form.setProgressStatus("CONFIRMED");
 		} else {
+			// IDを指定した場合は保存済みの基本情報と品目行を表示し、対象がなければ案内を表示して一覧に戻る。
 			form = service.get(documentId);
 			if (form == null) {
 				rttr.addFlashAttribute("errorMessage", "表示対象の出荷情報がありません。");

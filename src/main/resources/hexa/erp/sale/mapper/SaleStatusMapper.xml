@@ -64,6 +64,7 @@
 				#{assigneeId}
 			</foreach>
 		</if>
+		<!-- 数量・単価・供給価額・付加価値税を、指定された最小値以上・最大値以下で絞り込む。 -->
 		<if test="minQuantity != null">
 			AND l.QUANTITY &gt;= #{minQuantity}
 		</if>

@@ -30,12 +30,14 @@ public class ApiExceptionHandler {
 		return error(HttpStatus.BAD_REQUEST, e.getMessage());
 	}
 
+	// 数量・単価などが数値へ変換できない場合は、保存処理へ進まず入力形式の案内をJSONで返す。
 	@ExceptionHandler({ HttpMessageNotReadableException.class, BindException.class,
 			MethodArgumentTypeMismatchException.class })
 	public ResponseEntity<ApiResponseVO> handleBinding(Exception e) {
 		return error(HttpStatus.BAD_REQUEST, "入力形式を確認してください。数量と単価は数値で入力してください。");
 	}
 
+	// マスターのコード重複は、別のコードを入力するよう案内する。
 	@ExceptionHandler(DuplicateKeyException.class)
 	public ResponseEntity<ApiResponseVO> handleDuplicate(DuplicateKeyException e) {
 		return error(HttpStatus.CONFLICT, "登録済みのコードです。別のコードを入力してください。");
@@ -51,6 +53,7 @@ public class ApiExceptionHandler {
 		return error(HttpStatus.BAD_REQUEST, "画像アップロードのリクエストを確認してください。ファイルサイズは5MB以下にしてください。");
 	}
 
+	// DB処理に失敗した場合は、保存・状態変更・削除を呼び出した画面へエラーを返す。
 	@ExceptionHandler(DataAccessException.class)
 	public ResponseEntity<ApiResponseVO> handleDatabase(DataAccessException e) {
 		log.error("APIデータの処理に失敗しました", e);

@@ -4,6 +4,7 @@
 <c:set var="pageTitle" value="見積入力" />
 <c:set var="activeMenu" value="quotation" />
 <%@ include file="../common/header.jsp"%>
+<%-- 一覧へ戻る際は、元の検索条件とページを保持する。 --%>
 <c:url var="documentListUrl" value="/quotation/list">
 	<%@ include file="../common/list-return-params.jspf"%>
 </c:url>
@@ -121,6 +122,7 @@
 		<c:set var="sourceIdField" value="" />
 		<c:set var="priced" value="true" />
 		<%@ include file="../common/lines.jsp"%>
+		<%-- リセットは画面を最初に開いた時点の値に戻す。伝票出力と最終更新日時の案内は保存済み伝票だけに表示する。 --%>
 		<div class="toolbar editor-actions">
 			<button class="btn btn-primary" type="submit">保存</button>
 			<button class="btn" type="reset">リセット</button>

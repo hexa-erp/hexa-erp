@@ -77,7 +77,8 @@
 		ON a.ASSIGNEE_ID = h.ASSIGNEE_ID
 	</sql>
 
-	<!-- 売上一覧の検索条件 -->
+	<!-- 未削除の売上を対象とし、選択した進行状態で絞り込む。
+	     伝票作成時の取引先名または品目名を部分一致で検索する。 -->
 	<sql id="searchCondition">
 		WHERE h.DELETED_YN = 'N'
 
@@ -100,6 +101,7 @@
 			LIKE
 			'%' || UPPER(#{keyword}) || '%'
 
+			<!-- 未削除の明細行をEXISTSで確認し、複数の品目が一致しても伝票は1回のみ表示する。 -->
 			OR EXISTS (
 			SELECT 1
 			FROM SALE_LINE searchLine
@@ -115,7 +117,7 @@
 		</if>
 	</sql>
 
-	<!-- 売上一覧を取得する。 -->
+	<!-- 日付降順・同日はID降順に並べ、指定ページの25件を表示する（初期pageSize=25）。 -->
 	<select id="getListWithPaging"
 		parameterType="hexa.erp.sale.domain.SaleCriteria"
 		resultType="hexa.erp.sale.domain.SaleVO">
@@ -216,7 +218,7 @@
 		ORDER BY l.SALE_LINE_ID ASC
 	</select>
 
-	<!-- 新規売上のヘッダー情報を登録する。 -->
+	<!-- 新規IDをシーケンスで採番し、先頭を0で埋めた最低5桁の番号を生成する。進行状態は確認済みとする。 -->
 	<insert id="insertSelectKey"
 		parameterType="hexa.erp.sale.domain.SaleVO">
 
@@ -269,7 +271,7 @@
 		)
 	</insert>
 
-	<!-- 既存売上のヘッダー情報を更新する。 -->
+	<!-- 保存済みの番号・進行状態を保持して基本情報と最終更新日時を更新する。 -->
 	<update id="update" parameterType="hexa.erp.sale.domain.SaleVO">
 
 		UPDATE SALE
@@ -369,7 +371,7 @@
 		</foreach>
 	</update>
 
-	<!-- 選択した売上を削除する。 -->
+	<!-- 選択した売上に削除フラグを設定する。行は物理削除せず、未削除の売上だけを更新する。 -->
 	<update id="remove">
 		UPDATE SALE
 		SET
@@ -383,7 +385,7 @@
 		</foreach>
 	</update>
 
-	<!-- 選択した売上の明細行を削除する。 -->
+	<!-- 選択した売上に属する品目行もDELETED_YN=Yにして一覧・集計から除外する。 -->
 	<update id="removeLines">
 		UPDATE SALE_LINE
 		SET DELETED_YN = 'Y'
@@ -395,7 +397,7 @@
 		</foreach>
 	</update>
 
-	<!-- 選択した売上の進行状態を変更する。 -->
+	<!-- 選択した未削除の売上について、進行状態と最終更新日時を変更する。 -->
 	<update id="changeStatus">
 		UPDATE SALE
 		SET

@@ -34,7 +34,7 @@ public class StockServiceImpl implements StockService {
 		return mapper.getWarehouseList();
 	}
 
-	// 売上による在庫増減
+	// 売上保存・削除に伴う在庫増減と履歴を同じトランザクションで記録する。
 	@Override
 	@Transactional
 	public void applySaleMovement(StockMovementVO movement) {
@@ -72,16 +72,18 @@ public class StockServiceImpl implements StockService {
 				+ quantityDelta);
 	}
 
-	// 現在庫と在庫変動履歴を保存する。
+	// 簡易在庫調整で指定された数量を保存し、調整前との差分を在庫変動履歴に記録する。全体を1トランザクションで処理する。
 	@Override
 	@Transactional
 	public void adjust(StockVO stock) {
+		// 倉庫・品目・調整後数量の未入力を確認し、不足する場合は保存しない。
 		if (stock == null || stock.getWarehouseId() == null || stock.getItemId() == null
 				|| stock.getQuantity() == null) {
 
 			throw new IllegalArgumentException("倉庫、品目、調整後の在庫数量を入力してください。");
 		}
 
+		// 調整後数量は小数3桁でHALF_UPにより四捨五入する。在庫行がなければ数量0の行を作成する。
 		BigDecimal targetQuantity = stock.getQuantity().setScale(3, RoundingMode.HALF_UP);
 
 		StockVO current = mapper.read(stock.getWarehouseId(), stock.getItemId());
@@ -100,6 +102,7 @@ public class StockServiceImpl implements StockService {
 		stock.setQuantity(targetQuantity);
 		mapper.update(stock);
 
+		// 在庫は調整後数量へ更新し、増減が0の場合は履歴を追加しない。
 		if (quantityDelta.compareTo(BigDecimal.ZERO) != 0) {
 			StockMovementVO movement = new StockMovementVO();
 

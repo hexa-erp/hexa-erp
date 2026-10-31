@@ -46,6 +46,8 @@
     });
   }
 
+  // 数量の合計を更新する。金額を扱う伝票では数量×単価、税額10%、両金額の合計を行単位で再計算する。
+  // 供給価額・付加価値税は整数単位でHALF_UPにより丸め、下部の合計を更新する。
   function recalc() {
     var decimal = window.HexaDecimal;
     var total = { quantity: '0', supplyAmount: '0', vatAmount: '0', totalAmount: '0' };
@@ -71,6 +73,7 @@
     }
   }
 
+  // 空の品目行、または元伝票から読み込んだ品目行を追加し、行番号と合計を更新する。
   function addRow(values) {
     var $content = $template.contents().clone(false, false);
     var $row = $content.filter('tr');
@@ -96,7 +99,7 @@
 
   function removeRow(row) {
     var id = field(row, idField).val();
-    // 保存済み明細を削除するときは対象IDをサーバーへ渡す。
+    // 保存済みの行を削除した場合は、その明細IDを削除リスト(removedLineIds)に追加する。
     if (id) {
       var $input = $(Hexa.node('input')).prop('type', 'hidden');
       $input.attr('name', 'removedLineIds').val(id);
@@ -111,6 +114,7 @@
     addRow();
   });
 
+  // チェックした品目行のみを画面から削除する。DBへの反映は伝票保存時に行う。
   $section.on('click.hexaDocument', '[data-lines-remove]', function() {
     $body.children('tr').filter(function() {
       return $(this).find('.line-select').prop('checked');
@@ -119,6 +123,8 @@
     });
   });
 
+  // 選択した品目のID・コード・名称・規格・単位を行へ設定し、単価を持つ伝票には出庫単価も設定する。
+  // 品目を再選択した場合は元伝票明細IDをクリアし、数量・金額を再計算する。
   $section.on('click.hexaDocument', '[data-line-pick]', function() {
     var row = $(this).closest('[data-line-row]')[0];
     if (!row)
@@ -140,6 +146,7 @@
     recalc();
   });
 
+  // 再入力では、画面を最初に開いた時点の基本情報・選択値・品目行に戻す。
   $form.on('reset.hexaDocument', function(event) {
     var nativeEvent = event.originalEvent;
     setTimeout(function() {
@@ -229,6 +236,7 @@
     showSourceLines(source.doc);
   });
 
+  // 元伝票の品目別数量と残数量を表示し、残数量が正の品目のみ選択できるようにする。
   function showSourceLines(doc) {
     var $rows = $('#source-lines').empty();
     $('#source-detail [data-check-all]').prop('checked', false);
@@ -281,6 +289,8 @@
     loadSources(1);
   });
 
+  // 残数量適用は選択した品目を画面へ追加するだけで、DBは変更しない。
+  // 取込後の数量は編集可能であり、ここでは残数量を超える値・0・負数への変更を制限しない。
   $('#source-apply').on('click.hexaDocument', function() {
     if (!source.doc) {
       Hexa.notice('元伝票を選択してから品目を選択してください。');
@@ -302,12 +312,14 @@
     $body.children('tr').filter(function() {
       return !field(this, 'itemId').val() && !field(this, idField).val();
     }).remove();
+    // 元の明細IDを引き継ぎ、取込数量には取得済みの残数量を設定する。
     selected.forEach(function(line) {
       var copy = $.extend({}, line);
       copy.quantity = line.remainingQuantity;
       copy[sourceField] = line.lineId;
       addRow(copy);
     });
+    // 未入力の取引先・担当者・倉庫を補完し、備考や納品先の入力済み値は保持する。
     if (window.HexaReference) {
       window.HexaReference.applySource($form[0], source.doc);
     } else {

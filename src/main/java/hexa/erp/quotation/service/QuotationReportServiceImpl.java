@@ -46,7 +46,9 @@ public class QuotationReportServiceImpl implements QuotationReportService {
 		return makeReport(rows, true);
 	}
 
-	// 検索結果を月別にグループ化し、月別合計と総合計を計算する。
+	// 結果を月別に集計し、月別小計と総合計を表示する。
+	// 状況では数量・単価・供給価額を合算し、単価は平均ではなく合計とする。
+	// 未処理状況では元数量・残数量・残供給価額・残付加価値税をそれぞれ合算する。
 	private QuotationReportVO makeReport(List<QuotationReportRowVO> rows, boolean unordered) {
 		QuotationReportVO report = new QuotationReportVO();
 		report.setTotals(makeTotals(unordered));

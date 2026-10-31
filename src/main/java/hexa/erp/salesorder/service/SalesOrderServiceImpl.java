@@ -74,9 +74,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 		return salesOrder;
 	}
 
+	// 基本情報と品目行の保存は1つのトランザクションで処理し、途中で失敗した場合はすべてロールバックする。
 	@Override
 	@Transactional
 	public Long save(SalesOrderVO salesOrder) {
+		// 受注日付が空欄、または日付形式が不正な場合は保存せず、入力を確認する案内を返す。
 		if (salesOrder == null || isBlank(salesOrder.getBusinessDate())) {
 			throw new IllegalArgumentException("受注日を入力してください。");
 		}
@@ -87,6 +89,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 			throw new IllegalArgumentException("正しい受注日を入力してください。");
 		}
 
+		// 納期は空欄ならNULLとし、指定された日付の形式が不正な場合はエラーとする。
 		if (isBlank(salesOrder.getDueDate())) {
 			salesOrder.setDueDate(null);
 		} else {
@@ -97,6 +100,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 			}
 		}
 
+		// 出荷倉庫が未選択の場合は保存できない。
 		if (salesOrder.getWarehouseId() == null) {
 			throw new IllegalArgumentException("出荷倉庫を選択してください。");
 		}
@@ -110,10 +114,12 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 				throw new IllegalArgumentException("更新対象の受注伝票が見つかりません。");
 			}
 
+			// 更新時は保存済みの番号・進行状態を保持する。
 			salesOrder.setSalesOrderNo(existing.getSalesOrderNo());
 			salesOrder.setProgressStatus(existing.getProgressStatus());
 			;
 		} else {
+			// 新規伝票は進行中(IN_PROGRESS)で保存する。
 			salesOrder.setProgressStatus("IN_PROGRESS");
 		}
 
@@ -126,7 +132,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 		List<SalesOrderLineVO> lines = new ArrayList<>();
 		Set<Long> lineIds = new HashSet<>();
 
-		// 重複した品目行や削除指定された品目行を検証する。
+		// 品目が未選択の空行は保存しない。明細IDの重複や削除リストとの重複はエラーとする。
 		if (salesOrder.getLines() != null) {
 			for (SalesOrderLineVO line : salesOrder.getLines()) {
 				if (line == null || line.getItemId() == null) {
@@ -142,6 +148,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 				lines.add(line);
 			}
 		}
+		// 空行を除いた結果、残る行がない場合は品目を1件以上選択するよう案内する。
 		if (lines.isEmpty()) {
 			throw new IllegalArgumentException("受注品目を1件以上選択してください。");
 		}
@@ -156,6 +163,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 			throw new IllegalArgumentException("更新対象の受注伝票が見つかりません。");
 		}
 
+		// 削除一覧の既存行に削除フラグを設定する。残る行は明細IDがなければ追加し、あれば更新する。
 		if (!removedLineIds.isEmpty()) {
 			mapper.removeSelectedLines(salesOrder.getSalesOrderId(), removedLineIds);
 		}
@@ -177,7 +185,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 		return salesOrder.getSalesOrderId();
 	}
 
-	// 受注伝票を削除する。
+	// チェックした受注書の基本情報と品目行に削除フラグを設定する。行は物理削除しない。
 	@Override
 	@Transactional
 	public int remove(List<Long> selectedIds) {
@@ -197,7 +205,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 		return count;
 	}
 
-	// 受注伝票の進行状態を変更する。
+	// 選択した受注書を未確認・進行中・完了のいずれかに変更し、許可されていない状態は拒否する。
 	@Override
 	public int changeStatus(List<Long> selectedIds, String progressStatus) {
 		List<Long> ids = cleanIds(selectedIds);
@@ -214,7 +222,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 		return mapper.changeStatus(ids, progressStatus);
 	}
 
-	// 品目行の値を計算する。
+	// 品目名称が空の場合は選択画面のデータから補完し、数量・単価から保存する金額を計算する。
+	// 見積書から読込後に入力した数量は、元の残数量を超えていても保存対象とする。
 	private void prepareLine(SalesOrderLineVO line) {
 		if (isBlank(line.getItemName())) {
 			ItemLookupVO item = itemLookupService.get(line.getItemId());
@@ -229,14 +238,15 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 		BigDecimal quantity = line.getQuantity() == null ? BigDecimal.ZERO : line.getQuantity();
 		BigDecimal unitPrice = line.getUnitPrice() == null ? BigDecimal.ZERO : line.getUnitPrice();
 
+		// 数量は小数第4位を四捨五入して小数第3位まで、単価は小数第3位を四捨五入して小数第2位までとする。
 		quantity = quantity.setScale(3, RoundingMode.HALF_UP);
 		unitPrice = unitPrice.setScale(2, RoundingMode.HALF_UP);
 
-		// 税抜金額を計算する。
+		// 供給価額（数量×単価）はウォン単位で四捨五入する。
 		BigDecimal supplyAmount = quantity.multiply(unitPrice);
 		supplyAmount = supplyAmount.setScale(0, RoundingMode.HALF_UP);
 
-		// 消費税を計算する。
+		// 付加価値税（供給価額×10%）はウォン単位で四捨五入する。
 		BigDecimal vatAmount = supplyAmount.multiply(new BigDecimal("0.1"));
 		vatAmount = vatAmount.setScale(0, RoundingMode.HALF_UP);
 
@@ -250,7 +260,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 		line.setTotalAmount(totalAmount);
 	}
 
-	// 受注伝票のヘッダーに保存する名前を補完する。
+	// 取引先・担当者・倉庫の名称が空の場合は、既存伝票または選択画面のデータから補完する。
 	private void fillHeaderNames(SalesOrderVO salesOrder, SalesOrderVO existing) {
 		if (salesOrder.getPartnerId() == null) {
 			salesOrder.setPartnerName(null);

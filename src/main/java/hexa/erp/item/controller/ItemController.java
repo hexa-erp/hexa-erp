@@ -61,6 +61,7 @@ public class ItemController {
 		int totalCount = service.getTotal(criteria);
 		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
 
+		// 選択したページを表示する。最終ページを超える番号は最終ページ番号に補正する。
 		criteria.setPage(Math.min(criteria.getPage(), totalPages));
 
 		Map<String, String> search = ViewModels.search(params);
@@ -103,6 +104,7 @@ public class ItemController {
 
 		log.info("品目在庫の保存リクエスト");
 
+		// 品目・倉庫・数量が不正な場合は、入力内容の確認を案内し、在庫を更新しない。
 		if (bindingResult.hasErrors() || stock.getItemId() == null || stock.getWarehouseId() == null
 				|| stock.getQuantity() == null) {
 

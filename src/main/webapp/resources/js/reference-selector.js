@@ -20,6 +20,7 @@
 		};
 	}
 
+	// コードを入力しただけでは選択確定としない。IDが未確定なら案内を表示し、フォームの保存を禁止する。
 	function refresh(box) {
 		var fields = controls(box);
 		var pending = fields.$code.val().trim() !== ''
@@ -33,6 +34,7 @@
 			fields.$code.removeAttr('aria-invalid');
 	}
 
+	// 選択したID・コード・名称を入力欄へ設定し、IDを保存用の値として保持する。
 	function apply(box, row) {
 		var fields = controls(box);
 		fields.$id.val(text(row[fields.type + 'Id']));
@@ -62,7 +64,7 @@
 								return;
 							}
 							apply(box, row);
-							// 取引先を直接選ぶと、紐づく担当者も反映する。
+							// 取引先を選択すると関連する担当者を自動反映し、関連担当者がいない場合は既存の担当者を空にする。
 							if (fields.type === 'partner') {
 								var $assignee = $(box).closest('form[data-document-form]')
 										.find('[data-code-selector="assignee"]');
@@ -93,6 +95,7 @@
 		});
 	});
 
+	// 取引先・担当者・倉庫のコード入力後、Enterキーで入力コードによる選択一覧を開く。
 	$boxes.on('keydown.hexaReference', '[data-reference-code]', function(e) {
 		var event = e.originalEvent || e;
 		// IME入力の確定に使ったEnterでは検索しない。
