@@ -147,7 +147,7 @@
 								<th>取引先名</th>
 								<th class="col-person">担当者</th>
 								<th>出荷倉庫</th>
-								<th class="col-date">円受注 日付-No.</th>
+								<th class="col-date">元受注 日付-No.</th>
 								<th class="col-code">品目コード</th>
 								<th class="col-item">品目名</th>
 								<th class="col-spec">規格</th>

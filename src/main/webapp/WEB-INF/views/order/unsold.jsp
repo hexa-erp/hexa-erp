@@ -40,7 +40,7 @@
 								${search.datePreset eq 'thisMonth' ? 'selected' : ''}>今月（本日まで）</option>
 							<option value="lastMonth"
 								${search.datePreset eq 'lastMonth' ? 'selected' : ''}>先月</option></select></label>
-					<label class="field"><span>見積日付</span>
+					<label class="field"><span>受注日付</span>
     				<div class="input-group">
        		 			<input type="date" name="startDate"
 							value="<c:out value="${search.startDate}"/>" aria-label="照会開始日" /><span>~</span><input
