@@ -27,7 +27,7 @@ import hexa.erp.warehouse.domain.WarehouseLookupVO;
 import hexa.erp.warehouse.service.WarehouseLookupService;
 import hexa.erp.common.domain.LookupCriteria;
 
-/** 테스트 Service를 사용하며 실제 Oracle에는 연결하지 않는다. */
+/** テストServiceを使用し、実際のOracleには接続しない。 */
 public class WarehouseLookupControllerTest {
 	private WarehouseLookupController controller;
 	private StubWarehouseLookupService service;
@@ -50,7 +50,7 @@ public class WarehouseLookupControllerTest {
 					new RootBeanDefinition(WarehouseLookupController.class));
 			try {
 				context.refresh();
-				fail("WarehouseLookupService 없이 Controller가 등록되면 안 된다.");
+				fail("WarehouseLookupServiceなしでControllerを登録してはならない。");
 			} catch (UnsatisfiedDependencyException expected) {
 				assertTrue(expected.getMessage().contains("WarehouseLookupService"));
 			}
@@ -61,13 +61,13 @@ public class WarehouseLookupControllerTest {
 	public void trimsKeywordBindsPageAndIgnoresRequestedAmount() throws Exception {
 		service.total = 26;
 		service.rows = Collections.singletonList(row());
-		JsonNode body = body(mvc.perform(get("/lookup/options/warehouse").param("keyword", "  김 창고  ")
+		JsonNode body = body(mvc.perform(get("/lookup/options/warehouse").param("keyword", "  佐藤 倉庫  ")
 				.param("page", "2").param("amount", "1000").param("pageSize", "1000")).andReturn());
 		assertEnvelope(body, 2, 2, 26);
 		assertEquals(1, body.get("rows").size());
 		assertEquals(2, service.calls.size());
 		for (LookupCriteria criteria : service.calls) {
-			assertEquals("김 창고", criteria.getKeyword());
+			assertEquals("佐藤 倉庫", criteria.getKeyword());
 			assertEquals(2, criteria.getPageNum());
 			assertEquals(25, criteria.getAmount());
 		}
@@ -77,8 +77,8 @@ public class WarehouseLookupControllerTest {
 		assertEquals(42L, selected.get("warehouseId").asLong());
 		assertTrue(selected.get("warehouseCode").isTextual());
 		assertEquals("00001", selected.get("warehouseCode").asText());
-		assertEquals("김 창고", selected.get("warehouseName").asText());
-		assertEquals("창고", selected.get("warehouseType").asText());
+		assertEquals("佐藤 倉庫", selected.get("warehouseName").asText());
+		assertEquals("倉庫", selected.get("warehouseType").asText());
 		assertEquals("Y", selected.get("activeFlag").asText());
 		assertEquals(Long.valueOf(42L), service.rows.get(0).getWarehouseId());
 	}
@@ -102,7 +102,7 @@ public class WarehouseLookupControllerTest {
 	public void outOfRangePageIsClampedBeforeListQueryAndInJson() throws Exception {
 		service.total = 26;
 		assertEnvelope(body(mvc.perform(get("/lookup/options/warehouse").param("page", "99")).andReturn()), 2, 2, 26);
-		assertEquals(99, service.calls.get(0).getPageNum()); // count는 페이지를 사용하지 않는다.
+		assertEquals(99, service.calls.get(0).getPageNum()); // countではページを使用しない。
 		assertEquals(2, service.calls.get(1).getPageNum());
 	}
 
@@ -131,11 +131,11 @@ public class WarehouseLookupControllerTest {
 
 	@Test
 	public void countAndListFailuresAreNeverReportedAsEmptySuccess() {
-		RuntimeException failure = new IllegalStateException("테스트용 SQL 오류");
+		RuntimeException failure = new IllegalStateException("テスト用SQLエラー");
 		service.countFailure = failure;
 		try {
 			controller.warehouseOptions("", 1);
-			fail("DB 오류를 빈 성공 응답으로 바꾸면 안 된다.");
+			fail("DBエラーを空の成功レスポンスに置き換えてはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
@@ -143,7 +143,7 @@ public class WarehouseLookupControllerTest {
 		service.listFailure = failure;
 		try {
 			controller.warehouseOptions("", 1);
-			fail("목록 조회 오류도 숨기면 안 된다.");
+			fail("一覧取得のエラーも隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
@@ -167,8 +167,8 @@ public class WarehouseLookupControllerTest {
 		WarehouseLookupVO row = new WarehouseLookupVO();
 		row.setWarehouseId(42L);
 		row.setWarehouseCode("00001");
-		row.setWarehouseName("김 창고");
-		row.setWarehouseType("창고");
+		row.setWarehouseName("佐藤 倉庫");
+		row.setWarehouseType("倉庫");
 		row.setActiveFlag("Y");
 		return row;
 	}

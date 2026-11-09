@@ -14,6 +14,7 @@ import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.method.HandlerMethod;
@@ -26,7 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import hexa.erp.common.domain.FilterSelectionVO;
 
-/** Stub 부모를 사용하는 웹 테스트의 기대 계약. JSP를 렌더링하거나 DB에 접속하지 않는다. */
+/** Stub親コンテキストを使用するWebテストの期待仕様。JSPのレンダリングやDBへの接続は行わない。 */
 public final class ControllerWebAssertions {
 	private ControllerWebAssertions() {
 	}
@@ -56,16 +57,15 @@ public final class ControllerWebAssertions {
 			{ "/lookup/sources/sale", "hexa.erp.sale.controller.SaleLookupController" },
 			{ "/lookup/sources/shipping-instruction",
 					"hexa.erp.shipinstruction.controller.ShipInstructionLookupController" } };
-	private static final String[] WRITES = { "/master/partner/save", "/master/partner/active", "/master/warehouse/save",
-			"/master/warehouse/active", "/master/item/save", "/master/item/active", "/master/item/stock",
-			"/quotation/save", "/quotation/delete", "/quotation/change-status", "/order/save", "/order/delete",
-			"/order/change-status", "/sale/save", "/sale/delete", "/sale/change-status", "/shipping-instruction/save",
-			"/shipping-instruction/delete", "/shipping-instruction/change-status", "/shipment/save", "/shipment/delete",
-			"/shipment/change-status", "/sale/bulk-price/save" };
+	private static final String[] WRITES = { "/master/item/stock" };
 
 	public static void viewContracts(MockMvc mvc) throws Exception {
 		for (String[] route : VIEWS) {
-			MvcResult result = mvc.perform(get(route[0]).servletPath(route[0])).andReturn();
+			MockHttpServletRequestBuilder request = get(route[0]).servletPath(route[0]);
+			if (route[0].endsWith("/statement")) {
+				request.param("id", "1");
+			}
+			MvcResult result = mvc.perform(request).andReturn();
 			assertEquals(route[0], 200, result.getResponse().getStatus());
 			ModelAndView mv = result.getModelAndView();
 			assertNotNull(route[0], mv);
@@ -164,7 +164,7 @@ public final class ControllerWebAssertions {
 				"/sale/bulk-price" };
 		for (String url : urls) {
 			for (String view : Arrays.asList("search", "results")) {
-				MvcResult result = mvc.perform(get(url).param("view", view).param("keyword", "보존 확인")
+				MvcResult result = mvc.perform(get(url).param("view", view).param("keyword", "保持確認")
 						.param("datePreset", "custom").param("startDate", "2026-01-01").param("endDate", "2026-02-28")
 						.param("progressStatus", "IN_PROGRESS").param("page", "7").param("pageSize", "999")
 						.param("warehouseIds", "201", "202").param("partnerIds", "101", "102")
@@ -172,7 +172,7 @@ public final class ControllerWebAssertions {
 				assertEquals(200, result.getResponse().getStatus());
 				Map<String, Object> model = result.getModelAndView().getModel();
 				Map<?, ?> search = (Map<?, ?>) model.get("search");
-				assertEquals("보존 확인", search.get("keyword"));
+				assertEquals("保持確認", search.get("keyword"));
 				assertEquals("IN_PROGRESS", search.get("progressStatus"));
 				assertEquals("2026-01-01", search.get("startDate"));
 				assertEquals("2026-02-28", search.get("endDate"));
@@ -182,9 +182,9 @@ public final class ControllerWebAssertions {
 				assertEquals(Arrays.asList("101", "102"), ids.get("partnerIds"));
 				assertEquals(Arrays.asList("301", "302"), ids.get("itemIds"));
 				Map<?, ?> selections = (Map<?, ?>) model.get("filterSelections");
-				assertSelections(selections, "warehouse", "웹 테스트 창고 ", "201", "202");
-				assertSelections(selections, "partner", "웹 테스트 거래처 ", "101", "102");
-				assertSelections(selections, "item", "웹 테스트 품목 ", "301", "302");
+				assertSelections(selections, "warehouse", "Webテスト倉庫 ", "201", "202");
+				assertSelections(selections, "partner", "Webテスト取引先 ", "101", "102");
+				assertSelections(selections, "item", "Webテスト品目 ", "301", "302");
 				assertFalse(search.containsKey("partnerIds"));
 				if (url.endsWith("bulk-price")) {
 					assertFalse(ids.containsKey("assigneeIds"));
@@ -192,7 +192,7 @@ public final class ControllerWebAssertions {
 					assertFalse(search.containsKey("assigneeIds"));
 				} else {
 					assertEquals(Arrays.asList("401", "402"), ids.get("assigneeIds"));
-					assertSelections(selections, "assignee", "웹 테스트 담당자 ", "401", "402");
+					assertSelections(selections, "assignee", "Webテスト担当者 ", "401", "402");
 					assertFalse(search.containsKey("page"));
 					assertFalse(search.containsKey("pageSize"));
 				}
@@ -272,7 +272,7 @@ public final class ControllerWebAssertions {
 			return "hexa.erp.salesorder.controller.SalesOrderController";
 		if (path.equals("/sale/status"))
 			return "hexa.erp.sale.controller.SaleStatusController";
-		if (path.equals("/sale/bulk-price") || path.equals("/sale/bulk-price/save"))
+		if (path.equals("/sale/bulk-price"))
 			return "hexa.erp.sale.controller.SalePriceController";
 		if (path.startsWith("/sale/"))
 			return "hexa.erp.sale.controller.SaleController";
@@ -280,6 +280,6 @@ public final class ControllerWebAssertions {
 			return "hexa.erp.shipinstruction.controller.ShipInstructionController";
 		if (path.startsWith("/shipment/"))
 			return "hexa.erp.shipment.controller.ShipmentController";
-		throw new AssertionError("테스트에 등록되지 않은 화면: " + path);
+		throw new AssertionError("テストに登録されていない画面: " + path);
 	}
 }

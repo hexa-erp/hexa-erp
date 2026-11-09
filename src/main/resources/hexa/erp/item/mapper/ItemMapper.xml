@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="hexa.erp.item.mapper.ItemMapper">
+
+	<!-- 品目コードまたは品目名に部分一致する品目を検索する。大文字・小文字は区別しない。 -->
+	<sql id="searchCondition">
+		<where>
+			<!-- 通常は使用中のみを対象とし、「使用停止を含む」が選択された場合は使用停止中の品目も含める。 -->
+			<if test='includeInactive != "Y"'>
+				AND i.ACTIVE_FLAG = 'Y'
+			</if>
+
+			<if test="keyword != null and keyword != ''">
+				AND (
+				UPPER(i.ITEM_CODE)
+				LIKE '%' || UPPER(#{keyword}) || '%'
+				OR UPPER(i.ITEM_NAME)
+				LIKE '%' || UPPER(#{keyword}) || '%'
+				)
+			</if>
+		</where>
+	</sql>
+
+	<!-- 品目コードの昇順（同一の場合は品目IDの昇順）で、指定ページの範囲を取得する。 -->
+	<select id="getListWithPaging"
+		parameterType="hexa.erp.item.domain.ItemCriteria"
+		resultType="hexa.erp.item.domain.ItemVO">
+
+		SELECT
+		ITEM_ID,
+		ITEM_CODE,
+		ITEM_NAME,
+		SPECIFICATION,
+		UNIT,
+		ITEM_TYPE,
+		INBOUND_PRICE,
+		OUTBOUND_PRICE,
+		IMAGE_PATH,
+		NOTE,
+		ACTIVE_FLAG,
+		UPDATED_AT
+		FROM (
+		SELECT
+		ROWNUM rn,
+		ordered_item.*
+		FROM (
+		SELECT
+		i.ITEM_ID,
+		i.ITEM_CODE,
+		i.ITEM_NAME,
+		i.SPECIFICATION,
+		i.UNIT,
+		i.ITEM_TYPE,
+		i.INBOUND_PRICE,
+		i.OUTBOUND_PRICE,
+		i.IMAGE_PATH,
+		i.NOTE,
+		i.ACTIVE_FLAG,
+		TO_CHAR(
+		i.UPDATED_AT,
+		'YYYY-MM-DD HH24:MI:SS'
+		) AS UPDATED_AT
+		FROM ITEM i
+		<include refid="searchCondition" />
+		ORDER BY
+		i.ITEM_CODE ASC,
+		i.ITEM_ID ASC
+		) ordered_item
+		WHERE ROWNUM &lt;= #{page} * #{pageSize}
+		)
+		WHERE rn &gt; (#{page} - 1) * #{pageSize}
+		ORDER BY
+		ITEM_CODE ASC,
+		ITEM_ID ASC
+	</select>
+
+	<!-- 検索条件に一致する総件数を取得する。 -->
+	<select id="getTotalCount"
+		parameterType="hexa.erp.item.domain.ItemCriteria" resultType="int">
+
+		SELECT COUNT(*)
+		FROM ITEM i
+		<include refid="searchCondition" />
+	</select>
+
+	<!-- 品目を1件取得する。 -->
+	<select id="read" parameterType="long"
+		resultType="hexa.erp.item.domain.ItemVO">
+
+		SELECT
+		ITEM_ID,
+		ITEM_CODE,
+		ITEM_NAME,
+		SPECIFICATION,
+		UNIT,
+		ITEM_TYPE,
+		INBOUND_PRICE,
+		OUTBOUND_PRICE,
+		IMAGE_PATH,
+		NOTE,
+		ACTIVE_FLAG,
+		TO_CHAR(
+		UPDATED_AT,
+		'YYYY-MM-DD HH24:MI:SS'
+		) AS UPDATED_AT
+		FROM ITEM
+		WHERE ITEM_ID = #{itemId}
+	</select>
+
+	<!-- シーケンスでIDを採番して、新規品目を使用中（Y）で登録する。 -->
+	<insert id="insertSelectKey"
+		parameterType="hexa.erp.item.domain.ItemVO">
+
+		<selectKey keyProperty="itemId" resultType="long"
+			order="BEFORE">
+			SELECT SEQ_ITEM.NEXTVAL
+			FROM DUAL
+		</selectKey>
+
+		INSERT INTO ITEM (
+		ITEM_ID,
+		ITEM_CODE,
+		ITEM_NAME,
+		SPECIFICATION,
+		UNIT,
+		ITEM_TYPE,
+		INBOUND_PRICE,
+		OUTBOUND_PRICE,
+		IMAGE_PATH,
+		NOTE,
+		ACTIVE_FLAG,
+		UPDATED_AT
+		) VALUES (
+		#{itemId},
+		#{itemCode},
+		#{itemName},
+		#{specification},
+		#{unit},
+		#{itemType},
+		#{inboundPrice},
+		#{outboundPrice},
+		#{imagePath},
+		#{note},
+		'Y',
+		LOCALTIMESTAMP
+		)
+	</insert>
+
+	<!-- IDに該当する品目を更新する。既存の品目コードは変更しない。 -->
+	<update id="update" parameterType="hexa.erp.item.domain.ItemVO">
+
+		UPDATE ITEM
+		SET
+		ITEM_NAME = #{itemName},
+		SPECIFICATION = #{specification},
+		UNIT = #{unit},
+		ITEM_TYPE = #{itemType},
+		INBOUND_PRICE = #{inboundPrice},
+		OUTBOUND_PRICE = #{outboundPrice},
+		IMAGE_PATH = #{imagePath},
+		NOTE = #{note},
+		UPDATED_AT = LOCALTIMESTAMP
+		WHERE ITEM_ID = #{itemId}
+	</update>
+
+	<!-- チェックした品目の使用フラグをN（使用停止）またはY（使用再開）に変更する。 -->
+	<update id="changeActive">
+		UPDATE ITEM
+		SET
+		ACTIVE_FLAG = #{activeFlag},
+		UPDATED_AT = LOCALTIMESTAMP
+		WHERE ITEM_ID IN
+		<foreach collection="ids" item="itemId" open="(" separator=","
+			close=")">
+			#{itemId}
+		</foreach>
+	</update>
+
+</mapper>

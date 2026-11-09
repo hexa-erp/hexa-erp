@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="hexa.erp.sale.mapper.SaleMapper">
+
+	<!-- 売上ヘッダー情報の取得列 -->
+	<sql id="headerColumns">
+		h.SALE_ID,
+		h.SALE_NO,
+		TO_CHAR(
+		h.BUSINESS_DATE,
+		'YYYY-MM-DD'
+		) AS BUSINESS_DATE,
+		h.BUSINESS_DATE AS SORT_BUSINESS_DATE,
+		h.PARTNER_ID,
+		p.PARTNER_CODE,
+		h.PARTNER_NAME,
+		h.WAREHOUSE_ID,
+		w.WAREHOUSE_CODE,
+		h.WAREHOUSE_NAME,
+		h.ASSIGNEE_ID,
+		a.ASSIGNEE_CODE,
+		h.ASSIGNEE_NAME,
+		h.NOTE,
+		h.PROGRESS_STATUS,
+		h.DELETED_YN,
+		TO_CHAR(
+		h.CREATED_AT,
+		'YYYY-MM-DD HH24:MI:SS'
+		) AS CREATED_AT,
+		TO_CHAR(
+		h.UPDATED_AT,
+		'YYYY-MM-DD HH24:MI:SS'
+		) AS UPDATED_AT,
+		(
+		SELECT
+		MIN(l.ITEM_NAME)
+		KEEP (
+		DENSE_RANK FIRST
+		ORDER BY l.SALE_LINE_ID
+		)
+		|| CASE
+		WHEN COUNT(*) > 1
+		THEN
+		' ほか '
+		|| TO_CHAR(COUNT(*) - 1)
+		|| '件'
+		ELSE ''
+		END
+		FROM SALE_LINE l
+		WHERE l.SALE_ID = h.SALE_ID
+		AND l.DELETED_YN = 'N'
+		) AS ITEM_SUMMARY,
+		(
+		SELECT
+		NVL(
+		SUM(l.TOTAL_AMOUNT),
+		0
+		)
+		FROM SALE_LINE l
+		WHERE l.SALE_ID = h.SALE_ID
+		AND l.DELETED_YN = 'N'
+		) AS TOTAL_AMOUNT
+	</sql>
+
+	<!-- 売上ヘッダー情報の参照テーブル -->
+	<sql id="headerTables">
+		FROM SALE h
+		LEFT JOIN BIZ_PARTNER p
+		ON p.PARTNER_ID = h.PARTNER_ID
+		LEFT JOIN WAREHOUSE w
+		ON w.WAREHOUSE_ID = h.WAREHOUSE_ID
+		LEFT JOIN ASSIGNEE a
+		ON a.ASSIGNEE_ID = h.ASSIGNEE_ID
+	</sql>
+
+	<!-- 未削除の売上を対象とし、選択した進行状態で絞り込む。
+	     伝票作成時の取引先名または品目名を部分一致で検索する。 -->
+	<sql id="searchCondition">
+		WHERE h.DELETED_YN = 'N'
+
+		<if
+			test="
+            progressStatus != null
+            and progressStatus != ''
+        ">
+			AND h.PROGRESS_STATUS =
+			#{progressStatus}
+		</if>
+
+		<if
+			test="
+            keyword != null
+            and keyword != ''
+        ">
+			AND (
+			UPPER(h.PARTNER_NAME)
+			LIKE
+			'%' || UPPER(#{keyword}) || '%'
+
+			<!-- 未削除の明細行をEXISTSで確認し、複数の品目が一致しても伝票は1回のみ表示する。 -->
+			OR EXISTS (
+			SELECT 1
+			FROM SALE_LINE searchLine
+			WHERE searchLine.SALE_ID =
+			h.SALE_ID
+			AND searchLine.DELETED_YN =
+			'N'
+			AND UPPER(searchLine.ITEM_NAME)
+			LIKE
+			'%' || UPPER(#{keyword}) || '%'
+			)
+			)
+		</if>
+	</sql>
+
+	<!-- 日付降順・同日はID降順に並べ、指定ページの25件を表示する（初期pageSize=25）。 -->
+	<select id="getListWithPaging"
+		parameterType="hexa.erp.sale.domain.SaleCriteria"
+		resultType="hexa.erp.sale.domain.SaleVO">
+
+		SELECT
+		SALE_ID,
+		SALE_NO,
+		BUSINESS_DATE,
+		PARTNER_ID,
+		PARTNER_CODE,
+		PARTNER_NAME,
+		WAREHOUSE_ID,
+		WAREHOUSE_CODE,
+		WAREHOUSE_NAME,
+		ASSIGNEE_ID,
+		ASSIGNEE_CODE,
+		ASSIGNEE_NAME,
+		NOTE,
+		PROGRESS_STATUS,
+		DELETED_YN,
+		CREATED_AT,
+		UPDATED_AT,
+		ITEM_SUMMARY,
+		TOTAL_AMOUNT
+		FROM (
+		SELECT
+		ROWNUM AS rn,
+		orderedSale.*
+		FROM (
+		SELECT
+		<include refid="headerColumns" />
+		<include refid="headerTables" />
+		<include refid="searchCondition" />
+		ORDER BY
+		h.BUSINESS_DATE DESC,
+		h.SALE_ID DESC
+		) orderedSale
+		WHERE ROWNUM
+		&lt;=
+		#{page} * #{pageSize}
+		)
+		WHERE rn
+		>
+		(#{page} - 1) * #{pageSize}
+		ORDER BY
+		SORT_BUSINESS_DATE DESC,
+		SALE_ID DESC
+	</select>
+
+	<!-- 売上の総件数を取得する。 -->
+	<select id="getTotalCount"
+		parameterType="hexa.erp.sale.domain.SaleCriteria" resultType="int">
+
+		SELECT COUNT(*)
+		FROM SALE h
+		<include refid="searchCondition" />
+	</select>
+
+	<!-- 売上ヘッダー情報を1件取得する。 -->
+	<select id="read" parameterType="long"
+		resultType="hexa.erp.sale.domain.SaleVO">
+
+		SELECT
+		<include refid="headerColumns" />
+		<include refid="headerTables" />
+		WHERE h.SALE_ID = #{saleId}
+		AND h.DELETED_YN = 'N'
+	</select>
+
+	<!-- 売上明細行を取得する。 -->
+	<select id="getLines" parameterType="long"
+		resultType="hexa.erp.sale.domain.SaleLineVO">
+
+		SELECT
+		l.SALE_LINE_ID,
+		l.SALE_ID,
+		l.SALES_ORDER_LINE_ID,
+		l.ITEM_ID,
+		i.ITEM_CODE,
+		l.ITEM_NAME,
+		l.SPECIFICATION,
+		l.UNIT,
+		l.QUANTITY,
+		l.UNIT_PRICE,
+		l.SUPPLY_AMOUNT,
+		l.VAT_AMOUNT,
+		l.TOTAL_AMOUNT,
+		l.NOTE,
+		l.DELETED_YN
+		FROM SALE_LINE l
+		JOIN SALE h
+		ON h.SALE_ID = l.SALE_ID
+		LEFT JOIN ITEM i
+		ON i.ITEM_ID = l.ITEM_ID
+		WHERE l.SALE_ID = #{saleId}
+		AND l.DELETED_YN = 'N'
+		AND h.DELETED_YN = 'N'
+		ORDER BY l.SALE_LINE_ID ASC
+	</select>
+
+	<!-- 新規IDをシーケンスで採番し、先頭を0で埋めた最低5桁の番号を生成する。進行状態は確認済みとする。 -->
+	<insert id="insertSelectKey"
+		parameterType="hexa.erp.sale.domain.SaleVO">
+
+		<selectKey keyProperty="saleId" resultType="long"
+			order="BEFORE">
+			SELECT SEQ_SALE.NEXTVAL
+			FROM DUAL
+		</selectKey>
+
+		INSERT INTO SALE (
+		SALE_ID,
+		SALE_NO,
+		BUSINESS_DATE,
+		PARTNER_ID,
+		PARTNER_NAME,
+		WAREHOUSE_ID,
+		WAREHOUSE_NAME,
+		ASSIGNEE_ID,
+		ASSIGNEE_NAME,
+		NOTE,
+		PROGRESS_STATUS,
+		CREATED_AT,
+		UPDATED_AT,
+		DELETED_YN
+		) VALUES (
+		#{saleId},
+		LPAD(
+		TO_CHAR(#{saleId}),
+		GREATEST(
+		5,
+		LENGTH(TO_CHAR(#{saleId}))
+		),
+		'0'
+		),
+		TO_DATE(
+		#{businessDate},
+		'YYYY-MM-DD'
+		),
+		#{partnerId},
+		#{partnerName},
+		#{warehouseId},
+		#{warehouseName},
+		#{assigneeId},
+		#{assigneeName},
+		#{note},
+		'CONFIRMED',
+		LOCALTIMESTAMP,
+		LOCALTIMESTAMP,
+		'N'
+		)
+	</insert>
+
+	<!-- 保存済みの番号・進行状態を保持して基本情報と最終更新日時を更新する。 -->
+	<update id="update" parameterType="hexa.erp.sale.domain.SaleVO">
+
+		UPDATE SALE
+		SET
+		BUSINESS_DATE = TO_DATE(
+		#{businessDate},
+		'YYYY-MM-DD'
+		),
+		PARTNER_ID = #{partnerId},
+		PARTNER_NAME = #{partnerName},
+		WAREHOUSE_ID = #{warehouseId},
+		WAREHOUSE_NAME = #{warehouseName},
+		ASSIGNEE_ID = #{assigneeId},
+		ASSIGNEE_NAME = #{assigneeName},
+		NOTE = #{note},
+		UPDATED_AT = LOCALTIMESTAMP
+		WHERE SALE_ID = #{saleId}
+		AND DELETED_YN = 'N'
+	</update>
+
+	<!-- 新規売上明細行を登録する。 -->
+	<insert id="insertLineSelectKey"
+		parameterType="hexa.erp.sale.domain.SaleLineVO">
+
+		<selectKey keyProperty="saleLineId" resultType="long"
+			order="BEFORE">
+			SELECT SEQ_SALE_LINE.NEXTVAL
+			FROM DUAL
+		</selectKey>
+
+		INSERT INTO SALE_LINE (
+		SALE_LINE_ID,
+		SALE_ID,
+		SALES_ORDER_LINE_ID,
+		ITEM_ID,
+		ITEM_NAME,
+		SPECIFICATION,
+		UNIT,
+		QUANTITY,
+		UNIT_PRICE,
+		SUPPLY_AMOUNT,
+		VAT_AMOUNT,
+		TOTAL_AMOUNT,
+		NOTE,
+		DELETED_YN
+		) VALUES (
+		#{saleLineId},
+		#{saleId},
+		#{salesOrderLineId},
+		#{itemId},
+		#{itemName},
+		#{specification},
+		#{unit},
+		#{quantity},
+		#{unitPrice},
+		#{supplyAmount},
+		#{vatAmount},
+		#{totalAmount},
+		#{note},
+		'N'
+		)
+	</insert>
+
+	<!-- 既存の売上明細行を更新する。 -->
+	<update id="updateLine"
+		parameterType="hexa.erp.sale.domain.SaleLineVO">
+
+		UPDATE SALE_LINE
+		SET
+		SALES_ORDER_LINE_ID =
+		#{salesOrderLineId},
+		ITEM_ID = #{itemId},
+		ITEM_NAME = #{itemName},
+		SPECIFICATION = #{specification},
+		UNIT = #{unit},
+		QUANTITY = #{quantity},
+		UNIT_PRICE = #{unitPrice},
+		SUPPLY_AMOUNT = #{supplyAmount},
+		VAT_AMOUNT = #{vatAmount},
+		TOTAL_AMOUNT = #{totalAmount},
+		NOTE = #{note}
+		WHERE SALE_LINE_ID = #{saleLineId}
+		AND SALE_ID = #{saleId}
+		AND DELETED_YN = 'N'
+	</update>
+
+	<!-- 選択した売上明細行を削除する。 -->
+	<update id="removeSelectedLines">
+		UPDATE SALE_LINE
+		SET DELETED_YN = 'Y'
+		WHERE SALE_ID = #{saleId}
+		AND DELETED_YN = 'N'
+		AND SALE_LINE_ID IN
+		<foreach collection="lineIds" item="lineId" open="("
+			separator="," close=")">
+			#{lineId}
+		</foreach>
+	</update>
+
+	<!-- 選択した売上に削除フラグを設定する。行は物理削除せず、未削除の売上だけを更新する。 -->
+	<update id="remove">
+		UPDATE SALE
+		SET
+		DELETED_YN = 'Y',
+		UPDATED_AT = LOCALTIMESTAMP
+		WHERE DELETED_YN = 'N'
+		AND SALE_ID IN
+		<foreach collection="ids" item="saleId" open="(" separator=","
+			close=")">
+			#{saleId}
+		</foreach>
+	</update>
+
+	<!-- 選択した売上に属する品目行もDELETED_YN=Yにして一覧・集計から除外する。 -->
+	<update id="removeLines">
+		UPDATE SALE_LINE
+		SET DELETED_YN = 'Y'
+		WHERE DELETED_YN = 'N'
+		AND SALE_ID IN
+		<foreach collection="ids" item="saleId" open="(" separator=","
+			close=")">
+			#{saleId}
+		</foreach>
+	</update>
+
+	<!-- 選択した未削除の売上について、進行状態と最終更新日時を変更する。 -->
+	<update id="changeStatus">
+		UPDATE SALE
+		SET
+		PROGRESS_STATUS =
+		#{progressStatus},
+		UPDATED_AT = LOCALTIMESTAMP
+		WHERE DELETED_YN = 'N'
+		AND SALE_ID IN
+		<foreach collection="ids" item="saleId" open="(" separator=","
+			close=")">
+			#{saleId}
+		</foreach>
+	</update>
+
+</mapper>

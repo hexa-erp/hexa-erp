@@ -31,7 +31,7 @@ public class LookupResponsesTest {
 		Map<String, Object> first = LookupResponses.emptyResult();
 		Map<String, Object> second = LookupResponses.emptyResult();
 		assertNotSame(first, second);
-		first.put("rows", Collections.singletonList("테스트 변경"));
+		first.put("rows", Collections.singletonList("テスト変更"));
 		first.put("page", 9);
 		assertTrue(((List<?>) second.get("rows")).isEmpty());
 		assertEquals(1, second.get("page"));

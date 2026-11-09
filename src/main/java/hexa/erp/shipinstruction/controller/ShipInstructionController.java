@@ -1,76 +1,85 @@
 package hexa.erp.shipinstruction.controller;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import hexa.erp.common.controller.PostRedirects;
 import hexa.erp.common.controller.ViewModels;
+import hexa.erp.shipinstruction.domain.ShipInstructionCriteria;
+import hexa.erp.shipinstruction.domain.ShipInstructionVO;
+import hexa.erp.shipinstruction.service.ShipInstructionService;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j;
 
 @Log4j
 @Controller
 @RequestMapping("/shipping-instruction")
 public class ShipInstructionController {
+	@Setter(onMethod_ = @Autowired)
+	private ShipInstructionService service;
+
+	// 削除されていない出荷指示書を日付・IDの降順で表示する。初期状態は全件・1ページ目（25件）とする。
 	@GetMapping("/list")
-	public String list(@RequestParam Map<String, String> params, Model model) {
-		log.info("출하지시서 목록 조회 요청");
-		model.addAttribute("shipInstructionList", Collections.emptyList());
-		model.addAttribute("search", ViewModels.search(params));
+	public String list(ShipInstructionCriteria criteria, @RequestParam Map<String, String> params, Model model) {
+		log.info("出荷指示一覧の取得リクエスト");
+		int totalCount = service.getTotal(criteria);
+		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
+		// 選択したページを表示し、最終ページを超える番号は最終ページ番号に補正する。
+		criteria.setPage(Math.min(criteria.getPage(), totalPages));
+		Map<String, String> search = ViewModels.search(params);
+		search.put("keyword", criteria.getKeyword());
+		search.put("progressStatus", criteria.getProgressStatus());
+		search.put("page", String.valueOf(criteria.getPage()));
+		search.put("pageSize", String.valueOf(criteria.getPageSize()));
+
+		model.addAttribute("shipInstructionList", service.getList(criteria));
+		model.addAttribute("search", search);
+		model.addAttribute("page", criteria.getPage());
+		model.addAttribute("pageSize", criteria.getPageSize());
+		model.addAttribute("totalPages", totalPages);
+		model.addAttribute("totalCount", totalCount);
+		model.addAttribute("basePath", "/shipping-instruction/list");
 		model.addAttribute("activeMenu", "shipping-instruction");
-		model.addAttribute("pageTitle", "출하지시서 조회");
-		ViewModels.emptyPage(model, 25, "/shipping-instruction/list");
+		model.addAttribute("pageTitle", "出荷指示一覧");
 		return "shippingInstruction/list";
 	}
 
 	@GetMapping("/form")
-	public String form(@RequestParam Map<String, String> params, HttpServletResponse response, Model model) {
-		log.info("출하지시서 입력 화면 요청");
-		// TODO: 수정할 전표와 품목 내역을 조회해 form에 담는다.
-		if ((params.get("id") != null && !params.get("id").trim().isEmpty())
-				|| (params.get("shipInstructionId") != null && !params.get("shipInstructionId").trim().isEmpty())) {
-			response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
-			model.addAttribute("errorMessage", "기존 전표 조회는 아직 구현되지 않았습니다.");
+	public String form(@RequestParam(value = "id", required = false) Long id,
+			@RequestParam(value = "shipInstructionId", required = false) Long shipInstructionId,
+			HttpServletRequest request, Model model, RedirectAttributes rttr) {
+		log.info("出荷指示入力画面の表示リクエスト");
+		Long documentId = id == null ? shipInstructionId : id;
+		ShipInstructionVO form;
+
+		// IDなしで開いた場合は、本日の日付を設定した空の出荷指示書を表示する。
+		if (documentId == null) {
+			form = new ShipInstructionVO();
+			form.setBusinessDate(LocalDate.now().toString());
+			form.setProgressStatus("IN_PROGRESS");
+		} else {
+			// IDを指定した場合は保存済みの基本情報と品目行を表示し、対象がなければ案内を表示して一覧に戻る。
+			form = service.get(documentId);
+			if (form == null) {
+				rttr.addFlashAttribute("errorMessage", "表示対象の出荷指示書がありません。");
+				return PostRedirects.toList("/shipping-instruction/list", request);
+			}
 		}
-		Map<String, Object> form = new LinkedHashMap<>();
-		form.put("shipInstructionId", "");
-		form.put("shipInstructionNo", "");
-		form.put("businessDate", LocalDate.now().toString());
-		form.put("progressStatus", "IN_PROGRESS");
-		form.put("lines", Collections.emptyList());
 		model.addAttribute("form", form);
-		model.addAttribute("mode", "create");
-		model.addAttribute("isEdit", false);
+		model.addAttribute("mode", documentId == null ? "create" : "edit");
+		model.addAttribute("isEdit", documentId != null);
 		model.addAttribute("activeMenu", "shipping-instruction");
-		model.addAttribute("pageTitle", "출하지시서 입력");
+		model.addAttribute("pageTitle", "出荷指示入力");
 		return "shippingInstruction/form";
 	}
-
-	@PostMapping("/save")
-	public String save(HttpServletResponse response, Model model) {
-		log.info("출하지시서 저장 요청");
-		return ViewModels.notImplemented(response, model);
-	}
-
-	@PostMapping("/delete")
-	public String delete(HttpServletResponse response, Model model) {
-		log.info("출하지시서 삭제 요청");
-		return ViewModels.notImplemented(response, model);
-	}
-
-	@PostMapping("/change-status")
-	public String changeStatus(HttpServletResponse response, Model model) {
-		log.info("출하지시서 진행 상태 변경 요청");
-		return ViewModels.notImplemented(response, model);
-	}
-
 }

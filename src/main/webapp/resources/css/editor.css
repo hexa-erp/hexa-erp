@@ -1,4 +1,4 @@
-/* 전표 입력은 .erp-editor, 모달은 .modal 범위에 적용해 조회 화면과 분리한다. */
+/* 伝票入力は.erp-editor、モーダルは.modalの範囲に適用し、一覧画面と分離する。 */
 
 .erp-editor { min-width: 0; }
 .erp-editor .editor-heading {
@@ -221,7 +221,7 @@
 .erp-editor .total-strip > span { padding: 7px 12px; border-left: 1px solid #d7dfe9; }
 .erp-editor .total-strip strong { margin-left: 16px; color: #223f6e; }
 
-/* 닫힌 dialog가 표시되지 않도록 flex 레이아웃은 [open]에만 적용한다. */
+/* 閉じたdialogが表示されないよう、flexレイアウトは[open]のみに適用する。 */
 .modal {
   width: min(840px, 94vw);
   max-width: calc(100vw - 24px);

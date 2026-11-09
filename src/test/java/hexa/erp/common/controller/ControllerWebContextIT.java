@@ -42,7 +42,7 @@ import hexa.erp.testinfra.StubWarehouseLookupService;
 import hexa.erp.item.service.ItemLookupService;
 import hexa.erp.testinfra.StubItemLookupService;
 
-/** Stub Service로 웹 계층을 검사한다. JSP 렌더링·DB 연결은 포함하지 않는다. */
+/** Stub ServiceでWeb層を検証する。JSPレンダリング・DB接続は含めない。 */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration("src/main/webapp")
 @ContextHierarchy({ @ContextConfiguration(name = "root", locations = "classpath:spring/web-test-context.xml"),
@@ -154,7 +154,7 @@ public class ControllerWebContextIT {
 		assertEquals(42L, row.get("assigneeId").asLong());
 		assertTrue(row.get("assigneeCode").isTextual());
 		assertEquals("00001", row.get("assigneeCode").asText());
-		assertEquals("웹 테스트 담당자", row.get("assigneeName").asText());
+		assertEquals("Webテスト担当者", row.get("assigneeName").asText());
 		assertEquals("Y", row.get("activeFlag").asText());
 	}
 
@@ -184,11 +184,11 @@ public class ControllerWebContextIT {
 			assertEquals("00001", row.get(type + "Code").asText());
 			assertEquals("Y", row.get("activeFlag").asText());
 			if ("warehouse".equals(type)) {
-				assertEquals("창고", row.get("warehouseType").asText());
+				assertEquals("倉庫", row.get("warehouseType").asText());
 			}
 			if ("item".equals(type)) {
 				assertEquals("EA", row.get("unit").asText());
-				assertEquals("선택 테스트 규격", row.get("specification").asText());
+				assertEquals("選択テスト規格", row.get("specification").asText());
 				assertTrue(row.get("outboundPrice").isNumber());
 				assertEquals(100, row.get("outboundPrice").asInt());
 				assertTrue(row.get("stockQuantity").isNull());

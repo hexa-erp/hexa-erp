@@ -33,11 +33,12 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.util.StringUtils;
 
 import hexa.erp.assignee.domain.AssigneeLookupVO;
 import hexa.erp.common.domain.LookupCriteria;
 
-/** Oracle 연결 없이 MyBatis XML·동적 SQL·빈 정의를 검사한다. SQL 실행 검사는 IT에서 한다. */
+/** Oracle接続なしでMyBatis XML・動的SQL・Bean定義を検証する。SQL実行はITで検証する。 */
 public class AssigneeLookupMapperTest {
 	private Configuration configuration;
 	private static final String NAMESPACE = "hexa.erp.assignee.mapper.AssigneeLookupMapper";
@@ -122,7 +123,7 @@ public class AssigneeLookupMapperTest {
 
 	@Test
 	public void actualRootKeepsAssigneeInfrastructureWithBusinessScans() {
-		// refresh/getBean 없이 빈 정의만 읽어 실제 연결 풀의 시작을 막는다.
+		// refresh/getBeanを呼ばずBean定義のみ読み込み、実際の接続プールを起動させない。
 		try (GenericApplicationContext root = new GenericApplicationContext()) {
 			new XmlBeanDefinitionReader(root)
 					.loadBeanDefinitions("file:src/main/webapp/WEB-INF/spring/root-context.xml");
@@ -159,7 +160,7 @@ public class AssigneeLookupMapperTest {
 			assertEquals("hexa.erp.assignee.service.AssigneeLookupServiceImpl",
 					root.getBeanDefinition("assigneeLookupServiceImpl").getBeanClassName());
 
-			// MyBatis-Spring 1.3.2의 XML <scan>은 MapperFactoryBean을 직접 등록한다.
+			// MyBatis-Spring 1.3.2のXML <scan>はMapperFactoryBeanを直接登録する。
 			BeanDefinition mapper = root.getBeanDefinition("assigneeLookupMapper");
 			assertEquals("org.mybatis.spring.mapper.MapperFactoryBean", mapper.getBeanClassName());
 			assertEquals(NAMESPACE,
@@ -171,8 +172,8 @@ public class AssigneeLookupMapperTest {
 				BeanDefinition definition = root.getBeanDefinition(name);
 				if ("org.springframework.context.support.PropertySourcesPlaceholderConfigurer"
 						.equals(definition.getBeanClassName())) {
-					assertArrayEquals(new String[] { "classpath:db.properties" },
-							(String[]) definition.getPropertyValues().get("locations"));
+					assertArrayEquals(new String[] { "classpath:db.properties", "classpath:upload.properties" },
+							StringUtils.trimArrayElements((String[]) definition.getPropertyValues().get("locations")));
 					assertEquals(Boolean.FALSE, definition.getPropertyValues().get("ignoreResourceNotFound"));
 					placeholders++;
 				}
@@ -184,7 +185,7 @@ public class AssigneeLookupMapperTest {
 
 	@Test
 	public void classpathPropertiesProvideAllConnectionKeys() throws Exception {
-		// 접속정보는 읽기만 하고 로그에 출력하지 않는다.
+		// 接続情報は読み取りのみとし、ログに出力しない。
 		Properties properties = new Properties();
 		try (InputStream input = new ClassPathResource("db.properties").getInputStream()) {
 			properties.load(input);
@@ -192,7 +193,7 @@ public class AssigneeLookupMapperTest {
 		assertEquals(new HashSet<>(Arrays.asList("db.driver", "db.url", "db.username", "db.password")),
 				properties.stringPropertyNames());
 		for (String key : properties.stringPropertyNames()) {
-			assertFalse(key + " 설정이 비어 있다.", properties.getProperty(key).trim().isEmpty());
+			assertFalse(key + " の設定が空になっている。", properties.getProperty(key).trim().isEmpty());
 		}
 	}
 

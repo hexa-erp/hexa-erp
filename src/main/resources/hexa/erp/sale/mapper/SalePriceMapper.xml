@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hexa.erp.sale.mapper.SalePriceMapper">
+	<!-- 名前と規格は伝票に保存された値を使用し、品目コードのみマスターから取得する。 -->
+	<sql id="rowTables">
+		FROM SALE h
+		JOIN SALE_LINE l ON l.SALE_ID = h.SALE_ID
+		LEFT JOIN ITEM i
+		ON i.ITEM_ID = l.ITEM_ID
+		<!-- 元受注が削除されていても、売上に紐づく元受注の日付と番号は表示する。 -->
+		LEFT JOIN SALES_ORDER_LINE source_line ON
+		source_line.SALES_ORDER_LINE_ID = l.SALES_ORDER_LINE_ID
+		LEFT JOIN
+		SALES_ORDER source_header ON source_header.SALES_ORDER_ID =
+		source_line.SALES_ORDER_ID
+	</sql>
+	<!-- 値が指定された条件のみ追加する。終了日は翌日0時未満で比較し、当日全体を含める。 -->
+	<sql id="searchCondition">
+		WHERE h.DELETED_YN = 'N' AND l.DELETED_YN = 'N'
+		<if test="startDate != null and startDate.trim() != ''">
+			AND h.BUSINESS_DATE &gt;= TO_DATE(#{startDate},
+			'YYYY-MM-DD')
+		</if>
+
+		<if test="endDate != null and endDate.trim() != ''">
+			AND h.BUSINESS_DATE &lt; TO_DATE(#{endDate}, 'YYYY-MM-DD')
+			+ 1
+		</if>
+		<if test="progressStatus != null and progressStatus != ''">
+			AND h.PROGRESS_STATUS = #{progressStatus}
+		</if>
+		<if test="warehouseIds != null and warehouseIds.size() > 0">
+			AND h.WAREHOUSE_ID IN
+			<foreach collection="warehouseIds" item="warehouseId"
+				open="(" separator="," close=")">
+				#{warehouseId}
+			</foreach>
+		</if>
+		<if test="partnerIds != null and partnerIds.size() > 0">
+			AND h.PARTNER_ID IN
+			<foreach collection="partnerIds" item="partnerId" open="("
+				separator="," close=")">
+				#{partnerId}
+			</foreach>
+		</if>
+		<if test="itemIds != null and itemIds.size() > 0">
+			AND l.ITEM_ID IN
+			<foreach collection="itemIds" item="itemId" open="("
+				separator="," close=")">
+				#{itemId}
+			</foreach>
+		</if>
+		<!-- 検索語を取引先名・品目コード・品目名のいずれかに含む行を取得する。 -->
+		<if test="keyword != null and keyword != ''">
+			AND (
+			UPPER(h.PARTNER_NAME) LIKE '%' || UPPER(#{keyword})
+			|| '%'
+			OR UPPER(i.ITEM_CODE) LIKE '%' || UPPER(#{keyword}) || '%'
+			OR
+			UPPER(l.ITEM_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+			)
+		</if>
+	</sql>
+
+	<!-- ソート結果にROWNUMを付け、(page - 1) * pageSizeより大きく、page * pageSize以下の行のみを
+		切り出す。 -->
+	<select id="getListWithPaging"
+		resultType="hexa.erp.sale.domain.SalePriceVO">
+		SELECT SALE_LINE_ID, SALE_ID, SALE_NO, BUSINESS_DATE,
+		PARTNER_NAME,
+		ASSIGNEE_NAME, WAREHOUSE_NAME, SOURCE_BUSINESS_DATE,
+		SOURCE_DOCUMENT_NO,
+		ITEM_CODE, ITEM_NAME, SPECIFICATION, QUANTITY,
+		UNIT, UNIT_PRICE,
+		SUPPLY_AMOUNT, VAT_AMOUNT, TOTAL_AMOUNT, NOTE,
+		CREATED_AT, UPDATED_AT
+		FROM (
+		SELECT ROWNUM rn, ordered_row.*
+		FROM (
+		SELECT l.SALE_LINE_ID, h.SALE_ID, h.SALE_NO,
+		TO_CHAR(h.BUSINESS_DATE,
+		'YYYY-MM-DD') AS BUSINESS_DATE,
+		<!-- 外側のクエリーで文字列化した日付ではなくDATE値を使って再ソートするための列 -->
+		h.BUSINESS_DATE AS SORT_BUSINESS_DATE,
+		h.PARTNER_NAME, h.ASSIGNEE_NAME,
+		h.WAREHOUSE_NAME,
+		TO_CHAR(source_header.BUSINESS_DATE, 'YYYY-MM-DD') AS
+		SOURCE_BUSINESS_DATE,
+		source_header.SALES_ORDER_NO AS
+		SOURCE_DOCUMENT_NO,
+		i.ITEM_CODE, l.ITEM_NAME, l.SPECIFICATION,
+		l.QUANTITY, l.UNIT,
+		l.UNIT_PRICE, l.SUPPLY_AMOUNT, l.VAT_AMOUNT,
+		l.TOTAL_AMOUNT, l.NOTE,
+		TO_CHAR(h.CREATED_AT, 'YYYY-MM-DD HH24:MI:SS')
+		AS CREATED_AT,
+		TO_CHAR(h.UPDATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS
+		UPDATED_AT
+		<include refid="rowTables" />
+		<include refid="searchCondition" />
+		ORDER BY h.BUSINESS_DATE DESC, h.SALE_ID DESC, l.SALE_LINE_ID ASC
+		)
+		ordered_row
+		WHERE ROWNUM &lt;= #{page} * #{pageSize}
+		)
+		WHERE rn &gt;
+		(#{page} - 1) * #{pageSize}
+		ORDER BY SORT_BUSINESS_DATE DESC, SALE_ID
+		DESC, SALE_LINE_ID ASC
+	</select>
+
+	<select id="getTotalCount" resultType="int">
+		SELECT COUNT(*)
+		<include refid="rowTables" />
+		<include refid="searchCondition" />
+	</select>
+	<!-- 品目行が対象伝票に属することを確認し、金額計算に使用する数量を取得する。 -->
+	<select id="read" resultType="hexa.erp.sale.domain.SalePriceVO">
+		SELECT l.SALE_LINE_ID, l.SALE_ID,
+		l.QUANTITY
+		FROM SALE_LINE l
+		JOIN SALE h ON h.SALE_ID = l.SALE_ID
+		WHERE
+		l.SALE_LINE_ID = #{saleLineId} AND l.SALE_ID = #{saleId}
+		AND
+		l.DELETED_YN = 'N' AND h.DELETED_YN = 'N'
+	</select>
+	<!-- 処理の間に伝票や品目行が削除された場合、更新件数は0となる。 -->
+	<update id="updatePrice">
+		UPDATE SALE_LINE
+		SET UNIT_PRICE = #{unitPrice},
+		SUPPLY_AMOUNT = #{supplyAmount},
+		VAT_AMOUNT = #{vatAmount},
+		TOTAL_AMOUNT = #{totalAmount}
+		WHERE SALE_LINE_ID = #{saleLineId} AND
+		SALE_ID = #{saleId} AND DELETED_YN =
+		'N'
+		AND EXISTS (SELECT 1 FROM SALE
+		h WHERE h.SALE_ID = #{saleId} AND
+		h.DELETED_YN = 'N')
+	</update>
+	<!-- 単価保存時には売上の最終更新日時も更新する。 -->
+	<update id="updateSaleTimestamp">
+		UPDATE SALE SET UPDATED_AT = LOCALTIMESTAMP
+		WHERE
+		SALE_ID = #{saleId} AND DELETED_YN = 'N'
+	</update>
+</mapper>

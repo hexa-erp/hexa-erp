@@ -1,0 +1,186 @@
+package hexa.erp.sale.controller;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Map;
+import java.util.UUID;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.WebApplicationContext;
+
+import hexa.erp.item.domain.ItemVO;
+import hexa.erp.item.mapper.ItemMapper;
+import hexa.erp.sale.domain.SaleLineVO;
+import hexa.erp.sale.domain.SaleVO;
+import hexa.erp.sale.service.SaleService;
+import hexa.erp.stock.mapper.StockMapper;
+import hexa.erp.warehouse.domain.WarehouseLookupVO;
+import lombok.extern.log4j.Log4j;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@WebAppConfiguration
+@ContextConfiguration({ "file:src/main/webapp/WEB-INF/spring/root-context.xml",
+		"file:src/main/webapp/WEB-INF/spring/appServlet/servlet-context.xml" })
+@Transactional
+@Rollback
+@Log4j
+public class SaleListControllerTests {
+
+	@Autowired
+	private WebApplicationContext context;
+
+	@Autowired
+	private SaleService saleService;
+
+	@Autowired
+	private ItemMapper itemMapper;
+
+	@Autowired
+	private StockMapper stockMapper;
+
+	private MockMvc mockMvc;
+
+	// MockMvcオブジェクトを生成
+	@Before
+	public void setup() {
+		mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+	}
+
+	// 売上一覧画面を確認
+	@Test
+	public void testList() throws Exception {
+
+		String token = createToken();
+
+		SaleVO sale = saveSale(token);
+
+		MvcResult result = mockMvc.perform(
+				MockMvcRequestBuilders.get("/sale/list").param("keyword", token).param("progressStatus", "CONFIRMED"))
+				.andReturn();
+
+		Object saleList = result.getModelAndView().getModelMap().get("saleList");
+
+		Object totalCount = result.getModelAndView().getModelMap().get("totalCount");
+
+		log.info("========== SALE LIST CONTROLLER TEST ==========");
+		log.info("HTTP STATUS: " + result.getResponse().getStatus());
+		log.info("VIEW NAME: " + result.getModelAndView().getViewName());
+		log.info("SAVED SALE ID: " + sale.getSaleId());
+		log.info("SALE LIST: " + saleList);
+		log.info("TOTAL COUNT: " + totalCount);
+
+		assertEquals(200, result.getResponse().getStatus());
+
+		assertEquals("sale/list", result.getModelAndView().getViewName());
+
+		assertNotNull(saleList);
+		assertEquals(1, totalCount);
+	}
+
+	// 納品書画面を確認
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testStatement() throws Exception {
+
+		SaleVO sale = saveSale(createToken());
+
+		MvcResult result = mockMvc
+				.perform(MockMvcRequestBuilders.get("/sale/statement").param("id", String.valueOf(sale.getSaleId())))
+				.andReturn();
+
+		SaleVO form = (SaleVO) result.getModelAndView().getModelMap().get("form");
+
+		Map<String, BigDecimal> totals = (Map<String, BigDecimal>) result.getModelAndView().getModelMap()
+				.get("statementTotals");
+
+		log.info("========== SALE STATEMENT TEST ==========");
+		log.info("HTTP STATUS: " + result.getResponse().getStatus());
+		log.info("VIEW NAME: " + result.getModelAndView().getViewName());
+		log.info("FORM: " + form);
+		log.info("TOTALS: " + totals);
+
+		assertEquals(200, result.getResponse().getStatus());
+
+		assertEquals("sale/statement", result.getModelAndView().getViewName());
+
+		assertNotNull(form);
+		assertNotNull(totals);
+
+		assertEquals(0, new BigDecimal("33000").compareTo(totals.get("totalAmount")));
+	}
+
+	// テスト売上を保存
+	private SaleVO saveSale(String token) {
+		ItemVO item = createItem(token);
+
+		itemMapper.insertSelectKey(item);
+
+		WarehouseLookupVO warehouse = stockMapper.getWarehouseList().get(0);
+
+		SaleVO sale = new SaleVO();
+
+		sale.setBusinessDate(LocalDate.now().toString());
+
+		sale.setPartnerName("Controller一覧テスト取引先 " + token);
+
+		sale.setWarehouseId(warehouse.getWarehouseId());
+
+		SaleLineVO line = new SaleLineVO();
+
+		line.setItemId(item.getItemId());
+
+		line.setQuantity(new BigDecimal("3"));
+
+		line.setUnitPrice(new BigDecimal("10000"));
+
+		sale.getLines().add(line);
+
+		Long saleId = saleService.save(sale);
+
+		assertNotNull(saleId);
+
+		return saleService.get(saleId);
+	}
+
+	// テスト品目を生成
+	private ItemVO createItem(String token) {
+
+		ItemVO item = new ItemVO();
+
+		item.setItemCode("SLISTCTRL" + token);
+
+		item.setItemName("Controller一覧テスト品目 " + token);
+
+		item.setSpecification("100mm");
+		item.setUnit("EA");
+		item.setItemType("商品");
+
+		item.setInboundPrice(new BigDecimal("7000"));
+
+		item.setOutboundPrice(new BigDecimal("10000"));
+
+		item.setNote("売上一覧Controllerテスト");
+
+		return item;
+	}
+
+	// テスト識別値を生成
+	private String createToken() {
+		return UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+	}
+}

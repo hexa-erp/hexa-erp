@@ -1,14 +1,14 @@
 <%@ page pageEncoding="UTF-8"%>
-<%-- lineIdField는 이 전표 상세행 ID, sourceIdField는 원전표 상세행 ID다.
-     지운 기존 행 ID는 removedLineIds로 보낸다. 단위·규격은 전표에 복사한 값이다. --%>
+<%-- lineIdFieldはこの伝票の明細ID、sourceIdFieldは元伝票の明細ID。
+     削除した既存行のIDはremovedLineIdsで送る。単位・規格は伝票に保存したスナップショット値。 --%>
 <section id="document-lines" data-line-id-field="${lineIdField}"
 	data-source-id-field="${sourceIdField}" data-priced="${priced}">
 	<div class="toolbar line-toolbar">
-		<h3>품목 내역</h3>
+		<h3>品目明細</h3>
 		<span class="spacer"></span>
-		<button type="button" class="btn" data-line-add>행 추가</button>
-		<button type="button" class="btn btn-danger" data-lines-remove>선택
-			삭제</button>
+		<button type="button" class="btn" data-line-add>行を追加</button>
+		<button type="button" class="btn btn-danger" data-lines-remove>選択
+			削除</button>
 	</div>
 	<div class="table-wrap">
 		<table class="data-table line-table">
@@ -32,20 +32,20 @@
 			<thead>
 				<tr>
 					<th><input type="checkbox"
-						data-check-all="#line-body .line-select" aria-label="품목 전체 선택"></th>
-					<th>행</th>
-					<th>품목코드</th>
-					<th>품목명</th>
-					<th>규격</th>
-					<th class="text-right">수량</th>
+						data-check-all="#line-body .line-select" aria-label="すべての品目を選択"></th>
+					<th>行</th>
+					<th>品目コード</th>
+					<th>品目名</th>
+					<th>規格</th>
+					<th class="text-right">数量</th>
 					<c:if test="${priced}">
-						<th class="text-right">단가</th>
-						<th class="text-right">공급가액</th>
-						<th class="text-right">부가세</th>
+						<th class="text-right">単価</th>
+						<th class="text-right">税抜金額</th>
+						<th class="text-right">消費税</th>
 					</c:if>
-					<th>비고</th>
+					<th>備考</th>
 					<c:if test="${priced}">
-						<th class="text-right">합계</th>
+						<th class="text-right">合計</th>
 					</c:if>
 				</tr>
 			</thead>
@@ -57,11 +57,11 @@
 		</table>
 	</div>
 	<div class="total-strip">
-		<span>수량 <strong id="line-total-quantity">0</strong></span>
+		<span>数量 <strong id="line-total-quantity">0</strong></span>
 		<c:if test="${priced}">
-			<span>공급가액 <strong id="line-total-supply">0</strong></span>
-			<span>부가세 <strong id="line-total-vat">0</strong></span>
-			<span>합계 <strong id="line-total-amount">0</strong></span>
+			<span>税抜金額 <strong id="line-total-supply">0</strong></span>
+			<span>消費税 <strong id="line-total-vat">0</strong></span>
+			<span>合計 <strong id="line-total-amount">0</strong></span>
 		</c:if>
 	</div>
 	<c:remove var="row" />

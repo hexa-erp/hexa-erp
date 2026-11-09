@@ -22,9 +22,9 @@ import hexa.erp.partner.service.PartnerLookupService;
 import hexa.erp.common.domain.LookupCriteria;
 
 /**
- * 실제 localhost Oracle과 main의 db.properties로 수동 실행한다(기본 mvn test/package 제외).
- * mvn -Dtest=PartnerLookupIT test BIZ_PARTNER·ASSIGNEE SELECT만 수행한다.
- * DDL·seed·DML은 실행하지 않으며 0건도 정상이다.
+ * 実際のlocalhostのOracleとmainのdb.propertiesを使用して手動実行する（通常のmvn test/packageでは除外）。
+ * mvn -Dtest=PartnerLookupIT test。BIZ_PARTNER・ASSIGNEEへのSELECTのみ実行する。
+ * DDL・seed・DMLは実行せず、0件でも正常とする。
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "file:src/main/webapp/WEB-INF/spring/root-context.xml")
@@ -42,7 +42,7 @@ public class PartnerLookupIT {
 		List<PartnerLookupVO> rows = service.getList(criteria);
 		assertRows(rows);
 		if (!rows.isEmpty()) {
-			// 실제 코드로 바인딩 검색도 실행한다. seed 건수나 고정 거래처명은 가정하지 않는다.
+			// 実際のコードでバインド検索も実行する。seed件数や固定の取引先名は前提にしない。
 			criteria.setKeyword(rows.get(0).getPartnerCode());
 			assertTrue(service.getTotal(criteria) >= 0);
 			assertRows(service.getList(criteria));

@@ -1,4 +1,4 @@
-/* 공통 화면 틀. 조회·현황은 workspace.css, 입력·모달은 editor.css에서 다룬다. */
+/* 共通画面レイアウト。一覧・集計はworkspace.css、入力・モーダルはeditor.cssで扱う。 */
 :root {
   --blue: #2451c6;
   --ink: #29364b;
@@ -6,7 +6,7 @@
   --line: #d6dce5;
   --surface: #f6f7f9;
   --red: #b63c49;
-  --header-height: 48px;
+  --header-height: 56px;
   --sidebar-width: 192px;
   --radius: 3px;
 }
@@ -18,7 +18,7 @@ body {
   overflow: hidden;
   background: var(--surface);
   color: var(--ink);
-  font: 13px/1.5 "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif;
+  font: 13px/1.5 "Yu Gothic UI", "Meiryo", "Hiragino Kaku Gothic ProN", Arial, sans-serif;
 }
 button, input, select, textarea { font: inherit; }
 button, a, input, select, textarea { outline-offset: 2px; }
@@ -60,7 +60,6 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   height: var(--header-height);
   display: flex;
   align-items: center;
-  border-top: 2px solid var(--blue);
   border-bottom: 1px solid var(--line);
   background: #fff;
 }
@@ -80,7 +79,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 .brand img {
   display: block;
   width: auto;
-  height: 30px;
+  height: 34px;
   max-width: 100%;
   object-fit: contain;
   transform: translateX(-6px);
@@ -99,13 +98,13 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 28px;
-  padding: 3px 10px;
+  min-height: 32px;
+  padding: 4px 12px;
   border: 1px solid #d1d9e5;
   border-radius: var(--radius);
   background: #fff;
   color: #354967;
-  font-size: 13px;
+  font-size: 14px;
   white-space: nowrap;
 }
 .quick-link::before { content: "+"; font-size: 14px; line-height: 1; color: #7187ab; }
@@ -131,11 +130,27 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   height: 37px;
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  border-bottom: 1px solid #e5e9ef;
-  color: #69758a;
-  font-size: 13px;
+  gap: 8px;
+  padding: 0 14px;
+  border-bottom: 1px solid #dbe3ef;
+  background: #f0f4fb;
+  color: #344b6b;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -.2px;
 }
+.sidebar-heading-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: #e2eafd;
+  color: var(--blue);
+}
+.sidebar-heading-icon svg { display: block; width: 14px; height: 14px; }
 .sidebar-scroll {
   flex: 1 1 auto;
   min-height: 0;
@@ -198,7 +213,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   background: var(--blue);
 }
 
-/* 가로 스크롤은 table-wrap 안으로 제한해 상단·메뉴의 위치를 유지한다. */
+/* 横スクロールをtable-wrap内に限定し、ヘッダーとメニューの位置を維持する。 */
 .page-shell {
   height: calc(100vh - var(--header-height));
   width: calc(100% - var(--sidebar-width));
@@ -337,7 +352,7 @@ fieldset.field > .tabs { gap: 8px 18px; }
   .total-strip { gap: 10px; font-size: 13px; flex-wrap: wrap; }
   .toolbar input[name=keyword] { min-width: 150px; }
 }
-/* 인쇄할 때 고정 높이와 스크롤 제한을 풀어 전표가 잘리지 않게 한다. */
+/* 印刷時は固定高さとスクロール制限を解除し、伝票が欠けないようにする。 */
 @media print {
   html, body { height: auto; overflow: visible; background: #fff; }
   .site-header, .sidebar, .skip-link, .development-banner { display: none !important; }

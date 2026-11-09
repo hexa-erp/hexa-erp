@@ -2,9 +2,9 @@
 <!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
 	<settings>
-		<!-- WAREHOUSE_ID 같은 컬럼을 warehouseId 속성에 연결한다. -->
+		<!-- WAREHOUSE_IDなどの列をwarehouseIdプロパティに対応させる。 -->
 		<setting name="mapUnderscoreToCamelCase" value="true" />
-		<!-- jdbcType을 지정하지 않은 null 파라미터는 JDBC NULL 타입으로 전달한다. -->
+		<!-- jdbcType未指定のnullパラメーターはJDBCのNULL型で渡す。 -->
 		<setting name="jdbcTypeForNull" value="NULL" />
 	</settings>
 </configuration>
