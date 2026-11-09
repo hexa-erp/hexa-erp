@@ -5,7 +5,7 @@ import java.util.List;
 
 import lombok.Data;
 
-/** 단가 일괄변경 JSON 요청. changes 배열의 선택한 행을 저장한다. */
+/** 単価一括変更のJSONリクエスト。changes配列で選択された行を保存する。 */
 @Data
 public class SalePriceFormVO {
 	private List<SalePriceChangeVO> changes = new ArrayList<>();

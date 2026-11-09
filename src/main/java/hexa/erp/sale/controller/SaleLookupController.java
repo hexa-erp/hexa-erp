@@ -27,7 +27,7 @@ public class SaleLookupController {
 	public Map<String, Object> saleSources(@RequestParam(name = "keyword", defaultValue = "") String keyword,
 			@RequestParam(name = "progressStatus", defaultValue = "") String progressStatus,
 			@RequestParam(name = "page", defaultValue = "1") int page) {
-		log.info("판매 불러오기 조회");
+		log.info("売上の読込候補を取得");
 		LookupCriteria criteria = new LookupCriteria();
 		criteria.setKeyword(keyword);
 		criteria.setPageNum(page);

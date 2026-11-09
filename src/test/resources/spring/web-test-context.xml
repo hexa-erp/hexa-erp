@@ -2,7 +2,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-	<!-- 웹 테스트는 실제 DB 대신 Stub Service를 부모 빈으로 사용한다. -->
+	<!-- Webテストでは実際のDBの代わりにStub Serviceを親Beanとして使用する。 -->
 	<bean id="assigneeLookupService"
 		class="hexa.erp.testinfra.StubAssigneeLookupService" />
 	<bean id="partnerLookupService"
@@ -19,7 +19,7 @@
 		class="hexa.erp.testinfra.StubSaleLookupService" />
 	<bean id="shipInstructionLookupService"
 		class="hexa.erp.testinfra.StubShipInstructionLookupService" />
-	<!-- 실제 MVC/API Controller를 유지하면서 업무 Service를 조회 전용 Stub으로 대체한다. -->
+	<!-- 実際のMVC/API Controllerを維持し、業務Serviceを照会専用Stubに置き換える。 -->
 	<bean id="partnerService"
 		class="hexa.erp.testinfra.StubBusinessServices$Partner" />
 	<bean id="warehouseService"

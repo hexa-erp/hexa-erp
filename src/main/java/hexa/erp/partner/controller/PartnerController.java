@@ -25,11 +25,12 @@ public class PartnerController {
 	@GetMapping
 	public String list(PartnerCriteria criteria, @RequestParam Map<String, String> params, Model model) {
 
-		log.info("거래처 목록 조회 요청");
+		log.info("取引先一覧の取得リクエスト");
 
 		int totalCount = service.getTotal(criteria);
 		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
 
+		// 選択したページを表示する。最終ページを超える番号は最終ページ番号に補正する。
 		criteria.setPage(Math.min(criteria.getPage(), totalPages));
 
 		Map<String, String> search = ViewModels.search(params);
@@ -47,7 +48,7 @@ public class PartnerController {
 		model.addAttribute("totalCount", totalCount);
 		model.addAttribute("basePath", "/master/partner");
 		model.addAttribute("activeMenu", "master");
-		model.addAttribute("pageTitle", "거래처 등록");
+		model.addAttribute("pageTitle", "取引先登録");
 		model.addAttribute("pageScript", "master.js");
 		model.addAttribute("pageStyle", "master.css");
 

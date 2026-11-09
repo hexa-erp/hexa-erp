@@ -19,8 +19,8 @@
 		SELECT MIN(l.item_name) KEEP (DENSE_RANK FIRST ORDER BY
 		l.sales_order_line_id)
 		|| CASE WHEN COUNT(*) &gt; 1
-		THEN ' 외 ' ||
-		TO_CHAR(COUNT(*) - 1) || '건' ELSE '' END
+		THEN ' ほか ' ||
+		TO_CHAR(COUNT(*) - 1) || '件' ELSE '' END
 		FROM SALES_ORDER_LINE l
 		WHERE
 		l.sales_order_id = h.sales_order_id AND l.deleted_yn = 'N'
@@ -43,6 +43,8 @@
 		LEFT JOIN ASSIGNEE a ON a.assignee_id = h.assignee_id
 	</sql>
 
+	<!-- 削除されていない受注書から進行状態で絞り込み、取引先名、または明細に保存された品目名を部分一致で検索する。
+	     品目名は未削除の明細行を対象とし、複数行が一致しても伝票は1回だけ表示する。 -->
 	<sql id="searchCondition">
 		WHERE h.deleted_yn = 'N'
 		<if test="progressStatus != null and progressStatus != ''">
@@ -66,6 +68,7 @@
 		</if>
 	</sql>
 
+	<!-- 日付の降順（同一の場合はIDの降順）で、指定されたページの範囲を取得する（既定25件）。 -->
 	<select id="getListWithPaging"
 		parameterType="hexa.erp.salesorder.domain.SalesOrderCriteria"
 		resultType="hexa.erp.salesorder.domain.SalesOrderVO">
@@ -132,6 +135,8 @@
 		l.sales_order_line_id ASC
 	</select>
 
+	<!-- 新規の場合はシーケンスでIDを採番し、先頭を0で埋めた5桁以上の番号を作成する。
+	     進行状態はテーブルの既定値IN_PROGRESS（進行中）で保存する。 -->
 	<insert id="insertSelectKey">
 		<selectKey keyProperty="salesOrderId" resultType="Long"
 			order="BEFORE">
@@ -175,6 +180,7 @@
 		)
 	</insert>
 
+	<!-- 保存済みの番号・進行状態を保持し、基本情報と最終更新日時を更新する。 -->
 	<update id="update">
 		UPDATE SALES_ORDER
 		SET business_date =
@@ -211,6 +217,7 @@
 		= 'N'
 	</update>
 
+	<!-- 選択した伝票の基本情報に削除フラグを設定する。行は物理削除しない。 -->
 	<update id="remove">
 		UPDATE SALES_ORDER
 		SET deleted_yn = 'Y', updated_at = LOCALTIMESTAMP
@@ -221,6 +228,7 @@
 		</foreach>
 	</update>
 
+	<!-- 選択した伝票に属する品目行にもDELETED_YN=Yを設定する。 -->
 	<update id="removeLines">
 		UPDATE SALES_ORDER_LINE
 		SET deleted_yn = 'Y'
@@ -232,6 +240,7 @@
 		</foreach>
 	</update>
 
+	<!-- 入力画面の削除リストにある既存行だけに削除フラグを設定する。 -->
 	<update id="removeSelectedLines">
 		UPDATE SALES_ORDER_LINE
 		SET deleted_yn = 'Y'
@@ -245,6 +254,7 @@
 		</foreach>
 	</update>
 
+	<!-- チェックした未削除伝票の進行状態と最終更新日時を変更する。 -->
 	<update id="changeStatus">
 		UPDATE SALES_ORDER
 		SET progress_status = #{progressStatus}, updated_at

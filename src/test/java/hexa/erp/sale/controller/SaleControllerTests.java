@@ -54,13 +54,13 @@ public class SaleControllerTests {
 
 	private MockMvc mockMvc;
 
-	// MockMvc 객체 생성
+	// MockMvcオブジェクトを生成
 	@Before
 	public void setup() {
 		mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 	}
 
-	// 신규 판매 입력 화면 확인
+	// 新規売上入力画面を確認
 	@Test
 	public void testForm() throws Exception {
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/sale/form")).andReturn();
@@ -81,7 +81,7 @@ public class SaleControllerTests {
 		assertEquals("create", mode);
 	}
 
-	// 기존 판매 입력 화면 확인
+	// 既存の売上入力画面を確認
 	@Test
 	public void testEditForm() throws Exception {
 		ItemVO item = createItem();
@@ -114,7 +114,7 @@ public class SaleControllerTests {
 		assertEquals("edit", mode);
 	}
 
-	// 테스트 판매 생성
+	// テスト売上を生成
 	private SaleVO createSale(ItemVO item, WarehouseLookupVO warehouse) {
 
 		SaleVO sale = new SaleVO();
@@ -133,17 +133,17 @@ public class SaleControllerTests {
 		return sale;
 	}
 
-	// 테스트 품목 생성
+	// テスト品目を生成
 	private ItemVO createItem() {
 		String token = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
 
 		ItemVO item = new ItemVO();
 
 		item.setItemCode("SALECTRL" + token);
-		item.setItemName("판매 컨트롤러 테스트 품목 " + token);
+		item.setItemName("売上Controllerテスト品目 " + token);
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 		item.setInboundPrice(new BigDecimal("7000"));
 		item.setOutboundPrice(new BigDecimal("10000"));
 

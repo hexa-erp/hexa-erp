@@ -8,13 +8,13 @@ import hexa.erp.item.domain.ItemLookupVO;
 import hexa.erp.item.service.ItemLookupService;
 import hexa.erp.common.domain.LookupCriteria;
 
-/** 웹 컨텍스트 테스트 전용 응답. 실제 DB 데이터나 검색 구현이 아니며 main에서는 사용하지 않는다. */
+/** Webコンテキストテスト専用レスポンス。実際のDBデータや検索処理ではなく、mainでは使用しない。 */
 public class StubItemLookupService implements ItemLookupService {
 	@Override
 	public ItemLookupVO get(Long id) {
 		ItemLookupVO row = getList(new LookupCriteria(), null).get(0);
 		row.setItemId(id);
-		row.setItemName("웹 테스트 품목 " + id);
+		row.setItemName("Webテスト品目 " + id);
 		return row;
 	}
 
@@ -28,8 +28,8 @@ public class StubItemLookupService implements ItemLookupService {
 		ItemLookupVO row = new ItemLookupVO();
 		row.setItemId(42L);
 		row.setItemCode("00001");
-		row.setItemName("웹 테스트 품목");
-		row.setSpecification("선택 테스트 규격");
+		row.setItemName("Webテスト品目");
+		row.setSpecification("選択テスト規格");
 		row.setUnit("EA");
 		row.setOutboundPrice(new BigDecimal("100.00"));
 		row.setStockQuantity(warehouseId == null ? null : new BigDecimal("12.375"));

@@ -9,6 +9,7 @@ import lombok.ToString;
 @ToString
 public class QuotationCriteria {
 
+	// 初期表示は1ページ目、1ページ25件とし、進行状態を指定しない場合は全件を対象とする。
 	private int page = 1;
 	private int pageSize = 25;
 

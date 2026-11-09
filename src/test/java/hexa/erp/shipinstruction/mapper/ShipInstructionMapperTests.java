@@ -29,7 +29,7 @@ public class ShipInstructionMapperTests {
 	@Autowired
 	private ShipInstructionMapper mapper;
 
-	// 일치하는 출하지시서가 없을 때 목록과 전체 건수 확인
+	// 一致する出荷指示書がない場合の一覧と総件数を確認
 	@Test
 	public void testGetListWithPaging() {
 		ShipInstructionCriteria criteria = new ShipInstructionCriteria();

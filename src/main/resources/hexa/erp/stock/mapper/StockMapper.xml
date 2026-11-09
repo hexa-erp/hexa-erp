@@ -6,7 +6,7 @@
 
 <mapper namespace="hexa.erp.stock.mapper.StockMapper">
 
-	<!-- 전체 현재고 조회 -->
+	<!-- 現在庫の全件取得 -->
 	<select id="getList" resultType="hexa.erp.stock.domain.StockVO">
 
 		SELECT
@@ -24,7 +24,7 @@
 		ITEM_ID
 	</select>
 
-	<!-- 창고와 품목별 현재고 조회 -->
+	<!-- 倉庫・品目別の現在庫を取得する。 -->
 	<select id="read" resultType="hexa.erp.stock.domain.StockVO">
 
 		SELECT
@@ -40,7 +40,7 @@
 		AND ITEM_ID = #{itemId}
 	</select>
 
-	<!-- 사용 중인 창고 조회 -->
+	<!-- 利用中の倉庫を取得する。 -->
 	<select id="getWarehouseList"
 		resultType="hexa.erp.warehouse.domain.WarehouseLookupVO">
 
@@ -60,7 +60,7 @@
 		WAREHOUSE_ID
 	</select>
 
-	<!-- 신규 현재고 등록 -->
+	<!-- 新規現在庫を登録する。 -->
 	<insert id="insert"
 		parameterType="hexa.erp.stock.domain.StockVO">
 
@@ -77,7 +77,7 @@
 		)
 	</insert>
 
-	<!-- 기존 현재고 수정 -->
+	<!-- 既存の現在庫を更新する。 -->
 	<update id="update"
 		parameterType="hexa.erp.stock.domain.StockVO">
 
@@ -91,7 +91,7 @@
 		#{itemId}
 	</update>
 
-	<!-- 현재고 수량 증감 -->
+	<!-- 現在庫数量を増減する。 -->
 	<update id="addQuantity"
 		parameterType="hexa.erp.stock.domain.StockMovementVO">
 
@@ -104,7 +104,7 @@
 		ITEM_ID = #{itemId}
 	</update>
 
-	<!-- 재고 변동 이력 등록 -->
+	<!-- 在庫変動履歴を登録する。 -->
 	<insert id="insertMovement"
 		parameterType="hexa.erp.stock.domain.StockMovementVO">
 

@@ -28,7 +28,7 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import hexa.erp.partner.domain.PartnerLookupVO;
 import hexa.erp.common.domain.LookupCriteria;
 
-/** Oracle 연결 없이 MyBatis XML·동적 SQL을 검사한다. SQL 실행 검사는 IT에서 한다. */
+/** Oracle接続なしでMyBatis XML・動的SQLを検証する。SQL実行はITで検証する。 */
 public class PartnerLookupMapperTest {
 	private Configuration configuration;
 	private static final String NAMESPACE = "hexa.erp.partner.mapper.PartnerLookupMapper";

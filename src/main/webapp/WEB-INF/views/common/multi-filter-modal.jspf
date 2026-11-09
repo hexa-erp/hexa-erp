@@ -4,17 +4,17 @@
 <dialog id="multi-filter-modal" class="modal multi-filter-modal"
 	aria-labelledby="multi-filter-title">
 <div class="modal-header">
-	<h2 id="multi-filter-title">검색조건 선택</h2>
+	<h2 id="multi-filter-title">検索条件の選択</h2>
 	<button type="button" class="icon-button" data-modal-close
-		aria-label="닫기">×</button>
+		aria-label="閉じる">×</button>
 </div>
 <div class="modal-body">
 	<form id="multi-filter-search" class="toolbar">
-		<label class="sr-only" for="multi-filter-keyword">코드 또는 이름 검색</label>
+		<label class="sr-only" for="multi-filter-keyword">コードまたは名称で検索</label>
 		<input id="multi-filter-keyword" name="keyword" type="text"
-			autocomplete="off" maxlength="100" placeholder="코드·이름 입력 후 [Enter]" />
-		<button class="btn btn-primary" type="submit">검색</button>
-		<span class="muted">체크한 항목을 적용하세요.</span>
+			autocomplete="off" maxlength="100" placeholder="コード・名称を入力して［Enter］" />
+		<button class="btn btn-primary" type="submit">検索</button>
+		<span class="muted">チェックした項目を適用してください。</span>
 	</form>
 	<p id="multi-filter-error" class="multi-error" role="status" hidden></p>
 	<div class="table-wrap">
@@ -26,8 +26,8 @@
 	<div id="multi-filter-pages" class="pagination"></div>
 </div>
 <div class="modal-footer">
-	<button type="button" id="multi-filter-apply" class="btn btn-primary">적용</button>
-	<button type="button" class="btn" data-modal-close>취소</button>
-	<span class="muted">검색·페이지 이동 후에도 체크한 항목은 유지됩니다.</span>
+	<button type="button" id="multi-filter-apply" class="btn btn-primary">適用</button>
+	<button type="button" class="btn" data-modal-close>キャンセル</button>
+	<span class="muted">検索やページ移動後もチェックした項目は保持されます。</span>
 </div>
 </dialog>

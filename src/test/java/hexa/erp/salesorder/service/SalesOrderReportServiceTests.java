@@ -57,7 +57,7 @@ public class SalesOrderReportServiceTests {
 	@Autowired
 	private StockMapper stockMapper;
 
-	// 미판매 현황의 기준일, 판매 수정·삭제와 잔량·재고 반영 확인
+	// 未売上一覧の基準日、売上更新・削除、残数・在庫への反映を確認
 	@Test
 	public void testUnsoldCutoffDateAndSaleChanges() {
 		ItemVO item = createItem();
@@ -66,7 +66,7 @@ public class SalesOrderReportServiceTests {
 		WarehouseVO warehouse = createWarehouse();
 		warehouseMapper.insertSelectKey(warehouse);
 
-		// 원주문 10개 저장
+		// 元受注10個を保存
 		SalesOrderVO order = createOrder(item, warehouse);
 		Long orderId = salesOrderService.save(order);
 		Long orderLineId = order.getLines().get(0).getSalesOrderLineId();
@@ -74,7 +74,7 @@ public class SalesOrderReportServiceTests {
 		assertNotNull(orderId);
 		assertNotNull(orderLineId);
 
-		// 1월 31일 판매 3개
+		// 1月31日の売上3個
 		SaleVO januarySale = createLinkedSale(item, warehouse, orderLineId, "2026-01-31", "3");
 
 		Long januarySaleId = saleService.save(januarySale);
@@ -82,7 +82,7 @@ public class SalesOrderReportServiceTests {
 		assertNotNull(januarySaleId);
 		assertEquals(orderLineId, januarySale.getLines().get(0).getSalesOrderLineId());
 
-		// 2월 1일 판매 4개
+		// 2月1日の売上4個
 		SaleVO februarySale = createLinkedSale(item, warehouse, orderLineId, "2026-02-01", "4");
 
 		Long februarySaleId = saleService.save(februarySale);
@@ -94,17 +94,17 @@ public class SalesOrderReportServiceTests {
 		SalesOrderReportCriteria criteria = new SalesOrderReportCriteria();
 		criteria.setItemIds(Collections.singletonList(item.getItemId().toString()));
 
-		// 1월 31일 기준: 판매 3개만 차감 → 잔량 7
+		// 1月31日時点：売上3個だけを差し引く → 残数7
 		criteria.setCutoffDate("2026-01-31");
 		assertUnsoldReport(criteria, orderId, orderLineId, "7", "7000", "700");
 		assertStockQuantity(warehouse, item, "-7");
 
-		// 2월 1일 기준: 판매 3개와 4개 차감 → 잔량 3
+		// 2月1日時点：売上3個と4個を差し引く → 残数3
 		criteria.setCutoffDate("2026-02-01");
 		assertUnsoldReport(criteria, orderId, orderLineId, "3", "3000", "300");
 		assertStockQuantity(warehouse, item, "-7");
 
-		// 기존 판매 상세행 ID 확인
+		// 既存の売上明細行IDを確認
 		SaleVO existingSale = saleService.get(februarySaleId);
 
 		assertNotNull(existingSale);
@@ -112,7 +112,7 @@ public class SalesOrderReportServiceTests {
 
 		Long saleLineId = existingSale.getLines().get(0).getSaleLineId();
 
-		// 수정 요청은 별도 VO로 구성: 판매 수량 4 → 5
+		// 更新リクエストは別のVOで作成：売上数量4 → 5
 		SaleVO update = createLinkedSale(item, warehouse, orderLineId, "2026-02-01", "5");
 
 		update.setSaleId(februarySaleId);
@@ -128,11 +128,11 @@ public class SalesOrderReportServiceTests {
 		assertEquals(orderLineId, changedSale.getLines().get(0).getSalesOrderLineId());
 		assertDecimal("5", changedSale.getLines().get(0).getQuantity());
 
-		// 판매 합계 8개 → 잔량 2, 재고 -8
+		// 売上合計8個 → 残数2、在庫-8
 		assertUnsoldReport(criteria, orderId, orderLineId, "2", "2000", "200");
 		assertStockQuantity(warehouse, item, "-8");
 
-		// 2월 1일 판매 삭제 → 1월 31일 판매 3개만 유지
+		// 2月1日の売上を削除 → 1月31日の売上3個だけを保持
 		assertEquals(1, saleService.remove(Collections.singletonList(februarySaleId)));
 		assertNull(saleService.get(februarySaleId));
 
@@ -140,13 +140,13 @@ public class SalesOrderReportServiceTests {
 		assertStockQuantity(warehouse, item, "-3");
 	}
 
-	// 원주문 10개 생성
+	// 元受注10個を生成
 	private SalesOrderVO createOrder(ItemVO item, WarehouseVO warehouse) {
 
 		SalesOrderVO order = new SalesOrderVO();
 		order.setBusinessDate("2026-01-01");
 		order.setWarehouseId(warehouse.getWarehouseId());
-		order.setNote("미판매 현황 원주문 테스트");
+		order.setNote("未売上一覧の元受注テスト");
 
 		SalesOrderLineVO line = new SalesOrderLineVO();
 		line.setItemId(item.getItemId());
@@ -161,14 +161,14 @@ public class SalesOrderReportServiceTests {
 		return order;
 	}
 
-	// 원주문 상세행을 연결한 판매 생성
+	// 元受注明細行に紐付けた売上を生成
 	private SaleVO createLinkedSale(ItemVO item, WarehouseVO warehouse, Long orderLineId, String businessDate,
 			String quantity) {
 
 		SaleVO sale = new SaleVO();
 		sale.setBusinessDate(businessDate);
 		sale.setWarehouseId(warehouse.getWarehouseId());
-		sale.setNote("미판매 현황 테스트 판매");
+		sale.setNote("未売上一覧テスト売上");
 
 		SaleLineVO line = new SaleLineVO();
 		line.setSalesOrderLineId(orderLineId);
@@ -184,7 +184,7 @@ public class SalesOrderReportServiceTests {
 		return sale;
 	}
 
-	// 미판매 현황의 상세행과 합계 확인
+	// 未売上一覧の明細行と合計を確認
 	private void assertUnsoldReport(SalesOrderReportCriteria criteria, Long orderId, Long orderLineId,
 			String remainingQuantity, String supplyAmount, String vatAmount) {
 
@@ -195,7 +195,7 @@ public class SalesOrderReportServiceTests {
 
 		Map<String, Object> group = report.getMonthGroups().get(0);
 
-		// 월별 그룹은 원주문 일자를 기준으로 구성
+		// 月別グループは元受注の日付で構成
 		assertEquals("2026-01", group.get("monthLabel"));
 
 		List<?> rows = (List<?>) group.get("rows");
@@ -239,10 +239,10 @@ public class SalesOrderReportServiceTests {
 
 		ItemVO item = new ItemVO();
 		item.setItemCode("SORTEST" + token);
-		item.setItemName("미판매 현황 테스트 품목 " + token);
+		item.setItemName("未売上一覧テスト品目 " + token);
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 		item.setInboundPrice(BigDecimal.ZERO);
 		item.setOutboundPrice(new BigDecimal("1000"));
 
@@ -254,8 +254,8 @@ public class SalesOrderReportServiceTests {
 
 		WarehouseVO warehouse = new WarehouseVO();
 		warehouse.setWarehouseCode("SORWTEST" + token);
-		warehouse.setWarehouseName("미판매 현황 테스트 창고 " + token);
-		warehouse.setWarehouseType("창고");
+		warehouse.setWarehouseName("未売上一覧テスト倉庫 " + token);
+		warehouse.setWarehouseType("倉庫");
 
 		return warehouse;
 	}

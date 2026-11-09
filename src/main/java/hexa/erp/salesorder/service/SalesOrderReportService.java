@@ -5,9 +5,9 @@ import hexa.erp.salesorder.domain.SalesOrderReportVO;
 
 public interface SalesOrderReportService {
 
-	// 주문서 현황 조회 및 월별 합계
+	// 受注集計の取得と月別合計
 	SalesOrderReportVO getStatus(SalesOrderReportCriteria criteria);
 
-	// 미판매 현황 조회
+	// 未売上一覧を取得する。
 	SalesOrderReportVO getUnsold(SalesOrderReportCriteria criteria);
 }

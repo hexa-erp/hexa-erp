@@ -15,42 +15,42 @@ import lombok.extern.log4j.Log4j;
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
 
-	// 품목 Mapper 연결
+	// 品目Mapperの参照
 	private final ItemMapper mapper;
 
-	// 품목 목록 조회
+	// 品目一覧を取得する。
 	@Override
 	public List<ItemVO> getList(ItemCriteria criteria) {
 		return mapper.getListWithPaging(criteria);
 	}
 
-	// 검색 조건 전체 건수 조회
+	// 検索条件に一致する総件数を取得する。
 	@Override
 	public int getTotal(ItemCriteria criteria) {
 		return mapper.getTotalCount(criteria);
 	}
 
-	// 품목 한 건 조회
+	// 品目を1件取得する。
 	@Override
 	public ItemVO get(Long itemId) {
 		return mapper.read(itemId);
 	}
 
-	// 신규 품목 등록
+	// 新規品目を登録する。
 	@Override
 	public void register(ItemVO item) {
-		log.info("품목 등록 처리");
+		log.info("品目の登録処理");
 		mapper.insertSelectKey(item);
 	}
 
-	// 기존 품목 정보 수정
+	// 既存の品目情報を更新する。
 	@Override
 	public boolean modify(ItemVO item) {
-		log.info("품목 수정: " + item.getItemId());
+		log.info("品目の更新: " + item.getItemId());
 		return mapper.update(item) == 1;
 	}
 
-	// 품목 사용 여부 변경
+	// 品目の利用状態を変更する。
 	@Override
 	public int changeActive(List<Long> ids, String activeFlag) {
 
@@ -59,10 +59,10 @@ public class ItemServiceImpl implements ItemService {
 		}
 
 		if (!"Y".equals(activeFlag) && !"N".equals(activeFlag)) {
-			throw new IllegalArgumentException("사용 여부는 Y 또는 N이어야 합니다.");
+			throw new IllegalArgumentException("利用状態にはYまたはNを指定してください。");
 		}
 
-		log.info("품목 사용 여부 변경: " + activeFlag);
+		log.info("品目の利用状態変更: " + activeFlag);
 		return mapper.changeActive(ids, activeFlag);
 	}
 }

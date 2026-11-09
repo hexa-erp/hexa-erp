@@ -35,36 +35,36 @@ public class SalePriceController {
 	@GetMapping
 	public String bulkPrice(SalePriceCriteria criteria, BindingResult bindingResult,
 			@RequestParam Map<String, String> params, HttpServletRequest request, Model model) {
-		log.info("판매 단가 일괄 변경 화면 요청");
+		log.info("売上単価一括変更画面の表示リクエスト");
 		Map<String, String> search = ViewModels.search(params);
-		// 창고·거래처·품목만 검색조건으로 받는다.
+		// 倉庫・取引先・品目のみを検索条件として受け取る。
 		Map<String, List<String>> filterIds = ViewModels.filters(request, search, model, "warehouse", "partner",
 				"item");
-		// 필터 ID는 같은 이름의 단일 ID 파라미터까지 합친 값으로 덮어쓴다.
+		// フィルターIDは、同名の単一IDパラメーターも含めた値で上書きする。
 		criteria.setWarehouseIds(filterIds.get("warehouseIds"));
 		criteria.setPartnerIds(filterIds.get("partnerIds"));
 		criteria.setItemIds(filterIds.get("itemIds"));
 		List<SalePriceVO> rows = Collections.emptyList();
 		int totalCount = 0;
 		int totalPages = 1;
-		// 검색조건 입력 화면(view 없음)에서는 조회하지 않고, 결과 화면에서만 조회한다.
+		// 検索条件入力画面（view未指定）では検索を実行せず、結果画面でのみ取得する。
 		if ("results".equals(params.get("view"))) {
 			if (bindingResult.hasErrors()) {
-				model.addAttribute("errorMessage", "검색조건과 페이지 번호를 확인해 주세요.");
+				model.addAttribute("errorMessage", "検索条件とページ番号を確認してください。");
 			} else {
 				try {
 					totalCount = service.getTotal(criteria);
 					totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
-					// 저장 후 행이 줄어 현재 페이지가 사라졌으면 마지막 페이지를 보여준다.
+					// 保存後に行数が減り現在のページがなくなった場合は、最終ページを表示する。
 					criteria.setPage(Math.min(criteria.getPage(), totalPages));
 					rows = service.getList(criteria);
 				} catch (DataAccessException e) {
-					log.error("판매 단가 일괄 변경 조회 실패", e);
-					model.addAttribute("errorMessage", "판매 상세행을 조회하지 못했습니다. 검색조건을 확인해 주세요.");
+					log.error("売上単価一括変更の取得に失敗しました", e);
+					model.addAttribute("errorMessage", "売上明細行を取得できませんでした。検索条件を確認してください。");
 				}
 			}
 		}
-		// 화면에는 Criteria에서 보정한 값(공백 제거, 페이지 범위)을 다시 보여준다.
+		// 画面にはCriteriaで補正した値（空白除去、ページ範囲）を表示する。
 		search.put("keyword", criteria.getKeyword());
 		search.put("progressStatus", criteria.getProgressStatus());
 		search.put("page", String.valueOf(criteria.getPage()));
@@ -78,7 +78,7 @@ public class SalePriceController {
 		model.addAttribute("totalCount", totalCount);
 		model.addAttribute("basePath", "/sale/bulk-price");
 		model.addAttribute("activeMenu", "sale");
-		model.addAttribute("pageTitle", "판매 단가 일괄 변경");
+		model.addAttribute("pageTitle", "売上単価一括変更");
 		model.addAttribute("pageScript", "sale.js");
 		return "sale/bulk-price";
 	}

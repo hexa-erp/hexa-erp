@@ -9,21 +9,21 @@ import hexa.erp.item.domain.ItemVO;
 
 public interface ItemMapper {
 
-	// 품목 목록 조회
+	// 品目一覧を取得する。
 	List<ItemVO> getListWithPaging(ItemCriteria criteria);
 
-	// 검색 조건 전체 건수 조회
+	// 検索条件に一致する総件数を取得する。
 	int getTotalCount(ItemCriteria criteria);
 
-	// 품목 한 건 조회
+	// 品目を1件取得する。
 	ItemVO read(Long itemId);
 
-	// 신규 품목 등록
+	// 新規品目を登録する。
 	void insertSelectKey(ItemVO item);
 
-	// 기존 품목 정보 수정
+	// 既存の品目情報を更新する。
 	int update(ItemVO item);
 
-	// 품목 사용 여부 변경
+	// 品目の利用状態を変更する。
 	int changeActive(@Param("ids") List<Long> ids, @Param("activeFlag") String activeFlag);
 }

@@ -6,8 +6,10 @@
 
 <mapper namespace="hexa.erp.partner.mapper.PartnerMapper">
 
+	<!-- 取引先コード、取引先名、代表者名のいずれかに部分一致する取引先を検索する。大文字・小文字は区別しない。 -->
 	<sql id="searchCondition">
 		<where>
+			<!-- 通常は使用中のみを対象とし、「使用停止を含む」が選択された場合は使用停止中の取引先も含める。 -->
 			<if test='includeInactive != "Y"'>
 				AND p.ACTIVE_FLAG = 'Y'
 			</if>
@@ -22,6 +24,7 @@
 		</where>
 	</sql>
 
+	<!-- 取引先コードの昇順（同一の場合は取引先IDの昇順）で、指定ページの範囲を取得する。 -->
 	<select id="getListWithPaging"
 		parameterType="hexa.erp.partner.domain.PartnerCriteria"
 		resultType="hexa.erp.partner.domain.PartnerVO">
@@ -93,6 +96,7 @@
 		<include refid="searchCondition" />
 	</select>
 
+	<!-- シーケンスでIDを採番して、新規取引先を使用中（Y）で登録する。 -->
 	<insert id="insertSelectKey"
 		parameterType="hexa.erp.partner.domain.PartnerVO">
 
@@ -141,6 +145,7 @@
 		)
 	</insert>
 
+	<!-- IDに該当する取引先を更新する。既存の取引先コードは変更しない。 -->
 	<update id="update"
 		parameterType="hexa.erp.partner.domain.PartnerVO">
 
@@ -163,6 +168,7 @@
 		WHERE PARTNER_ID = #{partnerId}
 	</update>
 
+	<!-- チェックした取引先の使用フラグをN（使用停止）またはY（使用再開）に変更する。 -->
 	<update id="changeActive">
 		UPDATE BIZ_PARTNER
 		SET

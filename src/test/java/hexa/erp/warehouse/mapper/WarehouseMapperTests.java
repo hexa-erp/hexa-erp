@@ -30,7 +30,7 @@ public class WarehouseMapperTests {
 	@Autowired
 	private WarehouseMapper mapper;
 
-	// Mapper 객체 주입 확인
+	// Mapperオブジェクトの注入を確認
 	@Test
 	public void testMapperExist() {
 		log.info("========== MAPPER INJECTION TEST ==========");
@@ -39,7 +39,7 @@ public class WarehouseMapperTests {
 		assertNotNull(mapper);
 	}
 
-	// 창고 등록과 조회 확인
+	// 倉庫の登録と取得を確認
 	@Test
 	public void testInsertAndSelect() {
 		WarehouseVO warehouse = createWarehouse();
@@ -72,23 +72,23 @@ public class WarehouseMapperTests {
 		assertEquals(warehouse.getWarehouseName(), savedWarehouse.getWarehouseName());
 	}
 
-	// 창고 정보 수정 확인
+	// 倉庫情報の更新を確認
 	@Test
 	public void testUpdate() {
 		WarehouseVO warehouse = createWarehouse();
 		mapper.insertSelectKey(warehouse);
 
 		String originalCode = warehouse.getWarehouseCode();
-		String changedName = "수정 창고 " + createToken();
+		String changedName = "更新倉庫 " + createToken();
 
 		warehouse.setWarehouseName(changedName);
-		warehouse.setWarehouseType("공장");
+		warehouse.setWarehouseType("工場");
 
 		log.info("========== MAPPER UPDATE TEST ==========");
 		log.info("WAREHOUSE ID: " + warehouse.getWarehouseId());
 		log.info("ORIGINAL WAREHOUSE CODE: " + originalCode);
 		log.info("CHANGED WAREHOUSE NAME: " + changedName);
-		log.info("CHANGED WAREHOUSE TYPE: 공장");
+		log.info("CHANGED WAREHOUSE TYPE: 工場");
 
 		int updateCount = mapper.update(warehouse);
 
@@ -103,10 +103,10 @@ public class WarehouseMapperTests {
 		assertNotNull(changedWarehouse);
 		assertEquals(originalCode, changedWarehouse.getWarehouseCode());
 		assertEquals(changedName, changedWarehouse.getWarehouseName());
-		assertEquals("공장", changedWarehouse.getWarehouseType());
+		assertEquals("工場", changedWarehouse.getWarehouseType());
 	}
 
-	// 창고 사용중단 처리 확인
+	// 倉庫の利用停止を確認
 	@Test
 	public void testChangeActive() {
 		WarehouseVO warehouse = createWarehouse();
@@ -137,7 +137,7 @@ public class WarehouseMapperTests {
 		assertTrue(activeList.isEmpty());
 	}
 
-	// 코드·창고명·구분 검색 확인
+	// コード・倉庫名・区分の検索を確認
 	@Test
 	public void testSearch() {
 		WarehouseVO warehouse = createWarehouse();
@@ -169,7 +169,7 @@ public class WarehouseMapperTests {
 		assertNotNull(typeResult);
 	}
 
-	// 검색 조건 생성
+	// 検索条件を生成
 	private WarehouseCriteria createCriteria(String keyword) {
 		WarehouseCriteria criteria = new WarehouseCriteria();
 
@@ -181,26 +181,26 @@ public class WarehouseMapperTests {
 		return criteria;
 	}
 
-	// 창고 ID로 조회 결과 확인
+	// 倉庫IDによる取得結果を確認
 	private WarehouseVO findById(List<WarehouseVO> list, Long warehouseId) {
 
 		return list.stream().filter(warehouse -> warehouseId.equals(warehouse.getWarehouseId())).findFirst()
 				.orElse(null);
 	}
 
-	// 테스트 창고 생성
+	// テスト倉庫を生成
 	private WarehouseVO createWarehouse() {
 		String token = createToken();
 
 		WarehouseVO warehouse = new WarehouseVO();
 		warehouse.setWarehouseCode("TEST" + token);
-		warehouse.setWarehouseName("테스트 창고 " + token);
-		warehouse.setWarehouseType("창고");
+		warehouse.setWarehouseName("テスト倉庫 " + token);
+		warehouse.setWarehouseType("倉庫");
 
 		return warehouse;
 	}
 
-	// 중복 방지 문자열 생성
+	// 重複防止用の文字列を生成
 	private String createToken() {
 		return UUID.randomUUID().toString().replace("-", "").substring(0, 12);
 	}

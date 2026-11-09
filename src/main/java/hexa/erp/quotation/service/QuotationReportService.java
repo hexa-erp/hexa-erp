@@ -5,9 +5,9 @@ import hexa.erp.quotation.domain.QuotationReportVO;
 
 public interface QuotationReportService {
 
-	// 견적서 현황 조회 및 월별 합계
+	// 見積集計の取得と月別合計
 	QuotationReportVO getStatus(QuotationReportCriteria criteria);
 
-	// 미주문 현황 조회
+	// 未受注一覧を取得する。
 	QuotationReportVO getUnordered(QuotationReportCriteria criteria);
 }

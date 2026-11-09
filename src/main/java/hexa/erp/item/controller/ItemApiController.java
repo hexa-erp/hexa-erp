@@ -49,7 +49,7 @@ public class ItemApiController {
 	public ItemVO get(@PathVariable("id") Long id, HttpServletRequest request) {
 		ItemVO item = service.get(id);
 		if (item == null) {
-			throw new ApiException(HttpStatus.NOT_FOUND, "조회할 품목이 없습니다.");
+			throw new ApiException(HttpStatus.NOT_FOUND, "表示対象の品目がありません。");
 		}
 		if (StringUtils.hasText(item.getImagePath())) {
 			item.setImageUrl(request.getContextPath() + "/master/item/image?itemId=" + id);
@@ -57,55 +57,60 @@ public class ItemApiController {
 		return item;
 	}
 
+	// 入庫単価・出庫単価などの型変換に失敗した場合は保存せず、入力値の確認を案内する。
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ApiResponseVO> create(@ModelAttribute ItemVO item, BindingResult bindingResult,
 			@RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
 			@RequestParam(value = "removeImage", defaultValue = "N") String removeImage) {
 		if (bindingResult.hasErrors()) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "품목 입력값과 단가를 확인해 주세요.");
+			throw new ApiException(HttpStatus.BAD_REQUEST, "品目の入力内容と単価を確認してください。");
 		}
 		if (item.getItemId() != null) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "신규 품목에는 식별자를 지정할 수 없습니다.");
+			throw new ApiException(HttpStatus.BAD_REQUEST, "新規品目にIDを指定することはできません。");
 		}
 		save(item, imageFile, removeImage);
-		return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-				.buildAndExpand(item.getItemId()).toUri())
-				.body(new ApiResponseVO("품목을 등록했습니다.", item.getItemId(), null));
+		return ResponseEntity.created(
+				ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(item.getItemId()).toUri())
+				.body(new ApiResponseVO("品目を登録しました。", item.getItemId(), null));
 	}
 
+	// 既存品目も入力値を検証してから、指定されたIDの品目を更新する。
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ApiResponseVO update(@PathVariable("id") Long id, @ModelAttribute ItemVO item, BindingResult bindingResult,
 			@RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
 			@RequestParam(value = "removeImage", defaultValue = "N") String removeImage) {
 		if (bindingResult.hasErrors()) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "품목 입력값과 단가를 확인해 주세요.");
+			throw new ApiException(HttpStatus.BAD_REQUEST, "品目の入力内容と単価を確認してください。");
 		}
 		item.setItemId(id);
 		save(item, imageFile, removeImage);
-		return new ApiResponseVO("품목을 수정했습니다.", id, null);
+		return new ApiResponseVO("品目を更新しました。", id, null);
 	}
 
 	@PatchMapping(value = "/active", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ApiResponseVO changeActive(@RequestBody ActiveChangeVO change) {
+		// 未選択の場合は処理せず、変更件数が0の場合は変更対象がないことを通知する。
 		ApiRequests.requireIds(change);
 		if (!"Y".equals(change.getActiveFlag()) && !"N".equals(change.getActiveFlag())) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "사용 여부를 확인해 주세요.");
+			throw new ApiException(HttpStatus.BAD_REQUEST, "利用状態を確認してください。");
 		}
 		int count = service.changeActive(change.getIds(), change.getActiveFlag());
 		if (count == 0) {
-			throw new ApiException(HttpStatus.NOT_FOUND, "변경할 품목이 없습니다.");
+			throw new ApiException(HttpStatus.NOT_FOUND, "変更対象の品目がありません。");
 		}
-		return new ApiResponseVO("품목의 사용 여부를 변경했습니다.", null, count);
+		return new ApiResponseVO("品目の利用状態を変更しました。", null, count);
 	}
 
-	// DB 저장이 성공한 경우에만 이전 사진을 삭제한다.
+	// DBへの保存が成功した場合のみ、変更前の画像を削除する。
 	private void save(ItemVO item, MultipartFile imageFile, String removeImage) {
+		// コード（新規登録時）または品目名が空欄の場合は保存しない。
 		if (!StringUtils.hasText(item.getItemName())
 				|| (item.getItemId() == null && !StringUtils.hasText(item.getItemCode()))) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "품목 코드와 품목명을 입력해 주세요.");
+			throw new ApiException(HttpStatus.BAD_REQUEST, "品目コードと品目名を入力してください。");
 		}
-		if (!Arrays.asList("원재료", "부재료", "제품", "반제품", "상품", "무형상품").contains(item.getItemType())) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "품목 구분을 선택해 주세요.");
+		// 品目区分が未選択、または選択肢にない値の場合は区分の選択を案内する。
+		if (!Arrays.asList("原材料", "副資材", "製品", "半製品", "商品", "無形商品").contains(item.getItemType())) {
+			throw new ApiException(HttpStatus.BAD_REQUEST, "品目区分を選択してください。");
 		}
 		item.setItemName(item.getItemName().trim());
 		if (item.getInboundPrice() == null) {
@@ -122,12 +127,13 @@ public class ItemApiController {
 			if (item.getItemId() != null) {
 				ItemVO stored = service.get(item.getItemId());
 				if (stored == null) {
-					throw new ApiException(HttpStatus.NOT_FOUND, "수정할 품목이 없습니다.");
+					throw new ApiException(HttpStatus.NOT_FOUND, "更新対象の品目がありません。");
 				}
 				oldImagePath = stored.getImagePath();
 			}
-			// 요청에 포함된 imagePath 대신 DB의 기존 경로를 사용한다.
+			// リクエストのimagePathではなく、DBに保存されているパスを使用する。
 			item.setImagePath(oldImagePath);
+			// 「画像削除」が指定されても、新しい画像が同時に指定された場合は新しい画像を優先する。
 			if (imageFile != null && !imageFile.isEmpty()) {
 				uploadedPath = imageService.store(imageFile);
 				item.setImagePath(uploadedPath);
@@ -135,6 +141,7 @@ public class ItemApiController {
 				item.setImagePath(null);
 			}
 
+			// IDがない場合はシーケンス採番による新規登録、IDがある場合は既存品目の更新を行う。
 			if (item.getItemId() == null) {
 				item.setItemCode(item.getItemCode().trim());
 				service.register(item);
@@ -143,18 +150,19 @@ public class ItemApiController {
 				saved = service.modify(item);
 			}
 			if (!saved) {
-				throw new ApiException(HttpStatus.NOT_FOUND, "수정할 품목이 없습니다.");
+				throw new ApiException(HttpStatus.NOT_FOUND, "更新対象の品目がありません。");
 			}
 			if (!Objects.equals(oldImagePath, item.getImagePath())) {
 				imageService.delete(oldImagePath);
 			}
 		} catch (DuplicateKeyException e) {
-			throw new ApiException(HttpStatus.CONFLICT, "이미 등록된 품목 코드입니다. 다른 코드를 입력해 주세요.");
+			// コードが登録済みの場合は、別のコードの入力を案内する。
+			throw new ApiException(HttpStatus.CONFLICT, "登録済みの品目コードです。別のコードを入力してください。");
 		} catch (IOException e) {
-			log.warn("품목 사진 저장 실패", e);
-			throw new ApiException(HttpStatus.BAD_REQUEST,
-					"사진을 저장하지 못했습니다. JPG·PNG·GIF 파일과 저장 폴더를 확인해 주세요.");
+			log.warn("品目画像の保存に失敗しました", e);
+			throw new ApiException(HttpStatus.BAD_REQUEST, "画像を保存できませんでした。JPG・PNG・GIFファイルと保存フォルダーを確認してください。");
 		} finally {
+			// 保存失敗時は今回アップロードしたファイルを削除し、旧画像を残す。
 			if (!saved && uploadedPath != null) {
 				imageService.delete(uploadedPath);
 			}

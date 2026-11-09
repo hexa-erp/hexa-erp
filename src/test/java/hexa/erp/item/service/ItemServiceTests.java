@@ -30,7 +30,7 @@ public class ItemServiceTests {
 	@Autowired
 	private ItemService service;
 
-	// Service 객체 주입 확인
+	// Serviceオブジェクトの注入を確認
 	@Test
 	public void testServiceExist() {
 		log.info("========== SERVICE INJECTION TEST ==========");
@@ -39,7 +39,7 @@ public class ItemServiceTests {
 		assertNotNull(service);
 	}
 
-	// 품목 등록과 조회 확인
+	// 品目の登録と取得を確認
 	@Test
 	public void testRegisterAndGet() {
 		ItemVO item = createItem();
@@ -64,13 +64,13 @@ public class ItemServiceTests {
 		assertEquals(item.getItemCode(), savedItem.getItemCode());
 	}
 
-	// 품목 수정과 사용중단 확인
+	// 品目の更新と利用停止を確認
 	@Test
 	public void testModifyAndChangeActive() {
 		ItemVO item = createItem();
 		service.register(item);
 
-		String changedName = "서비스 수정 품목 " + createToken();
+		String changedName = "Service更新テスト品目 " + createToken();
 
 		item.setItemName(changedName);
 		item.setOutboundPrice(new BigDecimal("25000"));
@@ -100,7 +100,7 @@ public class ItemServiceTests {
 		assertEquals("N", stoppedItem.getActiveFlag());
 	}
 
-	// 검색 조건 생성
+	// 検索条件を生成
 	private ItemCriteria createCriteria(String keyword) {
 		ItemCriteria criteria = new ItemCriteria();
 
@@ -110,24 +110,24 @@ public class ItemServiceTests {
 		return criteria;
 	}
 
-	// 테스트 품목 생성
+	// テスト品目を生成
 	private ItemVO createItem() {
 		String token = createToken();
 
 		ItemVO item = new ItemVO();
 		item.setItemCode("SERVICE" + token);
-		item.setItemName("서비스 테스트 품목 " + token);
+		item.setItemName("Serviceテスト品目 " + token);
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 		item.setInboundPrice(new BigDecimal("10000"));
 		item.setOutboundPrice(new BigDecimal("15000"));
-		item.setNote("Service 테스트 품목");
+		item.setNote("Serviceテスト品目");
 
 		return item;
 	}
 
-	// 중복 방지 문자열 생성
+	// 重複防止用の文字列を生成
 	private String createToken() {
 		return UUID.randomUUID().toString().replace("-", "").substring(0, 12);
 	}

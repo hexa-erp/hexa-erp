@@ -27,7 +27,7 @@ import hexa.erp.partner.domain.PartnerLookupVO;
 import hexa.erp.partner.service.PartnerLookupService;
 import hexa.erp.common.domain.LookupCriteria;
 
-/** 테스트 Service를 사용하며 실제 Oracle에는 연결하지 않는다. */
+/** テストServiceを使用し、実際のOracleには接続しない。 */
 public class PartnerLookupControllerTest {
 	private PartnerLookupController controller;
 	private StubPartnerLookupService service;
@@ -50,7 +50,7 @@ public class PartnerLookupControllerTest {
 					new RootBeanDefinition(PartnerLookupController.class));
 			try {
 				context.refresh();
-				fail("PartnerLookupService 없이 Controller가 등록되면 안 된다.");
+				fail("PartnerLookupServiceなしでControllerを登録してはならない。");
 			} catch (UnsatisfiedDependencyException expected) {
 				assertTrue(expected.getMessage().contains("PartnerLookupService"));
 			}
@@ -61,13 +61,13 @@ public class PartnerLookupControllerTest {
 	public void trimsKeywordBindsPageAndIgnoresRequestedAmount() throws Exception {
 		service.total = 26;
 		service.rows = Collections.singletonList(row());
-		JsonNode body = body(mvc.perform(get("/lookup/options/partner").param("keyword", "  김 거래처  ").param("page", "2")
+		JsonNode body = body(mvc.perform(get("/lookup/options/partner").param("keyword", "  佐藤 取引先  ").param("page", "2")
 				.param("amount", "1000").param("pageSize", "1000")).andReturn());
 		assertEnvelope(body, 2, 2, 26);
 		assertEquals(1, body.get("rows").size());
 		assertEquals(2, service.calls.size());
 		for (LookupCriteria criteria : service.calls) {
-			assertEquals("김 거래처", criteria.getKeyword());
+			assertEquals("佐藤 取引先", criteria.getKeyword());
 			assertEquals(2, criteria.getPageNum());
 			assertEquals(25, criteria.getAmount());
 		}
@@ -77,12 +77,12 @@ public class PartnerLookupControllerTest {
 		assertEquals(42L, selected.get("partnerId").asLong());
 		assertTrue(selected.get("partnerCode").isTextual());
 		assertEquals("00001", selected.get("partnerCode").asText());
-		assertEquals("김 거래처", selected.get("partnerName").asText());
+		assertEquals("佐藤 取引先", selected.get("partnerName").asText());
 		assertEquals("Y", selected.get("activeFlag").asText());
 		assertTrue(selected.get("assigneeId").isIntegralNumber());
 		assertEquals(101L, selected.get("assigneeId").asLong());
 		assertEquals("00001", selected.get("assigneeCode").asText());
-		assertEquals("김철수", selected.get("assigneeName").asText());
+		assertEquals("佐藤太郎", selected.get("assigneeName").asText());
 		assertEquals(Long.valueOf(42L), service.rows.get(0).getPartnerId());
 	}
 
@@ -122,7 +122,7 @@ public class PartnerLookupControllerTest {
 	public void outOfRangePageIsClampedBeforeListQueryAndInJson() throws Exception {
 		service.total = 26;
 		assertEnvelope(body(mvc.perform(get("/lookup/options/partner").param("page", "99")).andReturn()), 2, 2, 26);
-		assertEquals(99, service.calls.get(0).getPageNum()); // count는 페이지를 사용하지 않는다.
+		assertEquals(99, service.calls.get(0).getPageNum()); // countではページを使用しない。
 		assertEquals(2, service.calls.get(1).getPageNum());
 	}
 
@@ -151,11 +151,11 @@ public class PartnerLookupControllerTest {
 
 	@Test
 	public void countAndListFailuresAreNeverReportedAsEmptySuccess() {
-		RuntimeException failure = new IllegalStateException("테스트용 SQL 오류");
+		RuntimeException failure = new IllegalStateException("テスト用SQLエラー");
 		service.countFailure = failure;
 		try {
 			controller.partnerOptions("", 1);
-			fail("DB 오류를 빈 성공 응답으로 바꾸면 안 된다.");
+			fail("DBエラーを空の成功レスポンスに置き換えてはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
@@ -163,7 +163,7 @@ public class PartnerLookupControllerTest {
 		service.listFailure = failure;
 		try {
 			controller.partnerOptions("", 1);
-			fail("목록 조회 오류도 숨기면 안 된다.");
+			fail("一覧取得のエラーも隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
@@ -187,10 +187,10 @@ public class PartnerLookupControllerTest {
 		PartnerLookupVO row = new PartnerLookupVO();
 		row.setPartnerId(42L);
 		row.setPartnerCode("00001");
-		row.setPartnerName("김 거래처");
+		row.setPartnerName("佐藤 取引先");
 		row.setAssigneeId(101L);
 		row.setAssigneeCode("00001");
-		row.setAssigneeName("김철수");
+		row.setAssigneeName("佐藤太郎");
 		row.setActiveFlag("Y");
 		return row;
 	}

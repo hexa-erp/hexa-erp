@@ -7,9 +7,9 @@ import hexa.erp.salesorder.domain.SalesOrderReportRowVO;
 
 public interface SalesOrderReportMapper {
 
-	// 검색조건에 따른 주문서 현황 품목 별 조회
+	// 検索条件に一致する受注集計を品目別に取得する。
 	List<SalesOrderReportRowVO> getStatusRows(SalesOrderReportCriteria criteria);
 
-	// 검색조건에 따른 미판매 현황 품목 별 조회
+	// 検索条件に一致する未売上一覧を品目別に取得する。
 	List<SalesOrderReportRowVO> getUnsoldRows(SalesOrderReportCriteria criteria);
 }

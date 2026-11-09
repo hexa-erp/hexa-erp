@@ -55,16 +55,16 @@ import hexa.erp.sale.service.SalePriceService;
 import hexa.erp.shipinstruction.service.ShipInstructionService;
 import hexa.erp.shipment.service.ShipmentService;
 
-/** 웹 화면 조회용 고정 데이터. DB 연결과 파일 접근, 업무 데이터 변경은 허용하지 않는다. */
+/** Web画面照会用の固定データ。DB接続・ファイルアクセス・業務データの変更は許可しない。 */
 public final class StubBusinessServices {
 
 	private static final Long ID = 1L;
 	private static final String CODE = "00001";
 	private static final String DATE = "2026-01-01";
-	private static final String PARTNER_NAME = "웹 테스트 거래처";
-	private static final String WAREHOUSE_NAME = "웹 테스트 창고";
-	private static final String ITEM_NAME = "웹 테스트 품목";
-	private static final String ASSIGNEE_NAME = "웹 테스트 담당자";
+	private static final String PARTNER_NAME = "Webテスト取引先";
+	private static final String WAREHOUSE_NAME = "Webテスト倉庫";
+	private static final String ITEM_NAME = "Webテスト品目";
+	private static final String ASSIGNEE_NAME = "Webテスト担当者";
 	private static final BigDecimal UNIT_PRICE = new BigDecimal("100");
 	private static final BigDecimal VAT_AMOUNT = new BigDecimal("10");
 	private static final BigDecimal TOTAL_AMOUNT = new BigDecimal("110");
@@ -73,7 +73,7 @@ public final class StubBusinessServices {
 	}
 
 	private static AssertionError unsupported(String operation) {
-		return new AssertionError("웹 조회 테스트에서 허용하지 않는 작업: " + operation);
+		return new AssertionError("Web照会テストでは許可されない操作: " + operation);
 	}
 
 	private static PartnerVO partner() {
@@ -90,7 +90,7 @@ public final class StubBusinessServices {
 		row.setWarehouseId(ID);
 		row.setWarehouseCode(CODE);
 		row.setWarehouseName(WAREHOUSE_NAME);
-		row.setWarehouseType("창고");
+		row.setWarehouseType("倉庫");
 		row.setActiveFlag("Y");
 		return row;
 	}
@@ -100,9 +100,9 @@ public final class StubBusinessServices {
 		row.setItemId(ID);
 		row.setItemCode(CODE);
 		row.setItemName(ITEM_NAME);
-		row.setSpecification("선택 테스트 규격");
+		row.setSpecification("選択テスト規格");
 		row.setUnit("EA");
-		row.setItemType("상품");
+		row.setItemType("商品");
 		row.setInboundPrice(new BigDecimal("80"));
 		row.setOutboundPrice(UNIT_PRICE);
 		row.setActiveFlag("Y");

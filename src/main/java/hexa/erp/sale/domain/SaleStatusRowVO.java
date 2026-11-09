@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 import lombok.Data;
 
-/** 판매 현황의 한 행. 판매 전표의 품목 행 하나가 한 행이 된다. */
+/** 売上集計の1行。売上伝票の品目行1件に対応する。 */
 @Data
 public class SaleStatusRowVO {
 	private Long saleId;
@@ -18,7 +18,7 @@ public class SaleStatusRowVO {
 	private Long assigneeId;
 	private String assigneeName;
 	private String progressStatus;
-	private String headerNote; // 전표 비고
+	private String headerNote; // 伝票の備考
 	private Long itemId;
 	private String itemCode;
 	private String itemName;
@@ -29,6 +29,6 @@ public class SaleStatusRowVO {
 	private BigDecimal supplyAmount;
 	private BigDecimal vatAmount;
 	private BigDecimal totalAmount;
-	private String note; // 품목 행 비고
+	private String note; // 品目行の備考
 
 }

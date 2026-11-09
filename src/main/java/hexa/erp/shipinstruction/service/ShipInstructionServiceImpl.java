@@ -59,6 +59,7 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 		if (shipInstructionId == null) {
 			return null;
 		}
+		// 保存済みの基本情報と、削除されていない品目行をまとめて取得する。
 		ShipInstructionVO shipInstruction = mapper.read(shipInstructionId);
 		if (shipInstruction != null) {
 			shipInstruction.setLines(mapper.getLines(shipInstructionId));
@@ -67,45 +68,51 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 
 	}
 
+	// 基本情報と品目行の保存は1つのトランザクションで処理し、途中で失敗した場合はすべてロールバックする。
 	@Override
 	@Transactional
 	public Long save(ShipInstructionVO shipInstruction) {
+		// 日付の空欄と形式を確認し、不正な場合は案内を表示して保存しない。
 		if (shipInstruction == null || isBlank(shipInstruction.getBusinessDate())) {
-			throw new IllegalArgumentException("출하지시 일자를 입력해 주세요.");
+			throw new IllegalArgumentException("出荷指示日を入力してください。");
 		}
 		try {
 
 			shipInstruction.setBusinessDate(LocalDate.parse(shipInstruction.getBusinessDate().trim()).toString());
 		} catch (DateTimeParseException e) {
-			throw new IllegalArgumentException("출하지시 일자를 올바르게 입력해 주세요.");
+			throw new IllegalArgumentException("正しい出荷指示日を入力してください。");
 		}
+		// 出荷予定日は空欄を許可し、入力がある場合は日付形式を確認する。
 		if (isBlank(shipInstruction.getPlannedDate())) {
 			shipInstruction.setPlannedDate(null);
 		} else {
 			try {
 				shipInstruction.setPlannedDate(LocalDate.parse(shipInstruction.getPlannedDate().trim()).toString());
 			} catch (DateTimeParseException e) {
-				throw new IllegalArgumentException("출하 예정일을 올바르게 입력해 주세요.");
+				throw new IllegalArgumentException("正しい出荷予定日を入力してください。");
 			}
 		}
+		// 出荷倉庫が空欄の場合は、出荷倉庫を選択するよう案内する。
 		if (shipInstruction.getWarehouseId() == null) {
-			throw new IllegalArgumentException("출하창고를 선택해 주세요.");
+			throw new IllegalArgumentException("出荷倉庫を選択してください。");
 		}
 
 		ShipInstructionVO existing = null;
 		if (shipInstruction.getShipInstructionId() != null) {
 			existing = mapper.read(shipInstruction.getShipInstructionId());
 			if (existing == null) {
-				throw new IllegalArgumentException("수정할 출하지시서를 찾을 수 없습니다.");
+				throw new IllegalArgumentException("更新対象の出荷指示書が見つかりません。");
 			}
+			// 編集時は保存済みの番号・進行状態を保持して基本情報を更新する。
 			shipInstruction.setShipInstructionNo(existing.getShipInstructionNo());
 			shipInstruction.setProgressStatus(existing.getProgressStatus());
 		} else {
+			// 新規伝票の進行状態は進行中（IN_PROGRESS）とする。
 			shipInstruction.setProgressStatus("IN_PROGRESS");
 		}
 		fillHeaderNames(shipInstruction, existing);
 		if (isBlank(shipInstruction.getWarehouseName())) {
-			throw new IllegalArgumentException("선택한 출하창고를 찾을 수 없습니다.");
+			throw new IllegalArgumentException("選択した出荷倉庫が見つかりません。");
 		}
 
 		List<Long> removedLineIds = cleanIds(shipInstruction.getRemovedLineIds());
@@ -113,13 +120,15 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 		Set<Long> lineIds = new HashSet<>();
 		if (shipInstruction.getLines() != null) {
 			for (ShipInstructionLineVO line : shipInstruction.getLines()) {
+				// 品目が未選択の空行は保存しない。
 				if (line == null || line.getItemId() == null) {
 					continue;
 				}
+				// 同じ明細IDの重複、または削除リストにも含まれる行はエラーとする。
 				if (line.getShipInstructionLineId() != null) {
 					if (!lineIds.add(line.getShipInstructionLineId())
 							|| removedLineIds.contains(line.getShipInstructionLineId())) {
-						throw new IllegalArgumentException("중복되거나 삭제 표시된 품목 행을 확인해주세요.");
+						throw new IllegalArgumentException("重複または削除指定された品目行を確認してください。");
 					}
 				}
 				prepareLine(line);
@@ -127,31 +136,35 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 			}
 		}
 
+		// 空行を除いた後に品目行が1件も残らない場合は、保存を中止する。
 		if (lines.isEmpty()) {
-			throw new IllegalArgumentException("출하지시 품목을 한 개 이상 선택해 주세요.");
+			throw new IllegalArgumentException("出荷指示の品目を1件以上選択してください。");
 		}
 		shipInstruction.setLines(lines);
 
 		if (existing == null) {
 			mapper.insertSelectKey(shipInstruction);
 		} else if (mapper.update(shipInstruction) != 1) {
-			throw new IllegalArgumentException("수정할 출하지시서를 찾을 수 없습니다.");
+			throw new IllegalArgumentException("更新対象の出荷指示書が見つかりません。");
 		}
+		// 削除リストにある既存の品目行は、明細を消去せず削除フラグを設定する。
 		if (!removedLineIds.isEmpty()) {
 			mapper.removeSelectedLines(shipInstruction.getShipInstructionId(), removedLineIds);
 		}
+		// 残る行は、明細IDがない場合は追加し、ある場合はこの伝票に属する既存行のみ更新する。
 		for (ShipInstructionLineVO line : lines) {
 			line.setShipInstructionId(shipInstruction.getShipInstructionId());
 			if (line.getShipInstructionLineId() == null) {
 				mapper.insertLineSelectKey(line);
 			} else if (mapper.updateLine(line) != 1) {
-				throw new IllegalArgumentException("출하지시서에 속하지 않거나 삭제된 품목 행입니다.");
+				throw new IllegalArgumentException("この出荷指示書に属していないか、削除済みの品目行です。");
 			}
 		}
-		log.info("출하지시서 저장: " + shipInstruction.getShipInstructionId());
+		log.info("出荷指示書の保存: " + shipInstruction.getShipInstructionId());
 		return shipInstruction.getShipInstructionId();
 	}
 
+	// チェックした出荷指示書の基本情報と品目行に削除フラグを設定する。行自体は削除しない。
 	@Override
 	@Transactional
 	public int remove(List<Long> seletedIds) {
@@ -161,10 +174,11 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 		}
 		int count = mapper.remove(ids);
 		mapper.removeLines(ids);
-		log.info("출하지시서 삭제: " + count + "건");
+		log.info("出荷指示書の削除: " + count + "件");
 		return count;
 	}
 
+	// 選択した出荷指示書の進行状態と最終更新日時を変更する。選択可能な状態以外は受け付けない。
 	@Override
 	public int changeStatus(List<Long> seletedIds, String progressStatus) {
 		List<Long> ids = cleanIds(seletedIds);
@@ -172,24 +186,28 @@ public class ShipInstructionServiceImpl implements ShipInstructionService {
 			return 0;
 		}
 		if (!"IN_PROGRESS".equals(progressStatus) && !"COMPLETED".equals(progressStatus)) {
-			throw new IllegalArgumentException("진행상태는 진행중, 완료 중에서 선택해 주세요.");
+			throw new IllegalArgumentException("進行状態は進行中、完了のいずれかを選択してください。");
 		}
-		log.info("출하지시서 진행상태 변경: " + progressStatus);
+		log.info("出荷指示書の進行状態変更: " + progressStatus);
 		return mapper.changeStatus(ids, progressStatus);
 	}
 
+	// 品目の名称が空の場合は、選択画面のデータから補完する。
 	private void prepareLine(ShipInstructionLineVO line) {
 		if (isBlank(line.getItemName())) {
 			ItemLookupVO item = itemLookupService.get(line.getItemId());
 			if (item == null) {
-				throw new IllegalArgumentException("선택한 품목을 찾을 수 없습니다.");
+				throw new IllegalArgumentException("選択した品目が見つかりません。");
 			}
 			line.setItemName(item.getItemName());
 		}
+		// 数量が空欄の場合は0として処理し、小数3桁でHALF_UPにより四捨五入して保存する。
+		// 読込後に変更した数量は、残数量を超える値・0・負数も保存できる。
 		BigDecimal quantity = line.getQuantity() == null ? BigDecimal.ZERO : line.getQuantity();
 		line.setQuantity(quantity.setScale(3, RoundingMode.HALF_UP));
 	}
 
+	// 取引先・担当者・倉庫の名称が空の場合は、同じIDの保存済み名称を保持し、なければ選択画面のデータから補完する。
 	private void fillHeaderNames(ShipInstructionVO shipInstruction, ShipInstructionVO existing) {
 		if (shipInstruction.getPartnerId() == null) {
 			shipInstruction.setPartnerName(null);

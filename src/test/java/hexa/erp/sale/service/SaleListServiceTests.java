@@ -45,7 +45,7 @@ public class SaleListServiceTests {
 	@Autowired
 	private StockMapper stockMapper;
 
-	// 판매 목록과 검색 확인
+	// 売上一覧と検索を確認
 	@Test
 	public void testGetList() {
 		String token = createToken();
@@ -72,7 +72,7 @@ public class SaleListServiceTests {
 		assertEquals(sale.getSaleId(), saleList.get(0).getSaleId());
 	}
 
-	// 진행상태 변경 확인
+	// 進行状況の変更を確認
 	@Test
 	public void testChangeStatus() {
 		SaleVO sale = saveSale(createToken());
@@ -91,7 +91,7 @@ public class SaleListServiceTests {
 		assertEquals("UNCONFIRMED", changedSale.getProgressStatus());
 	}
 
-	// 판매 삭제와 재고 복구 확인
+	// 売上削除と在庫復元を確認
 	@Test
 	public void testRemove() {
 		String token = createToken();
@@ -122,7 +122,7 @@ public class SaleListServiceTests {
 		assertEquals(0, BigDecimal.ZERO.setScale(3).compareTo(afterStock.getQuantity()));
 	}
 
-	// 같은 판매를 다시 삭제해도 재고가 중복 복원되지 않는지 확인
+	// 同じ売上を再度削除しても在庫が二重に復元されないことを確認
 	@Test
 	public void testRemoveTwice() {
 		SaleVO sale = saveSale(createToken());
@@ -132,13 +132,13 @@ public class SaleListServiceTests {
 
 		List<Long> selectedIds = Collections.singletonList(sale.getSaleId());
 
-		// 판매 저장 후 재고는 -3
+		// 売上保存後の在庫は-3
 		StockVO beforeStock = stockMapper.read(warehouseId, itemId);
 
 		assertNotNull(beforeStock);
 		assertEquals(0, new BigDecimal("-3").compareTo(beforeStock.getQuantity()));
 
-		// 첫 번째 삭제: 재고가 0으로 복원
+		// 1回目の削除で在庫が0へ復元
 		int firstRemoveCount = service.remove(selectedIds);
 		StockVO firstStock = stockMapper.read(warehouseId, itemId);
 
@@ -147,7 +147,7 @@ public class SaleListServiceTests {
 		assertNotNull(firstStock);
 		assertEquals(0, BigDecimal.ZERO.compareTo(firstStock.getQuantity()));
 
-		// 두 번째 삭제: 추가 삭제나 재고 복원이 발생하지 않음
+		// 2回目の削除では追加の削除や在庫復元は発生しない
 		int secondRemoveCount = service.remove(selectedIds);
 		StockVO secondStock = stockMapper.read(warehouseId, itemId);
 
@@ -156,7 +156,7 @@ public class SaleListServiceTests {
 		assertEquals(0, BigDecimal.ZERO.compareTo(secondStock.getQuantity()));
 	}
 
-	// 테스트 판매 저장
+	// テスト売上を保存
 	private SaleVO saveSale(String token) {
 		ItemVO item = createItem(token);
 
@@ -168,7 +168,7 @@ public class SaleListServiceTests {
 
 		sale.setBusinessDate(LocalDate.now().toString());
 
-		sale.setPartnerName("서비스 조회 거래처 " + token);
+		sale.setPartnerName("Service一覧テスト取引先 " + token);
 
 		sale.setWarehouseId(warehouse.getWarehouseId());
 
@@ -189,29 +189,29 @@ public class SaleListServiceTests {
 		return service.get(saleId);
 	}
 
-	// 테스트 품목 생성
+	// テスト品目を生成
 	private ItemVO createItem(String token) {
 
 		ItemVO item = new ItemVO();
 
 		item.setItemCode("SLISTSVC" + token);
 
-		item.setItemName("서비스 조회 품목 " + token);
+		item.setItemName("Service一覧テスト品目 " + token);
 
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 
 		item.setInboundPrice(new BigDecimal("7000"));
 
 		item.setOutboundPrice(new BigDecimal("10000"));
 
-		item.setNote("판매 조회 Service 테스트");
+		item.setNote("売上一覧Serviceテスト");
 
 		return item;
 	}
 
-	// 테스트 구분값 생성
+	// テスト識別値を生成
 	private String createToken() {
 		return UUID.randomUUID().toString().replace("-", "").substring(0, 8);
 	}

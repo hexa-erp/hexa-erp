@@ -28,52 +28,57 @@ public class WarehouseApiController {
 
 	private final WarehouseService service;
 
+	// IDのない倉庫を新規登録し、登録済みのコードの場合はエラーを返す。
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> create(@RequestBody WarehouseVO warehouse) {
 		if (warehouse.getWarehouseId() != null) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "신규 창고에는 식별자를 지정할 수 없습니다.");
+			throw new ApiException(HttpStatus.BAD_REQUEST, "新規倉庫にIDを指定することはできません。");
 		}
 		validate(warehouse, true);
 		warehouse.setWarehouseCode(warehouse.getWarehouseCode().trim());
 		try {
 			service.register(warehouse);
 		} catch (DuplicateKeyException e) {
-			throw new ApiException(HttpStatus.CONFLICT, "이미 등록된 창고 코드입니다. 다른 코드를 입력해 주세요.");
+			throw new ApiException(HttpStatus.CONFLICT, "登録済みの倉庫コードです。別のコードを入力してください。");
 		}
 		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(new ApiResponseVO("창고를 등록했습니다.", warehouse.getWarehouseId(), null));
+				.body(new ApiResponseVO("倉庫を登録しました。", warehouse.getWarehouseId(), null));
 	}
 
+	// IDがある場合は該当する倉庫を更新し、更新対象行がない場合はエラーを返す。
 	@PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ApiResponseVO update(@PathVariable("id") Long id, @RequestBody WarehouseVO warehouse) {
 		warehouse.setWarehouseId(id);
 		validate(warehouse, false);
 		if (!service.modify(warehouse)) {
-			throw new ApiException(HttpStatus.NOT_FOUND, "수정할 창고가 없습니다.");
+			throw new ApiException(HttpStatus.NOT_FOUND, "更新対象の倉庫がありません。");
 		}
-		return new ApiResponseVO("창고를 수정했습니다.", id, null);
+		return new ApiResponseVO("倉庫を更新しました。", id, null);
 	}
 
 	@PatchMapping(value = "/active", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ApiResponseVO changeActive(@RequestBody ActiveChangeVO change) {
+		// 未選択の場合は処理せず、変更件数が0の場合は変更対象がないことを通知する。
 		ApiRequests.requireIds(change);
 		if (!"Y".equals(change.getActiveFlag()) && !"N".equals(change.getActiveFlag())) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "사용 여부를 확인해 주세요.");
+			throw new ApiException(HttpStatus.BAD_REQUEST, "利用状態を確認してください。");
 		}
 		int count = service.changeActive(change.getIds(), change.getActiveFlag());
 		if (count == 0) {
-			throw new ApiException(HttpStatus.NOT_FOUND, "변경할 창고가 없습니다.");
+			throw new ApiException(HttpStatus.NOT_FOUND, "変更対象の倉庫がありません。");
 		}
-		return new ApiResponseVO("창고의 사용 여부를 변경했습니다.", null, count);
+		return new ApiResponseVO("倉庫の利用状態を変更しました。", null, count);
 	}
 
+	// コード（新規登録時）または倉庫名が空欄の場合は保存しない。
 	private void validate(WarehouseVO warehouse, boolean creating) {
 		if (!StringUtils.hasText(warehouse.getWarehouseName())
 				|| (creating && !StringUtils.hasText(warehouse.getWarehouseCode()))) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "창고 코드와 창고명을 입력해 주세요.");
+			throw new ApiException(HttpStatus.BAD_REQUEST, "倉庫コードと倉庫名を入力してください。");
 		}
-		if (!"창고".equals(warehouse.getWarehouseType()) && !"공장".equals(warehouse.getWarehouseType())) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "창고 구분을 선택해 주세요.");
+		// 区分が未選択、または倉庫・工場以外の場合は区分の選択を案内する。
+		if (!"倉庫".equals(warehouse.getWarehouseType()) && !"工場".equals(warehouse.getWarehouseType())) {
+			throw new ApiException(HttpStatus.BAD_REQUEST, "倉庫区分を選択してください。");
 		}
 		warehouse.setWarehouseName(warehouse.getWarehouseName().trim());
 	}

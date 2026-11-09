@@ -22,12 +22,13 @@ public class QuotationLookupController {
 	@Setter(onMethod_ = @Autowired)
 	private QuotationLookupService quotationLookupService;
 
+	// 読込ポップアップに伝票一覧を25件ずつ表示し、最終ページを超える指定は補正する。
 	@GetMapping("/sources/quotation")
 	@ResponseBody
 	public Map<String, Object> quotationSources(@RequestParam(name = "keyword", defaultValue = "") String keyword,
 			@RequestParam(name = "progressStatus", defaultValue = "") String progressStatus,
 			@RequestParam(name = "page", defaultValue = "1") int page) {
-		log.info("견적서 불러오기 조회");
+		log.info("見積書の読込候補を取得");
 		LookupCriteria criteria = new LookupCriteria();
 		criteria.setKeyword(keyword);
 		criteria.setPageNum(page);

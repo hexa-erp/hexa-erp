@@ -34,56 +34,56 @@ public class SaleApiController {
 	@Setter(onMethod_ = @Autowired)
 	private SaleService service;
 
-	// 판매 한 건과 상세 품목을 조회한다.
+	// 売上情報1件と品目明細を取得する。
 	@GetMapping("/{id}")
 	public SaleVO get(@PathVariable("id") Long id) {
 		SaleVO document = service.get(id);
 		if (document == null) {
-			throw new ApiException(HttpStatus.NOT_FOUND, "조회할 판매 정보가 없습니다.");
+			throw new ApiException(HttpStatus.NOT_FOUND, "表示対象の売上情報がありません。");
 		}
 		return document;
 	}
 
-	// 신규 판매를 등록한다.
+	// 新規売上情報を登録する。
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> create(@RequestBody SaleVO form) {
 		if (form.getSaleId() != null) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "신규 등록에는 전표 ID를 지정할 수 없습니다.");
+			throw new ApiException(HttpStatus.BAD_REQUEST, "新規登録時に伝票IDを指定することはできません。");
 		}
 		Long id = service.save(form);
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
-		return ResponseEntity.created(location).body(new ApiResponseVO("판매를 저장했습니다.", id, null));
+		return ResponseEntity.created(location).body(new ApiResponseVO("売上情報を保存しました。", id, null));
 	}
 
-	// 경로의 ID에 해당하는 판매를 수정한다.
+	// パスのIDに対応する売上情報を更新する。
 	@PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> update(@PathVariable("id") Long id, @RequestBody SaleVO form) {
 		if (service.get(id) == null) {
-			throw new ApiException(HttpStatus.NOT_FOUND, "수정할 판매 정보가 없습니다.");
+			throw new ApiException(HttpStatus.NOT_FOUND, "更新対象の売上情報がありません。");
 		}
 		form.setSaleId(id);
 		service.save(form);
-		return ResponseEntity.ok(new ApiResponseVO("판매를 수정했습니다.", id, null));
+		return ResponseEntity.ok(new ApiResponseVO("売上情報を更新しました。", id, null));
 	}
 
-	// 선택한 판매를 삭제한다.
+	// 選択した売上情報を削除する。
 	@DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> delete(@RequestBody SelectedIdsVO form) {
 		int count = service.remove(ApiRequests.requireIds(form));
 		if (count == 0) {
-			throw new ApiException(HttpStatus.NOT_FOUND, "삭제할 판매 정보가 없습니다.");
+			throw new ApiException(HttpStatus.NOT_FOUND, "削除対象の売上情報がありません。");
 		}
-		return ResponseEntity.ok(new ApiResponseVO("판매를 삭제했습니다.", null, count));
+		return ResponseEntity.ok(new ApiResponseVO("売上情報を削除しました。", null, count));
 	}
 
-	// 선택한 판매의 진행상태를 변경한다.
+	// 選択した売上情報の進行状態を変更する。
 	@PatchMapping(value = "/status", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResponseVO> changeStatus(@RequestBody StatusChangeVO form) {
 		List<Long> ids = ApiRequests.requireIds(form);
 		int count = service.changeStatus(ids, form.getProgressStatus());
 		if (count == 0) {
-			throw new ApiException(HttpStatus.NOT_FOUND, "진행상태를 변경할 판매 정보가 없습니다.");
+			throw new ApiException(HttpStatus.NOT_FOUND, "進行状態を変更する売上情報がありません。");
 		}
-		return ResponseEntity.ok(new ApiResponseVO("진행상태를 변경했습니다.", null, count));
+		return ResponseEntity.ok(new ApiResponseVO("進行状態を変更しました。", null, count));
 	}
 }

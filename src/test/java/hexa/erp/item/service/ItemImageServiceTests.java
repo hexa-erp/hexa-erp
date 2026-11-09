@@ -25,7 +25,7 @@ public class ItemImageServiceTests {
 	@Rule
 	public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-	// 이미지 저장과 조회 확인
+	// 画像の保存と取得を確認
 	@Test
 	public void testStoreAndGetFile() throws Exception {
 		ItemImageServiceImpl service = createService();
@@ -59,7 +59,7 @@ public class ItemImageServiceTests {
 		assertFalse(thumbnail.exists());
 	}
 
-	// 잘못된 확장자 거절 확인
+	// 不正な拡張子を拒否することを確認
 	@Test(expected = IOException.class)
 	public void testInvalidExtension() throws Exception {
 		ItemImageServiceImpl service = createService();
@@ -73,7 +73,7 @@ public class ItemImageServiceTests {
 		service.store(textFile);
 	}
 
-	// 이미지 Service 생성
+	// 画像Serviceを生成
 	private ItemImageServiceImpl createService() throws IOException {
 
 		ItemImageServiceImpl service = new ItemImageServiceImpl();
@@ -83,7 +83,7 @@ public class ItemImageServiceTests {
 		return service;
 	}
 
-	// 테스트 이미지 생성
+	// テスト画像を生成
 	private MockMultipartFile createImageFile(String fileName) throws IOException {
 
 		BufferedImage image = new BufferedImage(20, 20, BufferedImage.TYPE_INT_RGB);

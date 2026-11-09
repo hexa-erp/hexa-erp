@@ -22,7 +22,7 @@ public class PartnerLookupServiceTest {
 		PartnerLookupVO row = new PartnerLookupVO();
 		row.setPartnerId(42L);
 		row.setPartnerCode("00001");
-		row.setPartnerName("테스트 거래처");
+		row.setPartnerName("テスト取引先");
 		row.setActiveFlag("Y");
 		final List<PartnerLookupVO> rows = Collections.singletonList(row);
 		PartnerLookupServiceImpl service = new PartnerLookupServiceImpl();
@@ -54,7 +54,7 @@ public class PartnerLookupServiceTest {
 
 	@Test
 	public void mapperFailureIsNotReplacedWithEmptyResults() {
-		final RuntimeException failure = new IllegalStateException("테스트용 조회 실패");
+		final RuntimeException failure = new IllegalStateException("テスト用取得失敗");
 		PartnerLookupServiceImpl service = new PartnerLookupServiceImpl();
 		service.setMapper(new PartnerLookupMapper() {
 			@Override
@@ -74,19 +74,19 @@ public class PartnerLookupServiceTest {
 		});
 		try {
 			service.get(42L);
-			fail("단건 조회 오류를 숨기면 안 된다.");
+			fail("1件取得のエラーを隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
 		try {
 			service.getTotal(new LookupCriteria());
-			fail("건수 오류를 숨기면 안 된다.");
+			fail("件数取得エラーを隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
 		try {
 			service.getList(new LookupCriteria());
-			fail("목록 오류를 숨기면 안 된다.");
+			fail("一覧取得エラーを隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}

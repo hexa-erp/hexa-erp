@@ -9,7 +9,7 @@ import lombok.extern.log4j.Log4j;
 @Log4j
 public class ShipmentCriteriaTests {
 
-	// 기본값 확인
+	// デフォルト値を確認
 	@Test
 	public void testDefaultValues() {
 		ShipmentCriteria criteria = new ShipmentCriteria();
@@ -24,14 +24,14 @@ public class ShipmentCriteriaTests {
 		assertEquals("", criteria.getProgressStatus());
 	}
 
-	// 검색값 보정 확인
+	// 検索値の補正を確認
 	@Test
 	public void testValueCorrection() {
 		ShipmentCriteria criteria = new ShipmentCriteria();
 
 		criteria.setPage(0);
 		criteria.setPageSize(-10);
-		criteria.setKeyword("  거래처 검색  ");
+		criteria.setKeyword("  取引先検索  ");
 		criteria.setProgressStatus("  CONFIRMED  ");
 
 		log.info("========== CRITERIA CORRECTION TEST ==========");
@@ -42,11 +42,11 @@ public class ShipmentCriteriaTests {
 
 		assertEquals(1, criteria.getPage());
 		assertEquals(1, criteria.getPageSize());
-		assertEquals("거래처 검색", criteria.getKeyword());
+		assertEquals("取引先検索", criteria.getKeyword());
 		assertEquals("CONFIRMED", criteria.getProgressStatus());
 	}
 
-	// null 값 보정 확인
+	// null値の補正を確認
 	@Test
 	public void testNullCorrection() {
 		ShipmentCriteria criteria = new ShipmentCriteria();

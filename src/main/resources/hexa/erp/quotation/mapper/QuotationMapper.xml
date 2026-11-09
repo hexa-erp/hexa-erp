@@ -23,7 +23,7 @@
 		l.quotation_line_id)
 		||
 		case when count(*) &gt; 1
-		then ' 외 ' || TO_CHAR(count(*) - 1) || '건'
+		then ' ほか ' || TO_CHAR(count(*) - 1) || '件'
 		else
 		'' end
 		from quotation_line l
@@ -54,6 +54,8 @@
 		left join ASSIGNEE a on h.assignee_id = a.assignee_id
 	</sql>
 
+	<!-- 削除されていない見積書から進行状態で絞り込み、取引先名・担当者名、または明細に保存された品目名を部分一致で検索する。
+	     品目名は未削除の明細行を対象とし、複数行が一致しても伝票は1回だけ表示する。 -->
 	<sql id="searchCondition">
 		where h.deleted_yn = 'N'
 		<if test="progressStatus != null and progressStatus != ''">
@@ -84,6 +86,7 @@
 		<include refid="searchCondition" />
 	</select>
 
+	<!-- 日付の降順（同一の場合はIDの降順）で、指定されたページの範囲を取得する（既定25件）。 -->
 	<select id="getListWithPaging"
 		resultType="hexa.erp.quotation.domain.QuotationVO">
 		select quotation_id, quotation_no, business_date, partner_id,
@@ -131,6 +134,8 @@
 		order by l.quotation_line_id ASC
 	</select>
 
+	<!-- 新規の場合はシーケンスでIDを採番し、先頭を0で埋めた5桁以上の番号を作成する。
+	     進行状態はテーブルの既定値IN_PROGRESS（進行中）で保存する。 -->
 	<insert id="insertSelectKey">
 
 		<selectKey keyProperty="quotationId" order="BEFORE"
@@ -169,6 +174,7 @@
 		#{totalAmount})
 	</insert>
 
+	<!-- 保存済みの番号・進行状態を保持し、基本情報と最終更新日時を更新する。 -->
 	<update id="update">
 		update QUOTATION set business_date =
 		TO_DATE(#{businessDate}, 'YYYY-MM-DD'),
@@ -198,6 +204,7 @@
 		'N'
 	</update>
 
+	<!-- 選択した伝票の基本情報に削除フラグを設定する。行は物理削除しない。 -->
 	<update id="remove">
 		update QUOTATION set deleted_yn = 'Y', updated_at = LOCALTIMESTAMP
 		where deleted_yn = 'N'
@@ -208,6 +215,7 @@
 		</foreach>
 	</update>
 
+	<!-- 選択した伝票に属する品目行にもDELETED_YN=Yを設定する。 -->
 	<update id="removeLines">
 		update QUOTATION_LINE set deleted_yn = 'Y'
 		where deleted_yn = 'N'
@@ -219,6 +227,7 @@
 		</foreach>
 	</update>
 
+	<!-- 入力画面の削除リストにある既存行だけに削除フラグを設定する。 -->
 	<update id="removeSelectedLines">
 		update QUOTATION_LINE set deleted_yn = 'Y'
 		where quotation_id =
@@ -230,6 +239,7 @@
 		</foreach>
 	</update>
 
+	<!-- チェックした未削除伝票の進行状態と最終更新日時を変更する。 -->
 	<update id="changeStatus">
 		update QUOTATION set progress_status = #{progressStatus}, updated_at =
 		LOCALTIMESTAMP

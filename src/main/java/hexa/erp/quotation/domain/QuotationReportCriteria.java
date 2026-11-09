@@ -6,7 +6,7 @@ import java.util.List;
 
 import lombok.Data;
 
-//견적서 현황 및 미주문 현황 검색 조건
+//見積集計と未受注一覧の検索条件
 @Data
 public class QuotationReportCriteria {
 
@@ -17,7 +17,7 @@ public class QuotationReportCriteria {
 	private String progressStatus;
 	private String specification;
 
-	// 미주문 현황: 주문 여부 및 잔여 수량 계산 기준일
+	// 未受注一覧：受注の有無と残数量を判定する基準日
 	private String cutoffDate;
 
 	private BigDecimal minQuantity;

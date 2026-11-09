@@ -7,25 +7,25 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-/** 판매 단가 일괄변경 화면의 검색 조건. 값이 비어 있는 조건은 검색에 적용하지 않는다. */
+/** 売上単価一括変更画面の検索条件。空の条件は検索に使用しない。 */
 @Getter
 @Setter
 @ToString
 public class SalePriceCriteria {
-	// 페이지 번호는 1부터 시작한다.
+	// ページ番号は1から始まる。
 	private int page = 1;
 	private int pageSize = 25;
-	// 날짜는 YYYY-MM-DD 형식이며, 종료일 당일까지 포함한다.
+	// 日付形式はYYYY-MM-DDとし、終了日当日まで含める。
 	private String startDate;
 	private String endDate;
 	private String keyword = "";
 	private String progressStatus = "";
-	// 필터 선택창에서 고른 ID 목록. 같은 목록 안에서는 OR로 검색한다.
+	// フィルター選択画面で選んだID一覧。同じ一覧内ではOR条件で検索する。
 	private List<String> warehouseIds = new ArrayList<>();
 	private List<String> partnerIds = new ArrayList<>();
 	private List<String> itemIds = new ArrayList<>();
 
-	// 1보다 작은 값이 들어오면 1로 맞춘다. (pageSize도 동일)
+	// 1未満の値は1に補正する。pageSizeも同様。
 	public void setPage(int page) {
 		this.page = Math.max(1, page);
 	}
@@ -34,7 +34,7 @@ public class SalePriceCriteria {
 		this.pageSize = Math.max(1, pageSize);
 	}
 
-	// null은 빈 문자열로 바꾸고 앞뒤 공백을 제거한다. (progressStatus도 동일)
+	// nullを空文字に置き換え、前後の空白を除去する。progressStatusも同様。
 	public void setKeyword(String keyword) {
 		this.keyword = keyword == null ? "" : keyword.trim();
 	}

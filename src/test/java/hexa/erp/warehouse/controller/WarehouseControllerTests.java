@@ -42,13 +42,13 @@ public class WarehouseControllerTests {
 
 	private MockMvc mockMvc;
 
-	// MockMvc 객체 생성
+	// MockMvcオブジェクトを生成
 	@Before
 	public void setup() {
 		mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 	}
 
-	// 창고 목록과 Model 데이터 확인
+	// 倉庫一覧とModelデータを確認
 	@Test
 	public void testList() throws Exception {
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/master/warehouse").param("page", "1")
@@ -68,7 +68,7 @@ public class WarehouseControllerTests {
 		assertNotNull(warehouseList);
 	}
 
-	// 창고명 검색 결과 확인
+	// 倉庫名による検索結果を確認
 	@Test
 	public void testSearch() throws Exception {
 		WarehouseVO warehouse = createWarehouse();
@@ -108,8 +108,8 @@ public class WarehouseControllerTests {
 
 		WarehouseVO warehouse = new WarehouseVO();
 		warehouse.setWarehouseCode("TEST" + token);
-		warehouse.setWarehouseName("컨트롤러 테스트 창고 " + token);
-		warehouse.setWarehouseType("창고");
+		warehouse.setWarehouseName("Controllerテスト倉庫 " + token);
+		warehouse.setWarehouseType("倉庫");
 
 		return warehouse;
 	}

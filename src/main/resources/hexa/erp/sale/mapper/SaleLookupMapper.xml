@@ -64,7 +64,7 @@
 		(SELECT MIN(l.ITEM_NAME)
 		KEEP (DENSE_RANK FIRST ORDER BY l.SALE_LINE_ID)
 		|| CASE WHEN COUNT(*)
-		&gt; 1 THEN ' 외 ' || TO_CHAR(COUNT(*) - 1) || '건'
+		&gt; 1 THEN ' ほか ' || TO_CHAR(COUNT(*) - 1) || '件'
 		ELSE '' END
 		FROM
 		SALE_LINE l
@@ -99,6 +99,8 @@
 		<include refid="searchCondition" />
 	</select>
 
+	<!-- 出荷指示書への売上読込用に、品目別の元数量と残数量を取得する。
+	     残数量は売上数量から未削除の出荷指示書・明細の関連数量合計を差し引き、負数は0とする。 -->
 	<select id="getLines"
 		resultType="hexa.erp.sale.domain.SaleLookupLineVO">
 		SELECT l.SALE_LINE_ID AS LINE_ID, l.ITEM_ID, i.ITEM_CODE,

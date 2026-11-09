@@ -50,7 +50,7 @@ public class QuotationServiceImpl implements QuotationService {
 
 	@Override
 	public QuotationVO get(Long quotationId) {
-		log.info("견적서 조회");
+		log.info("見積一覧");
 
 		if (quotationId == null) {
 			return null;
@@ -67,31 +67,33 @@ public class QuotationServiceImpl implements QuotationService {
 
 	@Override
 	public List<QuotationVO> getList(QuotationCriteria criteria) {
-		log.info("견적서 목록 조회");
+		log.info("見積一覧を取得");
 
 		return mapper.getListWithPaging(criteria);
 	}
 
 	@Override
 	public int getTotal(QuotationCriteria criteria) {
-		log.info("견적서 전체 수 조회");
+		log.info("見積書の総件数を取得");
 
 		return mapper.getTotalCount(criteria);
 	}
 
+	// 基本情報と品目行の保存は1つのトランザクションで処理し、途中で失敗した場合はすべてロールバックする。
 	@Transactional
 	@Override
 	public Long save(QuotationVO quotation) {
 
+		// 見積日付が空欄、または日付形式が不正な場合は保存せず、入力を確認する案内を返す。
 		if (quotation == null || quotation.getBusinessDate() == null || quotation.getBusinessDate().trim().isEmpty()) {
-			throw new IllegalArgumentException("견적서를 올바르게 입력해 주세요.");
+			throw new IllegalArgumentException("見積書の入力内容を確認してください。");
 		}
 
 		try {
 			quotation.setBusinessDate(LocalDate.parse(quotation.getBusinessDate().trim()).toString());
 
 		} catch (DateTimeParseException e) {
-			throw new IllegalArgumentException("견적 일자를 올바르게 입력해 주세요. ");
+			throw new IllegalArgumentException("正しい見積日を入力してください。");
 		}
 
 		List<QuotationLineVO> lines = new ArrayList<>();
@@ -99,7 +101,7 @@ public class QuotationServiceImpl implements QuotationService {
 		List<Long> removedLineIds = cleanIds(quotation.getRemovedLineIds());
 		Set<Long> lineIds = new HashSet<>();
 
-		// 중복, 삭제된 품목 행 검사
+		// 品目が未選択の空行は保存しない。明細IDの重複や削除リストとの重複はエラーとする。
 		if (quotation.getLines() != null) {
 
 			for (QuotationLineVO line : quotation.getLines()) {
@@ -110,7 +112,7 @@ public class QuotationServiceImpl implements QuotationService {
 
 				if (line.getQuotationLineId() != null) {
 					if (!lineIds.add(line.getQuotationLineId()) || removedLineIds.contains(line.getQuotationLineId())) {
-						throw new IllegalArgumentException("중복되거나 삭제 표시된 품목 행을 확인해 주세요.");
+						throw new IllegalArgumentException("重複または削除指定された品目行を確認してください。");
 					}
 				}
 
@@ -119,13 +121,14 @@ public class QuotationServiceImpl implements QuotationService {
 			}
 		}
 
+		// 空行を除いた結果、残る行がない場合は品目を1件以上選択するよう案内する。
 		if (lines.isEmpty()) {
-			throw new IllegalArgumentException("견적 품목을 한 개 이상 입력해 주세요.");
+			throw new IllegalArgumentException("見積の品目を1件以上入力してください。");
 		}
 
 		quotation.setLines(lines);
 
-		// 신규 견적서 등록
+		// 新規見積書を登録する。
 		if (quotation.getQuotationId() == null) {
 
 			fillHeaderNames(quotation, null);
@@ -140,29 +143,30 @@ public class QuotationServiceImpl implements QuotationService {
 			}
 		}
 
-		// 기존 견적서 수정
+		// 既存の見積書を更新する。
 		else {
 
-			// 기존 견적서 불러오기
+			// 既存の見積書を読み込む。
 			QuotationVO existing = mapper.read(quotation.getQuotationId());
 
 			if (existing == null) {
-				throw new IllegalArgumentException("수정할 견적서를 찾을 수 없습니다.");
+				throw new IllegalArgumentException("更新対象の見積書が見つかりません。");
 			}
 
+			// 更新時は保存済みの番号・進行状態を保持し、基本情報を更新する。
 			quotation.setQuotationNo(existing.getQuotationNo());
 			quotation.setProgressStatus(existing.getProgressStatus());
 
 			fillHeaderNames(quotation, existing);
 
-			// 견적서 기본 정보 수정
+			// 見積書のヘッダー情報を更新する。
 			int result = mapper.update(quotation);
 
 			if (result != 1) {
-				throw new IllegalArgumentException("수정할 견적서를 찾을 수 없습니다.");
+				throw new IllegalArgumentException("更新対象の見積書が見つかりません。");
 			}
 
-			// 기존 품목 삭제
+			// 削除一覧の既存行に削除フラグを設定する。
 			if (!cleanIds(quotation.getRemovedLineIds()).isEmpty()) {
 				mapper.removeSelectedLines(quotation.getQuotationId(), quotation.getRemovedLineIds());
 			}
@@ -171,18 +175,18 @@ public class QuotationServiceImpl implements QuotationService {
 
 				line.setQuotationId(quotation.getQuotationId());
 
-				// 새로운 품목 등록
+				// 新しい品目行を登録する。
 				if (line.getQuotationLineId() == null) {
 					mapper.insertLineSelectKey(line);
 				}
 
-				// 기존 품목 수정
+				// 既存の品目を更新する。
 				else {
 
 					int updateResult = mapper.updateLine(line);
 
 					if (updateResult != 1) {
-						throw new IllegalArgumentException("견적서에 속하지 않거나 삭제된 품목 행입니다.");
+						throw new IllegalArgumentException("この見積書に属していないか、削除済みの品目行です。");
 					}
 				}
 
@@ -190,10 +194,11 @@ public class QuotationServiceImpl implements QuotationService {
 
 		}
 
-		log.info("견적서 저장: " + quotation.getQuotationId());
+		log.info("見積書の保存: " + quotation.getQuotationId());
 		return quotation.getQuotationId();
 	}
 
+	// チェックした見積書の基本情報と品目行に削除フラグを設定する。行は物理削除しない。
 	@Transactional
 	@Override
 	public int remove(List<Long> selectedIds) {
@@ -207,11 +212,12 @@ public class QuotationServiceImpl implements QuotationService {
 		int result = mapper.remove(ids);
 		mapper.removeLines(ids);
 
-		log.info("견적서 삭제" + result + " 건");
+		log.info("見積書の削除" + result + " 件");
 		return result;
 
 	}
 
+	// 選択した見積書を未確認・進行中・完了のいずれかに変更し、許可されていない状態は拒否する。
 	@Override
 	public int changeStatus(List<Long> selectedIds, String progressStatus) {
 
@@ -223,21 +229,21 @@ public class QuotationServiceImpl implements QuotationService {
 
 		if (!"UNCONFIRMED".equals(progressStatus) && !"IN_PROGRESS".equals(progressStatus)
 				&& !"COMPLETED".equals(progressStatus)) {
-			throw new IllegalArgumentException("진행상태는 미확인, 진행중, 완료 중에 선택해 주세요.");
+			throw new IllegalArgumentException("進行状態は未確認、進行中、完了のいずれかを選択してください。");
 		}
 
-		log.info("견적서 진행 상태 변경: " + progressStatus);
+		log.info("見積書の進行状態変更: " + progressStatus);
 		return mapper.changeStatus(ids, progressStatus);
 	}
 
-	// 품목 행 처리
+	// 品目名称が空の場合は選択画面のデータから補完し、数量・単価から保存する金額を計算する。
 	private void prepareLine(QuotationLineVO line) {
 
 		if (isBlank(line.getItemName())) {
 			ItemLookupVO item = itemLookupService.get(line.getItemId());
 
 			if (item == null) {
-				throw new IllegalArgumentException("선택한 품목을 찾을 수 없습니다.");
+				throw new IllegalArgumentException("選択した品目が見つかりません。");
 			}
 
 			line.setItemName(item.getItemName());
@@ -246,18 +252,19 @@ public class QuotationServiceImpl implements QuotationService {
 		BigDecimal quantity = line.getQuantity() == null ? BigDecimal.ZERO : line.getQuantity();
 		BigDecimal unitPrice = line.getUnitPrice() == null ? BigDecimal.ZERO : line.getUnitPrice();
 
+		// 数量は小数第4位を四捨五入して小数第3位まで、単価は小数第3位を四捨五入して小数第2位までとする。
 		quantity = quantity.setScale(3, RoundingMode.HALF_UP);
 		unitPrice = unitPrice.setScale(2, RoundingMode.HALF_UP);
 
-		// 공급가액 계산
+		// 供給価額（数量×単価）はウォン単位で四捨五入する。
 		BigDecimal supplyAmount = quantity.multiply(unitPrice);
 		supplyAmount = supplyAmount.setScale(0, RoundingMode.HALF_UP);
 
-		// 부가세 계산
+		// 付加価値税（供給価額×10%）はウォン単位で四捨五入する。
 		BigDecimal vatAmount = supplyAmount.multiply(new BigDecimal("0.1"));
 		vatAmount = vatAmount.setScale(0, RoundingMode.HALF_UP);
 
-		// 합계 계산
+		// 合計を計算する。
 		BigDecimal totalAmount = supplyAmount.add(vatAmount);
 
 		line.setQuantity(quantity);
@@ -267,7 +274,7 @@ public class QuotationServiceImpl implements QuotationService {
 		line.setTotalAmount(totalAmount);
 	}
 
-	// 견적서 기본정보에 들어가는 이름 보완
+	// 取引先・担当者・倉庫の名称が空の場合は、既存伝票または選択画面のデータから補完する。
 	private void fillHeaderNames(QuotationVO quotation, QuotationVO existing) {
 
 		if (quotation.getPartnerId() == null) {

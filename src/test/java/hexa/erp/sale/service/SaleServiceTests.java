@@ -40,7 +40,7 @@ public class SaleServiceTests {
 	@Autowired
 	private StockMapper stockMapper;
 
-	// Service 객체 주입 확인
+	// Serviceオブジェクトの注入を確認
 	@Test
 	public void testServiceExist() {
 		log.info("========== SERVICE INJECTION TEST ==========");
@@ -49,7 +49,7 @@ public class SaleServiceTests {
 		assertNotNull(service);
 	}
 
-	// 판매 저장과 재고 감소 확인
+	// 売上保存と在庫減少を確認
 	@Test
 	public void testSave() {
 		ItemVO item = createItem();
@@ -97,7 +97,7 @@ public class SaleServiceTests {
 		assertEquals(0, new BigDecimal("-3.000").compareTo(stock.getQuantity()));
 	}
 
-	// 판매 수량 수정과 재고 재계산 확인
+	// 売上数量の更新と在庫再計算を確認
 	@Test
 	public void testUpdate() {
 		ItemVO item = createItem();
@@ -121,7 +121,7 @@ public class SaleServiceTests {
 		updateSale.setSaleId(saleId);
 		updateSale.setBusinessDate(LocalDate.now().toString());
 		updateSale.setWarehouseId(warehouse.getWarehouseId());
-		updateSale.setNote("판매 Service 수정 테스트");
+		updateSale.setNote("売上Service更新テスト");
 
 		SaleLineVO updateLine = new SaleLineVO();
 
@@ -129,7 +129,7 @@ public class SaleServiceTests {
 		updateLine.setItemId(item.getItemId());
 		updateLine.setQuantity(new BigDecimal("5"));
 		updateLine.setUnitPrice(new BigDecimal("10000"));
-		updateLine.setNote("판매 상세 수정 테스트");
+		updateLine.setNote("売上明細の更新テスト");
 
 		updateSale.getLines().add(updateLine);
 
@@ -168,41 +168,41 @@ public class SaleServiceTests {
 		assertEquals(0, new BigDecimal("-5.000").compareTo(stock.getQuantity()));
 	}
 
-	// 테스트 판매 생성
+	// テスト売上を生成
 	private SaleVO createSale(ItemVO item, WarehouseLookupVO warehouse, String quantity) {
 
 		SaleVO sale = new SaleVO();
 
 		sale.setBusinessDate(LocalDate.now().toString());
 		sale.setWarehouseId(warehouse.getWarehouseId());
-		sale.setNote("판매 Service 테스트");
+		sale.setNote("売上Serviceテスト");
 
 		SaleLineVO line = new SaleLineVO();
 
 		line.setItemId(item.getItemId());
 		line.setQuantity(new BigDecimal(quantity));
 		line.setUnitPrice(new BigDecimal("10000"));
-		line.setNote("판매 상세 테스트");
+		line.setNote("売上明細テスト");
 
 		sale.getLines().add(line);
 
 		return sale;
 	}
 
-	// 테스트 품목 생성
+	// テスト品目を生成
 	private ItemVO createItem() {
 		String token = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
 
 		ItemVO item = new ItemVO();
 
 		item.setItemCode("SALESERVICE" + token);
-		item.setItemName("판매 서비스 테스트 품목 " + token);
+		item.setItemName("売上Serviceテスト品目 " + token);
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 		item.setInboundPrice(new BigDecimal("7000"));
 		item.setOutboundPrice(new BigDecimal("10000"));
-		item.setNote("판매 Service 테스트 품목");
+		item.setNote("売上Serviceテスト品目");
 
 		return item;
 	}

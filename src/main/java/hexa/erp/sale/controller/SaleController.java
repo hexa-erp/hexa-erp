@@ -32,16 +32,17 @@ public class SaleController {
 
 	private final SaleService service;
 
-	// 판매 목록 화면
+	// 未削除の売上を日付降順・同日はID降順で表示する。初期状態は全件・1ページ25件とする。
 	@GetMapping("/list")
 	public String list(SaleCriteria criteria, @RequestParam Map<String, String> params, Model model) {
 
-		log.info("판매 목록 조회 요청");
+		log.info("売上一覧の取得リクエスト");
 
 		int totalCount = service.getTotal(criteria);
 
 		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
 
+		// 最終ページを超える番号は最終ページ番号に補正する。
 		criteria.setPage(Math.min(criteria.getPage(), totalPages));
 
 		Map<String, String> search = ViewModels.search(params);
@@ -70,23 +71,24 @@ public class SaleController {
 
 		model.addAttribute("activeMenu", "sale");
 
-		model.addAttribute("pageTitle", "판매 조회");
+		model.addAttribute("pageTitle", "売上一覧");
 
 		return "sale/list";
 	}
 
-	// 판매 입력 화면
+	// 売上入力画面
 	@GetMapping("/form")
 	public String form(@RequestParam(value = "id", required = false) Long id,
 			@RequestParam(value = "saleId", required = false) Long saleId, HttpServletRequest request, Model model,
 			RedirectAttributes rttr) {
 
-		log.info("판매 입력 화면 요청");
+		log.info("売上入力画面の表示リクエスト");
 
 		Long documentId = id == null ? saleId : id;
 
 		SaleVO form;
 
+		// IDなしでは本日の日付を設定した空の売上を表示し、ID指定時は保存済みの基本情報と品目行を表示する。
 		if (documentId == null) {
 			form = new SaleVO();
 
@@ -96,8 +98,9 @@ public class SaleController {
 		} else {
 			form = service.get(documentId);
 
+			// 指定した売上が存在しない場合は案内を表示し、元の検索条件・ページの一覧へ戻す。
 			if (form == null) {
-				rttr.addFlashAttribute("errorMessage", "조회할 판매가 없습니다.");
+				rttr.addFlashAttribute("errorMessage", "表示対象の売上情報がありません。");
 
 				return PostRedirects.toList("/sale/list", request);
 			}
@@ -111,17 +114,17 @@ public class SaleController {
 
 		model.addAttribute("activeMenu", "sale");
 
-		model.addAttribute("pageTitle", "판매 입력");
+		model.addAttribute("pageTitle", "売上入力");
 
 		return "sale/form";
 	}
 
-	// 거래명세서 화면
+	// 保存済み売上の納品書を照会専用で表示し、品目行の供給価額・付加価値税・合計を集計する。
 	@GetMapping("/statement")
 	public String statement(@RequestParam(value = "id", required = false) Long id, HttpServletResponse response,
 			Model model) {
 
-		log.info("거래명세서 조회 요청");
+		log.info("納品書の表示リクエスト");
 
 		SaleVO form = id == null ? null : service.get(id);
 
@@ -154,7 +157,7 @@ public class SaleController {
 
 		model.addAttribute("activeMenu", "sale");
 
-		model.addAttribute("pageTitle", "거래명세서");
+		model.addAttribute("pageTitle", "納品書");
 
 		return "sale/statement";
 	}

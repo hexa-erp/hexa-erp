@@ -24,7 +24,7 @@ public class ItemLookupServiceTest {
 		ItemLookupVO row = new ItemLookupVO();
 		row.setItemId(42L);
 		row.setItemCode("00001");
-		row.setItemName("테스트 품목");
+		row.setItemName("テスト品目");
 		row.setOutboundPrice(new BigDecimal("9999999999999999.99"));
 		row.setStockQuantity(new BigDecimal("-1.005"));
 		row.setActiveFlag("Y");
@@ -61,7 +61,7 @@ public class ItemLookupServiceTest {
 
 	@Test
 	public void mapperFailureIsNotReplacedWithEmptyResults() {
-		final RuntimeException failure = new IllegalStateException("테스트용 조회 실패");
+		final RuntimeException failure = new IllegalStateException("テスト用取得失敗");
 		ItemLookupServiceImpl service = new ItemLookupServiceImpl();
 		service.setMapper(new ItemLookupMapper() {
 			@Override
@@ -81,19 +81,19 @@ public class ItemLookupServiceTest {
 		});
 		try {
 			service.get(42L);
-			fail("단건 조회 오류를 숨기면 안 된다.");
+			fail("1件取得のエラーを隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
 		try {
 			service.getTotal(new LookupCriteria());
-			fail("건수 오류를 숨기면 안 된다.");
+			fail("件数取得エラーを隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}
 		try {
 			service.getList(new LookupCriteria(), 201L);
-			fail("목록 오류를 숨기면 안 된다.");
+			fail("一覧取得エラーを隠してはならない。");
 		} catch (RuntimeException actual) {
 			assertSame(failure, actual);
 		}

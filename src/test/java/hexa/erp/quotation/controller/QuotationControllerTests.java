@@ -39,13 +39,13 @@ public class QuotationControllerTests {
 
 	private MockMvc mockMvc;
 
-	// MockMvc 객체 생성
+	// MockMvcオブジェクトを生成
 	@Before
 	public void setup() {
 		mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 	}
 
-	// 검색 결과가 없는 견적서 목록 화면 확인
+	// 検索結果がない見積一覧画面を確認
 	@Test
 	public void testList() throws Exception {
 		String keyword = UUID.randomUUID().toString().replace("-", "");

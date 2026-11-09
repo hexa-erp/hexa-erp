@@ -7,21 +7,21 @@ import hexa.erp.sale.domain.SaleVO;
 
 public interface SaleService {
 
-	// 판매 목록 조회
+	// 売上一覧を取得する。
 	List<SaleVO> getList(SaleCriteria criteria);
 
-	// 판매 전체 건수 조회
+	// 売上の総件数を取得する。
 	int getTotal(SaleCriteria criteria);
 
-	// 판매 한 건 조회
+	// 売上を1件取得する。
 	SaleVO get(Long saleId);
 
-	// 판매 저장
+	// 売上を保存する。
 	Long save(SaleVO sale);
 
-	// 선택한 판매 삭제
+	// 選択した売上を削除する。
 	int remove(List<Long> selectedIds);
 
-	// 선택한 판매 진행상태 변경
+	// 選択した売上の進行状態を変更する。
 	int changeStatus(List<Long> selectedIds, String progressStatus);
 }

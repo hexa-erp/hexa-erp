@@ -15,6 +15,7 @@ public class SalesOrderLookupServiceImpl implements SalesOrderLookupService {
 	@Setter(onMethod_ = @Autowired)
 	private SalesOrderLookupMapper mapper;
 
+	// 読込候補の伝票に、品目行と後続伝票の未処理分である残数量を付けて返す。
 	@Override
 	public List<SalesOrderLookupVO> getList(LookupCriteria criteria, String progressStatus) {
 		List<SalesOrderLookupVO> documents = mapper.getListWithPaging(criteria, progressStatus);

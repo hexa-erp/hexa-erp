@@ -29,13 +29,13 @@ public class PartnerServiceImpl implements PartnerService {
 
 	@Override
 	public void register(PartnerVO partner) {
-		log.info("거래처 등록 처리");
+		log.info("取引先の登録処理");
 		mapper.insertSelectKey(partner);
 	}
 
 	@Override
 	public boolean modify(PartnerVO partner) {
-		log.info("거래처 수정: " + partner.getPartnerId());
+		log.info("取引先の更新: " + partner.getPartnerId());
 		return mapper.update(partner) == 1;
 	}
 
@@ -46,10 +46,10 @@ public class PartnerServiceImpl implements PartnerService {
 		}
 
 		if (!"Y".equals(activeFlag) && !"N".equals(activeFlag)) {
-			throw new IllegalArgumentException("사용 여부는 Y 또는 N이어야 합니다.");
+			throw new IllegalArgumentException("利用状態にはYまたはNを指定してください。");
 		}
 
-		log.info("거래처 사용 여부 변경: " + activeFlag);
+		log.info("取引先の利用状態変更: " + activeFlag);
 		return mapper.changeActive(ids, activeFlag);
 	}
 }

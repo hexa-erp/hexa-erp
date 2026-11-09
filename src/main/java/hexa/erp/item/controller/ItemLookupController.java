@@ -27,14 +27,16 @@ public class ItemLookupController {
 	public Map<String, Object> itemOptions(@RequestParam(name = "keyword", defaultValue = "") String keyword,
 			@RequestParam(name = "page", defaultValue = "1") int page,
 			@RequestParam(name = "warehouseId", required = false) Long warehouseId) {
-		log.info("품목 선택 목록 조회");
+		log.info("品目の選択候補を取得");
 		LookupCriteria criteria = new LookupCriteria();
 		criteria.setKeyword(keyword);
 		criteria.setPageNum(page);
+		// 選択画面は1ページに25件ずつ表示する。
 		criteria.setAmount(25);
 
 		int totalCount = itemLookupService.getTotal(criteria);
 		int totalPages = (int) Math.max(1L, (totalCount + (long) criteria.getAmount() - 1) / criteria.getAmount());
+		// 最終ページを超える要求は最終ページ番号に補正する。
 		criteria.setPageNum(Math.min(criteria.getPageNum(), totalPages));
 
 		Map<String, Object> result = new LinkedHashMap<>();

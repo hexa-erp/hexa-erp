@@ -51,7 +51,7 @@ public class QuotationReportServiceTests {
 	@Autowired
 	private WarehouseMapper warehouseMapper;
 
-	// 시작일·종료일 포함 및 범위 밖 자료 제외 확인
+	// 開始日・終了日を含み、範囲外のデータを除外することを確認
 	@Test
 	public void testDateRangeIncludesOnlySelectedDay() {
 		ItemVO item = createItem();
@@ -70,7 +70,7 @@ public class QuotationReportServiceTests {
 		criteria.setStartDate("2026-01-10");
 		criteria.setEndDate("2026-01-10");
 
-		// 이번 테스트에서 만든 품목으로 검색 범위 제한
+		// このテストで作成した品目に検索範囲を限定
 		criteria.setItemIds(Collections.singletonList(item.getItemId().toString()));
 
 		QuotationReportVO report = service.getStatus(criteria);
@@ -95,7 +95,7 @@ public class QuotationReportServiceTests {
 		assertDecimal("2", row.getQuantity());
 		assertDecimal("2000", row.getSupplyAmount());
 
-		// 조회된 자료의 월 소계 확인
+		// 取得データの月別小計を確認
 		Map<?, ?> monthTotals = (Map<?, ?>) group.get("totals");
 
 		assertNotNull(monthTotals);
@@ -103,13 +103,13 @@ public class QuotationReportServiceTests {
 		assertDecimal("1000", (BigDecimal) monthTotals.get("unitPrice"));
 		assertDecimal("2000", (BigDecimal) monthTotals.get("supplyAmount"));
 
-		// 전체 합계도 해당 날짜의 자료만 포함
+		// 総合計にも対象日付のデータだけを含める
 		assertDecimal("2", report.getTotals().get("quantity"));
 		assertDecimal("1000", report.getTotals().get("unitPrice"));
 		assertDecimal("2000", report.getTotals().get("supplyAmount"));
 	}
 
-	// 미주문 현황의 기준일 적용과 주문 삭제 후 잔량 복원 확인
+	// 未受注一覧の基準日適用と受注削除後の残数復元を確認
 	@Test
 	public void testUnorderedCutoffDateAndDeletedOrder() {
 		ItemVO item = createItem();
@@ -140,28 +140,28 @@ public class QuotationReportServiceTests {
 		QuotationReportCriteria criteria = new QuotationReportCriteria();
 		criteria.setItemIds(Collections.singletonList(item.getItemId().toString()));
 
-		// 기준일 다음 날의 주문은 차감하지 않음
+		// 基準日の翌日の受注は差し引かない
 		criteria.setCutoffDate("2026-01-31");
 		assertUnorderedReport(criteria, quotationId, quotationLineId, "7", "7000", "700");
 
-		// 기준일 당일 주문까지 포함
+		// 基準日当日の受注まで含める
 		criteria.setCutoffDate("2026-02-01");
 		assertUnorderedReport(criteria, quotationId, quotationLineId, "3", "3000", "300");
 
-		// 2월 1일 주문 삭제 후 잔량 복원
+		// 2月1日の受注削除後に残数を復元
 		assertEquals(1, salesOrderService.remove(Collections.singletonList(februaryOrderId)));
 
 		assertUnorderedReport(criteria, quotationId, quotationLineId, "7", "7000", "700");
 	}
 
-	// 원견적 상세행을 연결한 주문서 생성
+	// 元見積明細行に紐付けた受注伝票を生成
 	private SalesOrderVO createLinkedOrder(ItemVO item, WarehouseVO warehouse, Long quotationLineId,
 			String businessDate, String quantity) {
 
 		SalesOrderVO order = new SalesOrderVO();
 		order.setBusinessDate(businessDate);
 		order.setWarehouseId(warehouse.getWarehouseId());
-		order.setNote("미주문 현황 테스트 주문");
+		order.setNote("未受注一覧テスト受注");
 
 		SalesOrderLineVO line = new SalesOrderLineVO();
 		line.setQuotationLineId(quotationLineId);
@@ -182,13 +182,13 @@ public class QuotationReportServiceTests {
 
 		WarehouseVO warehouse = new WarehouseVO();
 		warehouse.setWarehouseCode("QRWTEST" + token);
-		warehouse.setWarehouseName("미주문 현황 테스트 창고 " + token);
-		warehouse.setWarehouseType("창고");
+		warehouse.setWarehouseName("未受注一覧テスト倉庫 " + token);
+		warehouse.setWarehouseType("倉庫");
 
 		return warehouse;
 	}
 
-	// 미주문 현황의 상세행과 전체 합계 확인
+	// 未受注一覧の明細行と総合計を確認
 	private void assertUnorderedReport(QuotationReportCriteria criteria, Long quotationId, Long quotationLineId,
 			String remainingQuantity, String supplyAmount, String vatAmount) {
 
@@ -199,7 +199,7 @@ public class QuotationReportServiceTests {
 
 		Map<String, Object> group = report.getMonthGroups().get(0);
 
-		// 월별 그룹은 원견적 일자를 기준으로 구성
+		// 月別グループは元見積の日付で構成
 		assertEquals("2026-01", group.get("monthLabel"));
 
 		List<?> rows = (List<?>) group.get("rows");
@@ -222,12 +222,12 @@ public class QuotationReportServiceTests {
 		assertDecimal(vatAmount, report.getTotals().get("remainingVatAmount"));
 	}
 
-	// 지정한 날짜와 수량으로 견적서 생성
+	// 指定した日付と数量で見積書を生成
 	private QuotationVO createQuotation(ItemVO item, String businessDate, String quantity) {
 
 		QuotationVO quotation = new QuotationVO();
 		quotation.setBusinessDate(businessDate);
-		quotation.setNote("견적 현황 테스트");
+		quotation.setNote("見積集計テスト");
 
 		QuotationLineVO line = new QuotationLineVO();
 		line.setItemId(item.getItemId());
@@ -247,10 +247,10 @@ public class QuotationReportServiceTests {
 
 		ItemVO item = new ItemVO();
 		item.setItemCode("QRTEST" + token);
-		item.setItemName("견적 현황 테스트 품목 " + token);
+		item.setItemName("見積集計テスト品目 " + token);
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 		item.setInboundPrice(BigDecimal.ZERO);
 		item.setOutboundPrice(new BigDecimal("1000"));
 

@@ -48,13 +48,13 @@ public class ItemControllerTests {
 
 	private MockMvc mockMvc;
 
-	// MockMvc 객체 생성
+	// MockMvcオブジェクトを生成
 	@Before
 	public void setup() {
 		mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 	}
 
-	// 품목 목록과 Model 데이터 확인
+	// 品目一覧とModelデータを確認
 	@Test
 	public void testList() throws Exception {
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/master/item").param("page", "1")
@@ -78,7 +78,7 @@ public class ItemControllerTests {
 		assertNotNull(warehouseOptions);
 	}
 
-	// 품목 재고 저장 결과 확인
+	// 品目在庫の保存結果を確認
 	@Test
 	public void testSaveStock() throws Exception {
 		ItemVO item = createItem();
@@ -103,7 +103,7 @@ public class ItemControllerTests {
 		assertEquals(0, new BigDecimal("25.125").compareTo(stock.getQuantity()));
 	}
 
-	// 이미지 없는 품목 응답 확인
+	// 画像のない品目のレスポンスを確認
 	@Test
 	public void testImageNotFound() throws Exception {
 		ItemVO item = createItem();
@@ -119,19 +119,19 @@ public class ItemControllerTests {
 		assertEquals(404, result.getResponse().getStatus());
 	}
 
-	// 테스트 품목 생성
+	// テスト品目を生成
 	private ItemVO createItem() {
 		String token = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
 
 		ItemVO item = new ItemVO();
 		item.setItemCode("CONTROLLER" + token);
-		item.setItemName("컨트롤러 테스트 품목 " + token);
+		item.setItemName("Controllerテスト品目 " + token);
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 		item.setInboundPrice(new BigDecimal("10000"));
 		item.setOutboundPrice(new BigDecimal("15000"));
-		item.setNote("Controller 테스트 품목");
+		item.setNote("Controllerテスト品目");
 
 		return item;
 	}

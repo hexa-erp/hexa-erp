@@ -45,7 +45,7 @@ public class SaleListMapperTests {
 	@Autowired
 	private StockMapper stockMapper;
 
-	// 판매 목록과 검색 확인
+	// 売上一覧と検索を確認
 	@Test
 	public void testGetListWithPaging() {
 		String token = createToken();
@@ -79,7 +79,7 @@ public class SaleListMapperTests {
 		assertEquals(0, new BigDecimal("33000").compareTo(saleList.get(0).getTotalAmount()));
 	}
 
-	// 진행상태 변경 확인
+	// 進行状況の変更を確認
 	@Test
 	public void testChangeStatus() {
 		SaleVO sale = saveSale(createToken());
@@ -98,7 +98,7 @@ public class SaleListMapperTests {
 		assertEquals("UNCONFIRMED", changedSale.getProgressStatus());
 	}
 
-	// 판매 논리 삭제 확인
+	// 売上の論理削除を確認
 	@Test
 	public void testRemove() {
 		SaleVO sale = saveSale(createToken());
@@ -126,7 +126,7 @@ public class SaleListMapperTests {
 		assertTrue(removedLines.isEmpty());
 	}
 
-	// 테스트 판매 저장
+	// テスト売上を保存
 	private SaleVO saveSale(String token) {
 		WarehouseLookupVO warehouse = stockMapper.getWarehouseList().get(0);
 
@@ -136,10 +136,10 @@ public class SaleListMapperTests {
 		SaleVO sale = new SaleVO();
 
 		sale.setBusinessDate(LocalDate.now().toString());
-		sale.setPartnerName("조회 거래처 " + token);
+		sale.setPartnerName("一覧テスト取引先 " + token);
 		sale.setWarehouseId(warehouse.getWarehouseId());
 		sale.setWarehouseName(warehouse.getWarehouseName());
-		sale.setNote("판매 조회 Mapper 테스트");
+		sale.setNote("売上一覧Mapperテスト");
 
 		saleMapper.insertSelectKey(sale);
 
@@ -155,7 +155,7 @@ public class SaleListMapperTests {
 		line.setSupplyAmount(new BigDecimal("30000"));
 		line.setVatAmount(new BigDecimal("3000"));
 		line.setTotalAmount(new BigDecimal("33000"));
-		line.setNote("판매 조회 상세 테스트");
+		line.setNote("売上一覧明細テスト");
 
 		saleMapper.insertLineSelectKey(line);
 
@@ -164,24 +164,24 @@ public class SaleListMapperTests {
 		return sale;
 	}
 
-	// 테스트 품목 생성
+	// テスト品目を生成
 	private ItemVO createItem(String token) {
 
 		ItemVO item = new ItemVO();
 
 		item.setItemCode("SALELIST" + token);
-		item.setItemName("조회 품목 " + token);
+		item.setItemName("一覧テスト品目 " + token);
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 		item.setInboundPrice(new BigDecimal("7000"));
 		item.setOutboundPrice(new BigDecimal("10000"));
-		item.setNote("판매 조회 Mapper 테스트 품목");
+		item.setNote("売上一覧Mapperテスト品目");
 
 		return item;
 	}
 
-	// 테스트 구분값 생성
+	// テスト識別値を生成
 	private String createToken() {
 		return UUID.randomUUID().toString().replace("-", "").substring(0, 8);
 	}

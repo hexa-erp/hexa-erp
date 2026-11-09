@@ -10,39 +10,39 @@ import hexa.erp.sale.domain.SaleVO;
 
 public interface SaleMapper {
 
-	// 판매 목록 조회
+	// 売上一覧を取得する。
 	List<SaleVO> getListWithPaging(SaleCriteria criteria);
 
-	// 판매 전체 건수 조회
+	// 売上の総件数を取得する。
 	int getTotalCount(SaleCriteria criteria);
 
-	// 판매 기본정보 조회
+	// 売上のヘッダー情報を取得する。
 	SaleVO read(Long saleId);
 
-	// 판매 상세행 조회
+	// 売上明細行を取得する。
 	List<SaleLineVO> getLines(Long saleId);
 
-	// 신규 판매 등록
+	// 新規売上を登録する。
 	void insertSelectKey(SaleVO sale);
 
-	// 기존 판매 수정
+	// 既存の売上を更新する。
 	int update(SaleVO sale);
 
-	// 신규 판매 상세행 등록
+	// 新規売上明細行を登録する。
 	void insertLineSelectKey(SaleLineVO line);
 
-	// 기존 판매 상세행 수정
+	// 既存の売上明細行を更新する。
 	int updateLine(SaleLineVO line);
 
-	// 선택한 상세행 삭제 처리
+	// 選択した明細行を削除する。
 	int removeSelectedLines(@Param("saleId") Long saleId, @Param("lineIds") List<Long> lineIds);
 
-	// 선택한 판매 삭제 처리
+	// 選択した売上を削除する。
 	int remove(@Param("ids") List<Long> ids);
 
-	// 선택한 판매 상세행 삭제 처리
+	// 選択した売上明細行を削除する。
 	int removeLines(@Param("ids") List<Long> ids);
 
-	// 선택한 판매 진행상태 변경
+	// 選択した売上の進行状態を変更する。
 	int changeStatus(@Param("ids") List<Long> ids, @Param("progressStatus") String progressStatus);
 }

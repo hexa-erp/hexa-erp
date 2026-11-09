@@ -33,7 +33,7 @@ public class QuotationServiceTests {
 	@Autowired
 	private ItemMapper itemMapper;
 
-	// 수량·단가 반올림과 금액 계산 확인
+	// 数量・単価の丸めと金額計算を確認
 	@Test
 	public void testSaveCalculatesAmounts() {
 		ItemVO item = createItem();
@@ -60,13 +60,13 @@ public class QuotationServiceTests {
 		assertEquals(0, new BigDecimal("1360").compareTo(saved.getTotalAmount()));
 	}
 
-	// 상세행 삭제가 해당 견적서에만 적용되는지 확인
+	// 明細行の削除が対象の見積書だけに適用されることを確認
 	@Test
 	public void testRemoveSelectedLines() {
 		ItemVO item = createItem();
 		itemMapper.insertSelectKey(item);
 
-		// 견적서 A: 상세행 2개
+		// 見積書A：明細行2件
 		QuotationVO quotationA = createQuotation(item, "1", "1000");
 
 		QuotationLineVO secondLine = new QuotationLineVO();
@@ -81,7 +81,7 @@ public class QuotationServiceTests {
 
 		Long quotationAId = service.save(quotationA);
 
-		// 견적서 B: 상세행 1개
+		// 見積書B：明細行1件
 		QuotationVO quotationB = createQuotation(item, "3", "1000");
 		Long quotationBId = service.save(quotationB);
 
@@ -97,10 +97,10 @@ public class QuotationServiceTests {
 		Long keepLineId = savedA.getLines().get(1).getQuotationLineId();
 		Long otherLineId = savedB.getLines().get(0).getQuotationLineId();
 
-		// 저장할 행에서는 삭제 대상 행을 제거
+		// 保存する行から削除対象行を除外
 		savedA.getLines().remove(0);
 
-		// 다른 견적서의 행 ID도 섞어서 전달
+		// 別の見積書の行IDも混ぜて渡す
 		savedA.setRemovedLineIds(Arrays.asList(removeLineId, otherLineId));
 
 		service.save(savedA);
@@ -108,25 +108,25 @@ public class QuotationServiceTests {
 		QuotationVO changedA = service.get(quotationAId);
 		QuotationVO unchangedB = service.get(quotationBId);
 
-		// A는 지정한 행만 삭제되고 나머지 행은 유지
+		// Aでは指定した行だけを削除し、残りの行を保持
 		assertNotNull(changedA);
 		assertEquals(1, changedA.getLines().size());
 		assertEquals(keepLineId, changedA.getLines().get(0).getQuotationLineId());
 		assertEquals(0, new BigDecimal("2200").compareTo(changedA.getTotalAmount()));
 
-		// B의 행과 금액은 유지
+		// Bの行と金額を保持
 		assertNotNull(unchangedB);
 		assertEquals(1, unchangedB.getLines().size());
 		assertEquals(otherLineId, unchangedB.getLines().get(0).getQuotationLineId());
 		assertEquals(0, new BigDecimal("3300").compareTo(unchangedB.getTotalAmount()));
 	}
 
-	// 테스트 견적서 생성
+	// テスト見積書を生成
 	private QuotationVO createQuotation(ItemVO item, String quantity, String unitPrice) {
 
 		QuotationVO quotation = new QuotationVO();
 		quotation.setBusinessDate(LocalDate.now().toString());
-		quotation.setNote("견적서 Service 테스트");
+		quotation.setNote("見積書Serviceテスト");
 
 		QuotationLineVO line = new QuotationLineVO();
 		line.setItemId(item.getItemId());
@@ -141,16 +141,16 @@ public class QuotationServiceTests {
 		return quotation;
 	}
 
-	// 테스트 품목 생성
+	// テスト品目を生成
 	private ItemVO createItem() {
 		String token = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
 
 		ItemVO item = new ItemVO();
 		item.setItemCode("QTEST" + token);
-		item.setItemName("견적 테스트 품목 " + token);
+		item.setItemName("見積テスト品目 " + token);
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 		item.setInboundPrice(BigDecimal.ZERO);
 		item.setOutboundPrice(new BigDecimal("1000.56"));
 

@@ -39,13 +39,13 @@ public class ShipmentControllerTests {
 
 	private MockMvc mockMvc;
 
-	// MockMvc 객체 생성
+	// MockMvcオブジェクトを生成
 	@Before
 	public void setup() {
 		mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 	}
 
-	// 검색 결과가 없는 출하 목록 화면 확인
+	// 検索結果がない出荷一覧画面を確認
 	@Test
 	public void testList() throws Exception {
 		String keyword = UUID.randomUUID().toString().replace("-", "");

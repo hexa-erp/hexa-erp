@@ -55,7 +55,7 @@ public class SalePriceServiceTests {
 	@Autowired
 	private PlatformTransactionManager transactionManager;
 
-	// 선택 행의 단가·금액 변경과 미선택 행·수량·재고 유지 확인
+	// 選択行の単価・金額変更と、未選択行・数量・在庫の保持を確認
 	@Test
 	public void testChangeSelectedPricesWithoutChangingStock() {
 		ItemVO item = createItem();
@@ -83,7 +83,7 @@ public class SalePriceServiceTests {
 		SalePriceChangeVO firstChange = createChange(saleId, firstLineId, true, "2000.555");
 		SalePriceChangeVO secondChange = createChange(saleId, secondLineId, true, "2000.555");
 
-		// 미선택 행은 다른 단가가 전달되어도 변경하지 않아야 함
+		// 未選択行は異なる単価を渡しても変更しない
 		SalePriceChangeVO unselectedChange = createChange(saleId, thirdLineId, false, "9999");
 
 		int changeCount = service.savePrices(Arrays.asList(firstChange, secondChange, unselectedChange));
@@ -106,7 +106,7 @@ public class SalePriceServiceTests {
 		assertStockQuantity(warehouse, item, "-9");
 	}
 
-	// 일괄 변경 중 실패하면 앞선 행의 변경까지 롤백되는지 확인
+	// 一括変更中に失敗した場合、先行行の変更もロールバックされることを確認
 	@Test
 	public void testRollbackAllPricesWhenOneChangeFails() {
 		ItemVO item = createItem();
@@ -128,14 +128,14 @@ public class SalePriceServiceTests {
 		Long firstLineId = saved.getLines().get(0).getSaleLineId();
 		Long secondLineId = saved.getLines().get(1).getSaleLineId();
 
-		// 첫 번째 행은 정상 변경 요청
+		// 1行目は正常な変更リクエスト
 		SalePriceChangeVO firstChange = createChange(saleId, firstLineId, true, "2000");
 
-		// 두 번째 행은 단가가 없어 실패하도록 구성
+		// 2行目は単価を未設定にし、失敗させる
 		SalePriceChangeVO invalidChange = createChange(saleId, secondLineId, true, "3000");
 		invalidChange.setUnitPrice(null);
 
-		// 테스트용 판매 데이터는 유지하고 단가 변경 부분의 롤백을 검증
+		// テスト用売上データを保持し、単価変更部分のロールバックを検証
 		TransactionTemplate nestedTransaction = new TransactionTemplate(transactionManager);
 
 		nestedTransaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_NESTED);
@@ -148,7 +148,7 @@ public class SalePriceServiceTests {
 			});
 		});
 
-		// 실패 후 실제 저장값을 다시 조회
+		// 失敗後に実際の保存値を再取得
 		SaleVO unchanged = saleService.get(saleId);
 
 		assertNotNull(unchanged);
@@ -162,12 +162,12 @@ public class SalePriceServiceTests {
 		assertStockQuantity(warehouse, item, "-9");
 	}
 
-	// 같은 품목을 서로 다른 상세행 3개로 구성
+	// 同じ品目を異なる3つの明細行に設定
 	private SaleVO createSale(ItemVO item, WarehouseVO warehouse) {
 		SaleVO sale = new SaleVO();
 		sale.setBusinessDate(LocalDate.now().toString());
 		sale.setWarehouseId(warehouse.getWarehouseId());
-		sale.setNote("단가 일괄 변경 테스트");
+		sale.setNote("単価一括変更テスト");
 
 		sale.getLines().add(createLine(item, "2"));
 		sale.getLines().add(createLine(item, "3"));
@@ -188,7 +188,7 @@ public class SalePriceServiceTests {
 		return line;
 	}
 
-	// 단가 변경 요청 생성
+	// 単価変更リクエストを生成
 	private SalePriceChangeVO createChange(Long saleId, Long saleLineId, boolean selected, String unitPrice) {
 
 		SalePriceChangeVO change = new SalePriceChangeVO();
@@ -200,7 +200,7 @@ public class SalePriceServiceTests {
 		return change;
 	}
 
-	// 수량·단가·금액 확인
+	// 数量・単価・金額を確認
 	private void assertLineAmounts(SaleLineVO line, String quantity, String unitPrice, String supplyAmount,
 			String vatAmount, String totalAmount) {
 
@@ -229,10 +229,10 @@ public class SalePriceServiceTests {
 
 		ItemVO item = new ItemVO();
 		item.setItemCode("SPTEST" + token);
-		item.setItemName("단가 변경 테스트 품목 " + token);
+		item.setItemName("単価変更テスト品目 " + token);
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 		item.setInboundPrice(BigDecimal.ZERO);
 		item.setOutboundPrice(new BigDecimal("1000"));
 
@@ -244,8 +244,8 @@ public class SalePriceServiceTests {
 
 		WarehouseVO warehouse = new WarehouseVO();
 		warehouse.setWarehouseCode("SPWTEST" + token);
-		warehouse.setWarehouseName("단가 변경 테스트 창고 " + token);
-		warehouse.setWarehouseType("창고");
+		warehouse.setWarehouseName("単価変更テスト倉庫 " + token);
+		warehouse.setWarehouseType("倉庫");
 
 		return warehouse;
 	}

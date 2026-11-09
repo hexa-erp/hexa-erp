@@ -1,7 +1,7 @@
 <%@ page pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
-<aside class="sidebar" aria-label="업무 탐색">
+<aside class="sidebar" aria-label="業務ナビゲーション">
 	<div class="sidebar-heading">
 		<span class="sidebar-heading-icon" aria-hidden="true">
 			<svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
@@ -12,9 +12,9 @@
 				<rect x="9.5" y="9.5" width="5" height="5" rx="1" />
 			</svg>
 		</span>
-		<span>업무 메뉴</span>
+		<span>業務メニュー</span>
 	</div>
-	<nav class="sidebar-scroll" aria-label="전체 업무 메뉴">
+	<nav class="sidebar-scroll" aria-label="全業務メニュー">
 		<ul class="sidebar-groups">
 			<c:forEach var="group" items="${navigation}">
 				<c:set var="sidebarActive" value="${activeMenu eq group.key}" />

@@ -55,13 +55,13 @@ public class SaleListControllerTests {
 
 	private MockMvc mockMvc;
 
-	// MockMvc 객체 생성
+	// MockMvcオブジェクトを生成
 	@Before
 	public void setup() {
 		mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 	}
 
-	// 판매 목록 화면 확인
+	// 売上一覧画面を確認
 	@Test
 	public void testList() throws Exception {
 
@@ -92,7 +92,7 @@ public class SaleListControllerTests {
 		assertEquals(1, totalCount);
 	}
 
-	// 거래명세서 화면 확인
+	// 納品書画面を確認
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testStatement() throws Exception {
@@ -124,7 +124,7 @@ public class SaleListControllerTests {
 		assertEquals(0, new BigDecimal("33000").compareTo(totals.get("totalAmount")));
 	}
 
-	// 테스트 판매 저장
+	// テスト売上を保存
 	private SaleVO saveSale(String token) {
 		ItemVO item = createItem(token);
 
@@ -136,7 +136,7 @@ public class SaleListControllerTests {
 
 		sale.setBusinessDate(LocalDate.now().toString());
 
-		sale.setPartnerName("Controller 조회 거래처 " + token);
+		sale.setPartnerName("Controller一覧テスト取引先 " + token);
 
 		sale.setWarehouseId(warehouse.getWarehouseId());
 
@@ -157,29 +157,29 @@ public class SaleListControllerTests {
 		return saleService.get(saleId);
 	}
 
-	// 테스트 품목 생성
+	// テスト品目を生成
 	private ItemVO createItem(String token) {
 
 		ItemVO item = new ItemVO();
 
 		item.setItemCode("SLISTCTRL" + token);
 
-		item.setItemName("Controller 조회 품목 " + token);
+		item.setItemName("Controller一覧テスト品目 " + token);
 
 		item.setSpecification("100mm");
 		item.setUnit("EA");
-		item.setItemType("상품");
+		item.setItemType("商品");
 
 		item.setInboundPrice(new BigDecimal("7000"));
 
 		item.setOutboundPrice(new BigDecimal("10000"));
 
-		item.setNote("판매 조회 Controller 테스트");
+		item.setNote("売上一覧Controllerテスト");
 
 		return item;
 	}
 
-	// 테스트 구분값 생성
+	// テスト識別値を生成
 	private String createToken() {
 		return UUID.randomUUID().toString().replace("-", "").substring(0, 8);
 	}

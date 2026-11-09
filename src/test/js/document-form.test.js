@@ -1,4 +1,4 @@
-/* document-form.test.html을 Chrome에서 열어 실행한다. 추가 라이브러리 없이 실제 UI 스크립트를 검사한다. */
+/* document-form.test.htmlをChromeで開いて実行する。追加ライブラリなしで実際のUIスクリプトを検証する。 */
 (function() {
   'use strict';
   var types = [
@@ -26,20 +26,20 @@
     return '<div data-selector-field data-code-selector="' + type + '">'
       + input(type + 'Id', prefix + '01', 'type="hidden"')
       + '<input data-reference-code="' + type + 'Code" value="00001">'
-      + input(type + 'Name', '최초 ' + type, 'readonly')
-      + '<button type="button" data-pick="' + type + '">선택</button></div>';
+      + input(type + 'Name', '初期値 ' + type, 'readonly')
+      + '<button type="button" data-pick="' + type + '">選択</button></div>';
   }
   function row(c, i, saved) {
     var values = {};
     values[c.line] = saved ? String(700 + i) : '';
     if (c.source) values[c.source] = saved ? String(900 + i) : '';
     Object.assign(values, { itemId: saved ? String(500 + i) : '', itemCode: saved ? '00001' : '',
-      itemName: saved ? '기존 품목' : '', specification: '', unit: 'EA', quantity: saved ? '1.005' : '', note: '' });
+      itemName: saved ? '既存品目' : '', specification: '', unit: 'EA', quantity: saved ? '1.005' : '', note: '' });
     if (c.priced) Object.assign(values, { unitPrice: saved ? '100' : '', supplyAmount: '', vatAmount: '', totalAmount: '' });
     return '<tr data-line-row><td><input type="checkbox" class="line-select"><span data-line-number></span>'
       + Object.keys(values).map(function(key) {
         return input('lines[' + i + '].' + key, values[key], 'data-field="' + key + '"');
-      }).join('') + '<button type="button" data-line-pick>품목 선택</button>'
+      }).join('') + '<button type="button" data-line-pick>品目選択</button>'
       + '<output data-amount="supplyAmount"></output><output data-amount="vatAmount"></output>'
       + '<output data-amount="totalAmount"></output></td></tr>';
   }
@@ -50,11 +50,11 @@
       + input(c.header, c.edit ? '1001' : '', 'type="hidden"')
       + selector('partner', '1') + selector('assignee', '2') + selector('warehouse', '3')
       + '<section id="document-lines" data-line-id-field="' + c.line + '" data-source-id-field="' + c.source
-      + '" data-priced="' + c.priced + '"><button type="button" data-line-add>행 추가</button>'
-      + '<button type="button" data-lines-remove>선택 삭제</button><table><tbody id="line-body">' + rows + '</tbody></table>'
+      + '" data-priced="' + c.priced + '"><button type="button" data-line-add>行追加</button>'
+      + '<button type="button" data-lines-remove>選択削除</button><table><tbody id="line-body">' + rows + '</tbody></table>'
       + '<template id="line-template"><table></table></template><div id="removed-line-ids"></div></section>'
       + '<span id="line-total-quantity"></span><span id="line-total-supply"></span><span id="line-total-vat"></span>'
-      + '<span id="line-total-amount"></span><button type="reset">다시 작성</button></form>'
+      + '<span id="line-total-amount"></span><button type="reset">再入力</button></form>'
       + '<form id="other-form">' + selector('partner', '8') + selector('assignee', '9') + '</form>';
   }
   function run(c) {
@@ -80,7 +80,7 @@
     function checkIndexes() {
       $body.children('tr').each(function(i) {
         $(this).find('[data-field]').each(function() {
-          equal(this.name, 'lines[' + i + '].' + $(this).attr('data-field'), '행 인덱스');
+          equal(this.name, 'lines[' + i + '].' + $(this).attr('data-field'), '行インデックス');
         });
       });
     }
@@ -88,72 +88,72 @@
     Hexa.notice = function(message) { throw new Error(message); };
     (async function() {
       var expectedRows = c.rows || (c.edit ? 0 : 3);
-      equal($body.children('tr').length, expectedRows, '최초 행 수');
-      equal($form.attr('method'), 'post', '제출 방식');
-      equal($form.attr('action'), '/' + c.type + '/save', '제출 경로');
+      equal($body.children('tr').length, expectedRows, '初期行数');
+      equal($form.attr('method'), 'post', '送信方法');
+      equal($form.attr('action'), '/' + c.type + '/save', '送信先');
       var initial = snapshot(), counts = {};
       $form.find('[data-code-selector] input').each(function() {
         var key = this.name || $(this).attr('data-reference-code');
         counts[key] = 0;
         this.addEventListener('change', function() { counts[key]++; });
       });
-      var linked = { partnerId: 42, partnerCode: '00002', partnerName: '새 거래처',
-        assigneeId: 102, assigneeCode: '00007', assigneeName: '담당자' };
+      var linked = { partnerId: 42, partnerCode: '00002', partnerName: '新しい取引先',
+        assigneeId: 102, assigneeCode: '00007', assigneeName: '担当者' };
       pick('partner', linked);
-      equal(selected('partner'), ['42', '00002', '새 거래처'], '거래처 선택');
-      equal(selected('assignee'), ['102', '00007', '담당자'], '담당자 자동 반영');
+      equal(selected('partner'), ['42', '00002', '新しい取引先'], '取引先選択');
+      equal(selected('assignee'), ['102', '00007', '担当者'], '担当者の自動反映');
       ['partnerId', 'partnerCode', 'partnerName', 'assigneeId', 'assigneeCode', 'assigneeName'].forEach(function(key) {
-        equal(counts[key], 1, key + ' change 1회');
+        equal(counts[key], 1, key + ' change 1回');
       });
-      var manual = { assigneeId: 103, assigneeCode: '00009', assigneeName: '수동 담당자' };
+      var manual = { assigneeId: 103, assigneeCode: '00009', assigneeName: '手動選択担当者' };
       pick('assignee', manual);
-      equal(selected('assignee'), ['103', '00009', '수동 담당자'], '수동 선택 유지');
-      pick('partner', { partnerId: 43, partnerCode: '00003', partnerName: '미지정', assigneeName: '이름만 있음' });
-      equal(selected('assignee'), ['', '', ''], '담당자 없는 거래처');
+      equal(selected('assignee'), ['103', '00009', '手動選択担当者'], '手動選択の保持');
+      pick('partner', { partnerId: 43, partnerCode: '00003', partnerName: '未指定', assigneeName: '名前のみ' });
+      equal(selected('assignee'), ['', '', ''], '担当者なしの取引先');
       pick('partner', linked);
-      pick('partner', { partnerId: 44, partnerCode: '00004', partnerName: '불완전', assigneeId: 102 });
-      equal(selected('assignee'), ['', '', ''], '불완전한 담당자 값도 섞지 않음');
+      pick('partner', { partnerId: 44, partnerCode: '00004', partnerName: '不完全', assigneeId: 102 });
+      equal(selected('assignee'), ['', '', ''], '不完全な担当者情報を組み合わせない');
       await reset();
-      equal(snapshot(), initial, '헤더·선택·최초 행 초기화');
+      equal(snapshot(), initial, 'ヘッダー・選択値・初期行をリセット');
       pick('partner', linked, document.getElementById('other-form'));
-      equal(selected('assignee', document.getElementById('other-form')), ['901', '00001', '최초 assignee'], '입력 Form 밖 전파 없음');
+      equal(selected('assignee', document.getElementById('other-form')), ['901', '00001', '初期assignee'], '入力フォームの外には伝播しない');
       $form.find('[data-code-selector="partner"] input').val('');
       HexaReference.applySource(form, linked);
-      equal(selected('assignee'), ['201', '00001', '최초 assignee'], '원전표는 기존 담당자 보존');
+      equal(selected('assignee'), ['201', '00001', '初期assignee'], '元伝票の担当者を保持');
       await reset();
       $form.find('[data-line-add]').trigger('click');
-      equal($body.children('tr').length, expectedRows + 1, '행 추가 1회');
-      nextRow = { itemId: 501, itemCode: '00001', itemName: '품목', unit: 'EA', specification: '규격', outboundPrice: 100 };
+      equal($body.children('tr').length, expectedRows + 1, '行追加1回');
+      nextRow = { itemId: 501, itemCode: '00001', itemName: '品目', unit: 'EA', specification: '規格', outboundPrice: 100 };
       $body.children('tr').last().find('[data-line-pick]').trigger('click');
       $body.children('tr').last().find('[data-field="quantity"]').val('1.005').trigger('input');
       if (c.priced) {
         ['101', '10', '111'].forEach(function(value, i) {
-          equal($body.children('tr').last().find('[data-field="' + ['supplyAmount', 'vatAmount', 'totalAmount'][i] + '"]').val(), value, '소수 금액');
+          equal($body.children('tr').last().find('[data-field="' + ['supplyAmount', 'vatAmount', 'totalAmount'][i] + '"]').val(), value, '小数の金額');
         });
       }
       $body.children('tr').last().find('.line-select').prop('checked', true);
       $form.find('[data-lines-remove]').trigger('click');
-      equal($('#removed-line-ids input').length, 0, '신규 행 삭제 ID 없음');
+      equal($('#removed-line-ids input').length, 0, '新規行の削除IDはなし');
       $body.find('.line-select').prop('checked', true);
       $form.find('[data-lines-remove]').trigger('click');
-      equal($body.children('tr').length, 0, '전체 선택 삭제');
-      equal($('#removed-line-ids input').map(function() { return this.value; }).get(), c.rows ? ['700', '701'] : [], '기존 행만 삭제 ID');
+      equal($body.children('tr').length, 0, '全行を選択して削除');
+      equal($('#removed-line-ids input').map(function() { return this.value; }).get(), c.rows ? ['700', '701'] : [], '既存行だけを削除IDに追加');
       await reset();
-      equal(snapshot(), initial, '행 삭제 후 다시 작성');
+      equal(snapshot(), initial, '行削除後の再入力');
       checkIndexes();
       for (var repeat = 0; repeat < 3; repeat++) {
         var before = picks;
         pick('partner', linked);
-        equal(picks - before, 1, '반복 선택 1회');
+        equal(picks - before, 1, '繰り返し選択しても1回');
         await reset();
-        equal(snapshot(), initial, '반복 초기화');
+        equal(snapshot(), initial, '繰り返し初期化');
       }
       var cancel = function(event) { event.preventDefault(); };
       form.addEventListener('reset', cancel);
       pick('partner', linked);
       var beforeCancel = snapshot();
       await reset();
-      equal(snapshot(), beforeCancel, '취소된 reset 보존');
+      equal(snapshot(), beforeCancel, 'キャンセルされたresetを保持');
       form.removeEventListener('reset', cancel);
       return checks;
     })().then(function() {
@@ -165,12 +165,12 @@
   function next() {
     if (index >= cases.length) {
       result.complete = true;
-      document.getElementById('results').textContent += '\n완료: ' + result.passed + '개 통과 / ' + result.failed + '개 실패 / ' + result.checks + '개 확인';
+      document.getElementById('results').textContent += '\n完了: ' + result.passed + '件成功 / ' + result.failed + '件失敗 / ' + result.checks + '件確認';
       return;
     }
     var c = cases[index];
     frame = document.createElement('iframe');
-    frame.title = c.type + ' 테스트';
+    frame.title = c.type + ' テスト';
     frame.hidden = true;
     var base = new URL('../../main/webapp/resources/js/', location.href).href;
     frame.srcdoc = '<!doctype html><meta charset="UTF-8"><body>' + fixture(c)
@@ -178,16 +178,16 @@
       + scripts.map(function(src) { return '<script src="' + base + src + '"><\/script>'; }).join('')
       + '<script>(' + run.toString() + ')(' + JSON.stringify(c) + ');<\/script></body>';
     document.body.appendChild(frame);
-    timer = setTimeout(function() { finish({ checks: 0, error: '스크립트 로딩/실행 시간 초과' }); }, 10000);
+    timer = setTimeout(function() { finish({ checks: 0, error: 'スクリプトの読み込みまたは実行がタイムアウト' }); }, 10000);
   }
   function finish(message) {
     clearTimeout(timer);
     var c = cases[index];
-    var name = c.type + ' ' + (c.edit ? '수정' : '신규') + ' / 기존 ' + c.rows + '행';
+    var name = c.type + ' ' + (c.edit ? '更新' : '新規') + ' / 既存 ' + c.rows + '行';
     result.checks += message.checks;
     result[message.error ? 'failed' : 'passed']++;
     result.cases.push({ name: name, checks: message.checks, error: message.error });
-    document.getElementById('results').textContent += '\n' + (message.error ? '실패 ' : '통과 ') + name + (message.error ? ': ' + message.error : '');
+    document.getElementById('results').textContent += '\n' + (message.error ? '失敗 ' : '成功 ') + name + (message.error ? ': ' + message.error : '');
     frame.remove();
     index++;
     next();

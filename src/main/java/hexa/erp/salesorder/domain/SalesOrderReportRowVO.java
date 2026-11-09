@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 import lombok.Data;
 
-//주문서 현황 및 미판매 현황 품목 행 별 상세
+//受注集計と未売上一覧の品目行別明細
 @Data
 public class SalesOrderReportRowVO {
 
@@ -35,7 +35,7 @@ public class SalesOrderReportRowVO {
 	private String unit;
 	private String note;
 
-	// 주문서에 등록된 기존 수량
+	// 受注伝票に登録されている数量
 	private BigDecimal quantity;
 
 	private BigDecimal unitPrice;
@@ -43,10 +43,10 @@ public class SalesOrderReportRowVO {
 	private BigDecimal vatAmount;
 	private BigDecimal totalAmount;
 
-	// 미판매 현황: 판매 수량을 차감한 잔여 수량
+	// 未売上一覧：売上数量を差し引いた残数量
 	private BigDecimal remainingQuantity;
 
-	// 미판매 현황: 잔여 수량 기준 공급가액 및 부가세
+	// 未売上一覧：残数量を基にした税抜金額と消費税
 	private BigDecimal remainingSupplyAmount;
 	private BigDecimal remainingVatAmount;
 

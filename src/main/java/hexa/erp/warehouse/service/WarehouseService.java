@@ -7,18 +7,18 @@ import hexa.erp.warehouse.domain.WarehouseVO;
 
 public interface WarehouseService {
 
-	// 창고 목록 조회
+	// 倉庫一覧を取得する。
 	List<WarehouseVO> getList(WarehouseCriteria criteria);
 
-	// 검색 조건 전체 건수 조회
+	// 検索条件に一致する総件数を取得する。
 	int getTotal(WarehouseCriteria criteria);
 
-	// 신규 창고 등록
+	// 新規倉庫を登録する。
 	void register(WarehouseVO warehouse);
 
-	// 기존 창고 정보 수정
+	// 既存の倉庫情報を更新する。
 	boolean modify(WarehouseVO warehouse);
 
-	// 창고 사용 여부 변경
+	// 倉庫の利用状態を変更する。
 	int changeActive(List<Long> ids, String activeFlag);
 }

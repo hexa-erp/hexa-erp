@@ -28,12 +28,13 @@ public class ShipmentController {
 	@Setter(onMethod_ = @Autowired)
 	private ShipmentService service;
 
+	// 削除されていない出荷を日付・IDの降順で表示する。初期状態は全件・1ページ目（25件）とする。
 	@GetMapping("/list")
 	public String list(ShipmentCriteria criteria, @RequestParam Map<String, String> params, Model model) {
-		log.info("출하 목록 조회 요청");
+		log.info("出荷一覧の取得リクエスト");
 		int totalCount = service.getTotal(criteria);
 		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / criteria.getPageSize()));
-		// 삭제 등으로 페이지 수가 줄면 마지막 페이지를 보여준다.
+		// 削除などでページ数が減った場合は最終ページを表示する。
 		criteria.setPage(Math.min(criteria.getPage(), totalPages));
 		Map<String, String> search = ViewModels.search(params);
 		search.put("keyword", criteria.getKeyword());
@@ -48,7 +49,7 @@ public class ShipmentController {
 		model.addAttribute("totalCount", totalCount);
 		model.addAttribute("basePath", "/shipment/list");
 		model.addAttribute("activeMenu", "shipment");
-		model.addAttribute("pageTitle", "출하 조회");
+		model.addAttribute("pageTitle", "出荷一覧");
 		return "shipment/list";
 	}
 
@@ -56,18 +57,20 @@ public class ShipmentController {
 	public String form(@RequestParam(value = "id", required = false) Long id,
 			@RequestParam(value = "shipmentId", required = false) Long shipmentId, HttpServletRequest request,
 			Model model, RedirectAttributes rttr) {
-		log.info("출하 입력 화면 요청");
-		// id와 shipmentId 중 하나라도 있으면 수정 화면이다.
+		log.info("出荷入力画面の表示リクエスト");
+		// idまたはshipmentIdのいずれかが指定されていれば更新画面を表示する。
 		Long documentId = id == null ? shipmentId : id;
 		ShipmentVO form;
+		// IDなしで開いた場合は、本日の日付を設定した空の出荷を表示する。
 		if (documentId == null) {
 			form = new ShipmentVO();
 			form.setBusinessDate(LocalDate.now().toString());
 			form.setProgressStatus("CONFIRMED");
 		} else {
+			// IDを指定した場合は保存済みの基本情報と品目行を表示し、対象がなければ案内を表示して一覧に戻る。
 			form = service.get(documentId);
 			if (form == null) {
-				rttr.addFlashAttribute("errorMessage", "조회할 출하가 없습니다.");
+				rttr.addFlashAttribute("errorMessage", "表示対象の出荷情報がありません。");
 				return PostRedirects.toList("/shipment/list", request);
 			}
 		}
@@ -75,7 +78,7 @@ public class ShipmentController {
 		model.addAttribute("mode", documentId == null ? "create" : "edit");
 		model.addAttribute("isEdit", documentId != null);
 		model.addAttribute("activeMenu", "shipment");
-		model.addAttribute("pageTitle", "출하 입력");
+		model.addAttribute("pageTitle", "出荷入力");
 		return "shipment/form";
 	}
 }

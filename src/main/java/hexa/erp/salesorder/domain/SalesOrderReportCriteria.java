@@ -6,7 +6,7 @@ import java.util.List;
 
 import lombok.Data;
 
-//주문서 현황 및 미판매 현황 검색 조건
+//受注集計と未売上一覧の検索条件
 @Data
 public class SalesOrderReportCriteria {
 
@@ -14,7 +14,7 @@ public class SalesOrderReportCriteria {
 	private String endDate;
 	private String dueStartDate;
 	private String dueEndDate;
-	// 미판매 현황: 판매 여부 및 잔여 수량 계산 기준일
+	// 未売上一覧：売上の有無と残数量を判定する基準日
 	private String cutoffDate;
 
 	private String keyword;

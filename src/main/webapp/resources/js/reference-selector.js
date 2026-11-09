@@ -1,4 +1,4 @@
-/* 선택한 항목의 ID·코드·이름을 함께 반영한다. */
+/* 選択項目のID・コード・名称を一緒に反映する。 */
 (function($) {
 	'use strict';
 	var $boxes = $('[data-code-selector]');
@@ -20,12 +20,13 @@
 		};
 	}
 
+	// コードを入力しただけでは選択確定としない。IDが未確定なら案内を表示し、フォームの保存を禁止する。
 	function refresh(box) {
 		var fields = controls(box);
 		var pending = fields.$code.val().trim() !== ''
 				&& fields.$id.val().trim() === '';
 		fields.$code[0]
-				.setCustomValidity(pending ? '입력한 코드로 검색한 뒤 목록에서 항목을 선택해 주세요.'
+				.setCustomValidity(pending ? '入力したコードで検索し、一覧から項目を選択してください。'
 						: '');
 		if (pending)
 			fields.$code.attr('aria-invalid', 'true');
@@ -33,6 +34,7 @@
 			fields.$code.removeAttr('aria-invalid');
 	}
 
+	// 選択したID・コード・名称を入力欄へ設定し、IDを保存用の値として保持する。
 	function apply(box, row) {
 		var fields = controls(box);
 		fields.$id.val(text(row[fields.type + 'Id']));
@@ -58,11 +60,11 @@
 									|| !text(row[fields.type + 'Code'])
 									|| !text(row[fields.type + 'Name'])) {
 								window.Hexa
-										.notice('선택 데이터에 ID·코드·이름이 필요합니다. 조회 API 응답을 확인해 주세요.');
+										.notice('選択データにはID・コード・名称が必要です。照会APIの応答を確認してください。');
 								return;
 							}
 							apply(box, row);
-							// 거래처를 직접 선택하면 연결된 담당자도 반영한다.
+							// 取引先を選択すると関連する担当者を自動反映し、関連担当者がいない場合は既存の担当者を空にする。
 							if (fields.type === 'partner') {
 								var $assignee = $(box).closest('form[data-document-form]')
 										.find('[data-code-selector="assignee"]');
@@ -82,7 +84,7 @@
 	$boxes.on('input.hexaReference', '[data-reference-code]', function() {
 		var box = $(this).closest('[data-code-selector]')[0];
 		var fields = controls(box);
-		// 코드를 다시 입력하면 이전 선택을 해제한다.
+		// コードを再入力すると前回の選択を解除する。
 		fields.$id.val('');
 		fields.$name.val('');
 		refresh(box);
@@ -93,9 +95,10 @@
 		});
 	});
 
+	// 取引先・担当者・倉庫のコード入力後、Enterキーで入力コードによる選択一覧を開く。
 	$boxes.on('keydown.hexaReference', '[data-reference-code]', function(e) {
 		var event = e.originalEvent || e;
-		// 한글 입력을 확정하는 Enter는 검색에서 제외한다.
+		// IME入力の確定に使ったEnterでは検索しない。
 		if (e.key !== 'Enter' || event.isComposing || event.keyCode === 229)
 			return;
 		e.preventDefault();
@@ -116,7 +119,7 @@
 			$(form).find('[data-code-selector]').each(
 					function() {
 						var fields = controls(this);
-						// 이미 입력하거나 선택한 항목은 그대로 둔다.
+						// 入力済み・選択済みの項目は維持する。
 						if (fields.$id.val() || fields.$code.val()
 								|| fields.$name.val())
 							return;
